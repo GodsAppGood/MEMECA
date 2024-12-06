@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
@@ -9,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SubmitMeme = () => {
   const [title, setTitle] = useState("");
@@ -23,6 +24,7 @@ const SubmitMeme = () => {
   const [dragActive, setDragActive] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -51,7 +53,6 @@ const SubmitMeme = () => {
   const handleFile = (file?: File) => {
     if (!file) return;
 
-    // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!validTypes.includes(file.type)) {
       toast({
@@ -62,7 +63,6 @@ const SubmitMeme = () => {
       return;
     }
 
-    // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -76,7 +76,7 @@ const SubmitMeme = () => {
     setImageUrl(url);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!imageUrl) {
@@ -87,6 +87,29 @@ const SubmitMeme = () => {
       });
       return;
     }
+
+    const newMeme = {
+      id: Date.now().toString(),
+      title,
+      description,
+      blockchain,
+      date: date ? format(date, "PPP") : "",
+      twitterLink,
+      telegramLink,
+      imageUrl,
+    };
+
+    // Get existing memes
+    const existingMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+    
+    // Add new meme
+    const updatedMemes = [newMeme, ...existingMemes];
+    
+    // Save to localStorage
+    localStorage.setItem("memes", JSON.stringify(updatedMemes));
+    
+    // Invalidate and refetch memes query
+    await queryClient.invalidateQueries({ queryKey: ["memes"] });
     
     toast({
       title: "Success!",
