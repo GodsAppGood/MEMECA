@@ -16,12 +16,12 @@ export const Hero = () => {
       <div className="absolute inset-0 bg-black/30"></div>
       
       {/* Content */}
-      <div className="relative container mx-auto h-full flex flex-col items-center justify-center gap-8">
-        <h1 className="text-6xl font-serif text-white">MemeCatLandar</h1>
+      <div className="relative container mx-auto h-full flex flex-col items-center justify-center gap-20">
+        <h1 className="text-6xl font-serif text-white mt-[-100px]">MemeCatLandar</h1>
         <img
           src="/lovable-uploads/d7914495-21a4-4298-b790-e4f4e80f3df4.png"
           alt="MemeCatLandar Logo"
-          className="w-64 h-64 object-contain animate-float"
+          className="w-[640px] h-[640px] object-contain animate-float"
         />
       </div>
     </div>
