@@ -21,7 +21,7 @@ export const Filters = () => {
                 {date ? format(date, "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
+            <PopoverContent className="w-auto p-0" align="center" sideOffset={4}>
               <Calendar
                 mode="single"
                 selected={date}
@@ -38,7 +38,12 @@ export const Filters = () => {
             <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg">
               <SelectValue placeholder="Select blockchain" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent 
+              position="popper" 
+              className="w-[280px]" 
+              align="center"
+              sideOffset={4}
+            >
               <SelectItem value="solana" className="font-serif">Solana</SelectItem>
               <SelectItem value="ethereum" className="font-serif">Ethereum</SelectItem>
               <SelectItem value="polygon" className="font-serif">Polygon</SelectItem>
