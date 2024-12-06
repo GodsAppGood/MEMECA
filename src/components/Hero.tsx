@@ -19,7 +19,7 @@ export const Hero = () => {
       <div className="relative container mx-auto h-full flex flex-col items-center justify-center gap-8">
         <h1 className="text-6xl font-serif text-white">MemeCatLandar</h1>
         <img
-          src="/lovable-uploads/87184899-3fb7-4bcc-bad1-19e67505da5c.png"
+          src="/lovable-uploads/d7914495-21a4-4298-b790-e4f4e80f3df4.png"
           alt="MemeCatLandar Logo"
           className="w-64 h-64 object-contain animate-float"
         />
