@@ -38,7 +38,7 @@ export default {
         },
       },
       fontFamily: {
-        serif: ["Palatino", "Hoefler Text", "Times New Roman", "serif"],
+        serif: ["Hoefler Text", "Palatino", "Times New Roman", "serif"],
       },
       keyframes: {
         "accordion-down": {
