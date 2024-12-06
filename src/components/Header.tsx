@@ -18,7 +18,6 @@ export const Header = () => {
     onSuccess: (response) => {
       console.log('Login Success:', response);
       setIsLoginOpen(false);
-      // Here you would typically send the token to your backend
     },
     onError: () => {
       console.log('Login Failed');
@@ -78,8 +77,15 @@ export const Header = () => {
           </Link>
         </div>
         
-        <div className="text-primary font-serif text-xl">
-          {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
+        <div className="flex items-center gap-4">
+          <img 
+            src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
+            alt="Cat Logo" 
+            className="h-12 w-12 animate-float"
+          />
+          <div className="text-primary font-serif text-xl">
+            {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
+          </div>
         </div>
         
         <div className="flex gap-4">
