@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import SubmitMeme from "./pages/SubmitMeme";
 import MemeDetail from "./pages/MemeDetail";
+import TopMemes from "./pages/TopMemes";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/submit" element={<SubmitMeme />} />
           <Route path="/meme/:id" element={<MemeDetail />} />
+          <Route path="/top-memes" element={<TopMemes />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

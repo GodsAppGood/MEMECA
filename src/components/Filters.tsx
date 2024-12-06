@@ -3,12 +3,17 @@ import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { format } from "date-fns";
-import { useState } from "react";
 import { Calendar as CalendarIcon } from "lucide-react";
 
-export const Filters = () => {
-  const [date, setDate] = useState<Date>();
-  
+interface FiltersProps {
+  date: Date | undefined;
+  setDate: (date: Date | undefined) => void;
+  blockchain: string | undefined;
+  setBlockchain: (blockchain: string) => void;
+  onSearch: () => void;
+}
+
+export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: FiltersProps) => {
   return (
     <div className="container mx-auto px-4 py-16 overflow-x-hidden">
       <div className="flex flex-wrap gap-8 items-center justify-center">
@@ -39,7 +44,7 @@ export const Filters = () => {
 
         <div className="flex flex-col items-center gap-4">
           <span className="font-serif text-2xl">2</span>
-          <Select>
+          <Select value={blockchain} onValueChange={setBlockchain}>
             <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg">
               <SelectValue placeholder="Select blockchain" />
             </SelectTrigger>
@@ -64,6 +69,7 @@ export const Filters = () => {
             onClick={() => {
               const audio = new Audio('/meow.mp3');
               audio.play().catch(console.error);
+              onSearch();
             }}
           >
             MEOW

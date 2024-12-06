@@ -1,20 +1,29 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
-import { Hero } from "@/components/Hero";
 import { Filters } from "@/components/Filters";
 import { MemeGrid } from "@/components/MemeGrid";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
+import { useQuery } from "@tanstack/react-query";
 
-const Index = () => {
+const TopMemes = () => {
   const [date, setDate] = useState<Date>();
   const [blockchain, setBlockchain] = useState<string>();
+
+  const { data: memes = [] } = useQuery({
+    queryKey: ["memes"],
+    queryFn: () => {
+      const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+      return storedMemes
+        .filter((meme: any) => (meme.likes || 0) > 0)
+        .sort((a: any, b: any) => (b.likes || 0) - (a.likes || 0));
+    },
+  });
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="pt-16">
-        <Hero />
         <Filters
           date={date}
           setDate={setDate}
@@ -30,4 +39,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default TopMemes;
