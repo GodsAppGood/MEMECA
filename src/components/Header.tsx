@@ -67,7 +67,7 @@ export const Header = () => {
               Submit meme
             </Button>
           </Link>
-          <Button variant="outline" className="text-primary-foreground border-primary hover:bg-primary/10 font-serif">
+          <Button className="bg-[#FF4500] hover:bg-[#FF4500]/90 font-serif">
             Log In
           </Button>
         </div>

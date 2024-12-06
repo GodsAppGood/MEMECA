@@ -14,6 +14,14 @@ interface FiltersProps {
 }
 
 export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: FiltersProps) => {
+  const blockchains = [
+    "Solana", "Ethereum", "Polygon", "Ton", "BSC", "Base", "Arbitrum", 
+    "Avalanche", "Hyperliquid", "Optimism", "Sui", "Celo", "Osmosis", 
+    "Pulsechain", "Blast", "Mantle", "Aptos", "Linea", "Sei", "Starknet", 
+    "Chronos", "Fantom", "Tron", "Hedera", "Zksync", "Gnosis", "Scroll", 
+    "Cordano", "Near", "Manta", "Injective", "Zora"
+  ];
+
   return (
     <div className="container mx-auto px-4 py-16 overflow-x-hidden">
       <div className="flex flex-wrap gap-8 items-center justify-center">
@@ -27,7 +35,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
               </Button>
             </PopoverTrigger>
             <PopoverContent 
-              className="w-auto p-0" 
+              className="w-auto p-0 bg-white" 
               align="center" 
               sideOffset={4}
               side="bottom"
@@ -37,6 +45,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
                 selected={date}
                 onSelect={setDate}
                 initialFocus
+                className="bg-white"
               />
             </PopoverContent>
           </Popover>
@@ -50,14 +59,20 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
             </SelectTrigger>
             <SelectContent 
               position="popper" 
-              className="w-[280px]" 
+              className="w-[280px] bg-white" 
               align="center"
               sideOffset={4}
               side="bottom"
             >
-              <SelectItem value="solana" className="font-serif">Solana</SelectItem>
-              <SelectItem value="ethereum" className="font-serif">Ethereum</SelectItem>
-              <SelectItem value="polygon" className="font-serif">Polygon</SelectItem>
+              {blockchains.map((chain) => (
+                <SelectItem 
+                  key={chain.toLowerCase()} 
+                  value={chain.toLowerCase()} 
+                  className="font-serif"
+                >
+                  {chain}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
