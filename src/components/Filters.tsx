@@ -10,7 +10,7 @@ export const Filters = () => {
   const [date, setDate] = useState<Date>();
   
   return (
-    <div className="container mx-auto px-4 py-16">
+    <div className="container mx-auto px-4 py-16 overflow-x-hidden">
       <div className="flex flex-wrap gap-8 items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <span className="font-serif text-2xl">1</span>
@@ -21,7 +21,12 @@ export const Filters = () => {
                 {date ? format(date, "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="center" sideOffset={4}>
+            <PopoverContent 
+              className="w-auto p-0" 
+              align="center" 
+              sideOffset={4}
+              side="bottom"
+            >
               <Calendar
                 mode="single"
                 selected={date}
@@ -43,6 +48,7 @@ export const Filters = () => {
               className="w-[280px]" 
               align="center"
               sideOffset={4}
+              side="bottom"
             >
               <SelectItem value="solana" className="font-serif">Solana</SelectItem>
               <SelectItem value="ethereum" className="font-serif">Ethereum</SelectItem>
