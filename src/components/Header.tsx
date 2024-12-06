@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { useGoogleLogin } from '@react-oauth/google';
+import { Home } from "lucide-react";
 
 export const Header = () => {
   const [timeLeft, setTimeLeft] = useState({
@@ -8,6 +11,18 @@ export const Header = () => {
     hours: 15,
     minutes: 12,
     seconds: 0,
+  });
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
+
+  const login = useGoogleLogin({
+    onSuccess: (response) => {
+      console.log('Login Success:', response);
+      setIsLoginOpen(false);
+      // Here you would typically send the token to your backend
+    },
+    onError: () => {
+      console.log('Login Failed');
+    }
   });
 
   useEffect(() => {
@@ -45,6 +60,12 @@ export const Header = () => {
     <header className="fixed top-0 left-0 right-0 bg-secondary/95 backdrop-blur-sm z-50">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex gap-4">
+          <Link to="/">
+            <Button variant="ghost" className="text-primary-foreground hover:text-primary font-serif">
+              <Home className="mr-2 h-4 w-4" />
+              Home
+            </Button>
+          </Link>
           <Link to="/story">
             <Button variant="ghost" className="text-primary-foreground hover:text-primary font-serif">
               My Story
@@ -67,11 +88,35 @@ export const Header = () => {
               Submit meme
             </Button>
           </Link>
-          <Button className="bg-[#FF4500] hover:bg-[#FF4500]/90 font-serif">
+          <Button 
+            className="bg-[#FF4500] hover:bg-[#FF4500]/90 font-serif"
+            onClick={() => setIsLoginOpen(true)}
+          >
             Log In
           </Button>
         </div>
       </nav>
+
+      <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Login with Google</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <Button
+              onClick={() => login()}
+              className="bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
+            >
+              <img
+                src="https://developers.google.com/identity/images/g-logo.png"
+                alt="Google"
+                className="w-6 h-6 mr-2"
+              />
+              Continue with Google
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 };
