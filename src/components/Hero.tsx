@@ -21,7 +21,7 @@ export const Hero = () => {
         muted
         playsInline
       >
-        <source src="/lovable-uploads/28357d75-d362-4c2f-8653-5eec16d19c13.mp4" type="video/mp4" />
+        <source src="https://cdn.pixabay.com/video/2022/05/20/117606-712421887_large.mp4" type="video/mp4" />
       </video>
       <div className="absolute inset-0 bg-black/50">
         <div className="flex items-center justify-center h-full">
