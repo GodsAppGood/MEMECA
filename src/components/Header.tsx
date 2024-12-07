@@ -15,7 +15,7 @@ export const Header = () => {
   const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    const countdownDate = new Date("2023-12-31T23:59:59").getTime();
+    const countdownDate = new Date("2024-12-22T22:22:00Z").getTime();
     const interval = setInterval(() => {
       const now = new Date().getTime();
       const distance = countdownDate - now;
@@ -48,53 +48,56 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
-        <div className="mr-4 hidden md:flex">
-          <Link to="/" className="mr-6 flex items-center space-x-2">
-            <span className="hidden font-bold sm:inline-block">
-              Meme Platform
-            </span>
-          </Link>
+        <div className="flex items-center space-x-6">
+          {!imageError ? (
+            <img 
+              src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
+              alt="Logo" 
+              className="h-8 w-8 animate-float"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-gray-500 text-xs">Logo</span>
+            </div>
+          )}
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link
-              to="/submit"
-              className="transition-colors hover:text-foreground/80 text-foreground"
+              to="/"
+              className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
             >
-              Submit Meme
+              Home
             </Link>
             <Link
               to="/top-memes"
-              className="transition-colors hover:text-foreground/80 text-foreground"
+              className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
             >
               Top Memes
             </Link>
             <Link
-              to="/"
-              className="transition-colors hover:text-foreground/80 text-foreground"
+              to="/my-story"
+              className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
             >
-              Home
+              My Story
             </Link>
           </nav>
         </div>
-        
-        <div className="flex items-center gap-4">
-          {!imageError ? (
-            <img 
-              src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
-              alt="Cat Logo" 
-              className="h-12 w-12 animate-float"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="h-12 w-12 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-gray-500 text-xs">Logo</span>
-            </div>
-          )}
+
+        <div className="flex-1 flex justify-center">
           <div className="text-primary font-serif text-xl">
             {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
           </div>
         </div>
-        
-        <div className="flex gap-4">
+
+        <div className="flex items-center space-x-4">
+          <Link to="/submit">
+            <Button
+              variant="ghost"
+              className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
+            >
+              Submit Meme
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"

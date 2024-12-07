@@ -6,12 +6,15 @@ import { Support } from "@/components/Support";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+
+const MAX_DESCRIPTION_LENGTH = 200;
 
 const SubmitMeme = () => {
   const [title, setTitle] = useState("");
@@ -25,6 +28,15 @@ const SubmitMeme = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+    if (text.length <= MAX_DESCRIPTION_LENGTH) {
+      setDescription(text);
+    }
+  };
+
+  const remainingChars = MAX_DESCRIPTION_LENGTH - description.length;
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -174,12 +186,16 @@ const SubmitMeme = () => {
 
                 <div>
                   <label className="block text-sm font-serif mb-2">Short Description</label>
-                  <Input
+                  <Textarea
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="font-serif"
-                    placeholder="Enter description"
+                    onChange={handleDescriptionChange}
+                    className="font-serif resize-none"
+                    placeholder="Enter description (max 200 characters)"
+                    maxLength={MAX_DESCRIPTION_LENGTH}
                   />
+                  <p className="text-sm text-gray-500 mt-1">
+                    {remainingChars} characters remaining
+                  </p>
                 </div>
 
                 <div>
