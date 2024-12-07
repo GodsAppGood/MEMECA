@@ -1,125 +1,120 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
-import { useEffect, useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { useGoogleLogin } from '@react-oauth/google';
-import { Home } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { GoogleLogin } from "@react-oauth/google";
 
 export const Header = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 22,
-    hours: 15,
-    minutes: 12,
-    seconds: 0,
-  });
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-
-  const login = useGoogleLogin({
-    onSuccess: (response) => {
-      console.log('Login Success:', response);
-      setIsLoginOpen(false);
-    },
-    onError: () => {
-      console.log('Login Failed');
-    }
-  });
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        let { days, hours, minutes, seconds } = prev;
-        
-        if (seconds > 0) {
-          seconds--;
-        } else {
-          seconds = 59;
-          if (minutes > 0) {
-            minutes--;
-          } else {
-            minutes = 59;
-            if (hours > 0) {
-              hours--;
-            } else {
-              hours = 23;
-              if (days > 0) {
-                days--;
-              }
-            }
-          }
-        }
-        
-        return { days, hours, minutes, seconds };
-      });
+    const countdownDate = new Date("2023-12-31T23:59:59").getTime();
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = countdownDate - now;
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      if (distance < 0) {
+        clearInterval(interval);
+      } else {
+        setTimeLeft({ days, hours, minutes, seconds });
+      }
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => clearInterval(interval);
   }, []);
 
+  const handleLoginSuccess = (response: any) => {
+    console.log('Login Success:', response);
+    setIsLoginOpen(false);
+  };
+
+  const handleLoginError = () => {
+    console.log('Login Failed');
+    setIsLoginOpen(false);
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 bg-secondary/95 backdrop-blur-sm z-50">
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex gap-4">
-          <Link to="/">
-            <Button variant="ghost" className="text-primary-foreground hover:text-primary font-serif">
-              <Home className="mr-2 h-4 w-4" />
-              Home
-            </Button>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center justify-between">
+        <div className="mr-4 hidden md:flex">
+          <Link to="/" className="mr-6 flex items-center space-x-2">
+            <span className="hidden font-bold sm:inline-block">
+              Meme Platform
+            </span>
           </Link>
-          <Link to="/story">
-            <Button variant="ghost" className="text-primary-foreground hover:text-primary font-serif">
-              My Story
-            </Button>
-          </Link>
-          <Link to="/top-memes">
-            <Button variant="ghost" className="text-primary-foreground hover:text-primary font-serif">
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link
+              to="/submit"
+              className="transition-colors hover:text-foreground/80 text-foreground"
+            >
+              Submit Meme
+            </Link>
+            <Link
+              to="/top-memes"
+              className="transition-colors hover:text-foreground/80 text-foreground"
+            >
               Top Memes
-            </Button>
-          </Link>
+            </Link>
+            <Link
+              to="/"
+              className="transition-colors hover:text-foreground/80 text-foreground"
+            >
+              Home
+            </Link>
+          </nav>
         </div>
         
         <div className="flex items-center gap-4">
-          <img 
-            src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
-            alt="Cat Logo" 
-            className="h-12 w-12 animate-float"
-          />
+          {!imageError ? (
+            <img 
+              src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
+              alt="Cat Logo" 
+              className="h-12 w-12 animate-float"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="h-12 w-12 bg-gray-200 rounded-full flex items-center justify-center">
+              <span className="text-gray-500 text-xs">Logo</span>
+            </div>
+          )}
           <div className="text-primary font-serif text-xl">
             {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
           </div>
         </div>
         
         <div className="flex gap-4">
-          <Link to="/submit">
-            <Button className="bg-[#FF4500] hover:bg-[#FF4500]/90 font-serif">
-              Submit meme
-            </Button>
-          </Link>
-          <Button 
-            className="bg-[#FF4500] hover:bg-[#FF4500]/90 font-serif"
+          <Button
+            variant="ghost"
+            className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
             onClick={() => setIsLoginOpen(true)}
           >
-            Log In
+            Log in
           </Button>
         </div>
-      </nav>
+      </div>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Login with Google</DialogTitle>
           </DialogHeader>
-          <div className="flex justify-center py-4">
-            <Button
-              onClick={() => login()}
-              className="bg-white text-gray-600 border border-gray-300 hover:bg-gray-50"
-            >
-              <img
-                src="https://developers.google.com/identity/images/g-logo.png"
-                alt="Google"
-                className="w-6 h-6 mr-2"
-              />
-              Continue with Google
-            </Button>
+          <div className="flex justify-center p-4">
+            <GoogleLogin
+              onSuccess={handleLoginSuccess}
+              onError={handleLoginError}
+            />
           </div>
         </DialogContent>
       </Dialog>
