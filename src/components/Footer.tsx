@@ -48,13 +48,6 @@ export const Footer = () => {
           </Button>
         </div>
 
-        {/* Cat image */}
-        <img
-          src="/photo-1582562124811-c09040d0a901"
-          alt="Cat"
-          className="w-[150px] h-[150px] object-cover mx-auto mb-4"
-        />
-
         {/* Copyright text */}
         <div className="text-center font-serif text-sm text-primary-foreground/60">
           © 2024 MemeCatlandar.io

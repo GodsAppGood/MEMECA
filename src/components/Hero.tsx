@@ -26,7 +26,7 @@ export const Hero = () => {
           <img
             src="/lovable-uploads/d7914495-21a4-4298-b790-e4f4e80f3df4.png"
             alt="MemeCatLandar Logo"
-            className="w-[400px] h-[400px] object-contain animate-float"
+            className="w-[600px] h-[600px] object-contain animate-float"
           />
         </div>
       </div>
