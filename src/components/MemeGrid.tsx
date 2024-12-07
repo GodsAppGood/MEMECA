@@ -6,12 +6,7 @@ import { Button } from "./ui/button";
 import { useRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface MemeProps {
-  selectedDate?: Date;
-  selectedBlockchain?: string;
-}
-
-export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
+export const MemeGrid = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
@@ -19,10 +14,10 @@ export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
     queryKey: ["memes"],
     queryFn: () => {
       const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-      return storedMemes.map((meme: any) => ({
-        ...meme,
-        likes: meme.likes || 0,
-      }));
+      return storedMemes
+        .filter((meme: any) => (meme.likes || 0) > 0)
+        .sort((a: any, b: any) => (b.likes || 0) - (a.likes || 0))
+        .slice(0, 200);
     },
   });
 
@@ -35,23 +30,23 @@ export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
         }
         return meme;
       });
-      localStorage.setItem("memes", JSON.stringify(updatedMemes));
-      return updatedMemes;
+      
+      // Sort and limit to 200 top memes
+      const sortedMemes = updatedMemes
+        .sort((a: any, b: any) => (b.likes || 0) - (a.likes || 0))
+        .slice(0, 200);
+      
+      localStorage.setItem("memes", JSON.stringify(sortedMemes));
+      return sortedMemes;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
     },
   });
 
-  const filteredMemes = memes.filter((meme: any) => {
-    const dateMatch = !selectedDate || new Date(meme.date).toDateString() === selectedDate.toDateString();
-    const blockchainMatch = !selectedBlockchain || meme.blockchain === selectedBlockchain;
-    return dateMatch && blockchainMatch;
-  });
-
   const handleScroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 400; // Adjust this value to control scroll distance
+      const scrollAmount = 400;
       scrollContainerRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -76,11 +71,11 @@ export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
           className="flex overflow-x-auto gap-6 scroll-smooth hide-scrollbar"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {filteredMemes.map((meme: any) => (
+          {memes.map((meme: any) => (
             <Card 
               key={meme.id} 
               className={cn(
-                "flex-shrink-0 w-[300px] overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20 relative",
+                "flex-shrink-0 w-[350px] overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20 relative",
                 "first:ml-0"
               )}
             >
@@ -89,7 +84,7 @@ export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
                   <img
                     src={meme.imageUrl}
                     alt={meme.title}
-                    className="w-full h-64 object-cover"
+                    className="w-full h-[250px] object-cover"
                   />
                 </CardContent>
                 <CardFooter className="p-4 bg-secondary/5">
