@@ -9,7 +9,7 @@ const TopMemes = () => {
       <Header />
       <main className="pt-16">
         <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-serif text-center mb-8">Топ мемов: лучшие из лучших</h1>
+          <h1 className="text-4xl font-bold text-center mb-8">Top 200</h1>
           <MemeGrid />
         </div>
       </main>

@@ -11,6 +11,7 @@ import TopMemes from "./pages/TopMemes";
 import AdminDashboard from "./pages/AdminDashboard";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
+import MyStory from "./pages/MyStory";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/my-story" element={<MyStory />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
