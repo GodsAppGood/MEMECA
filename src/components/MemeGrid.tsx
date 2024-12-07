@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "./ui/card";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart } from "lucide-react";
+import { Heart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "./ui/button";
+import { useRef } from "react";
+import { cn } from "@/lib/utils";
 
 interface MemeProps {
   selectedDate?: Date;
@@ -10,6 +12,7 @@ interface MemeProps {
 }
 
 export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
 
   const { data: memes = [] } = useQuery({
@@ -46,45 +49,85 @@ export const MemeGrid = ({ selectedDate, selectedBlockchain }: MemeProps) => {
     return dateMatch && blockchainMatch;
   });
 
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const scrollAmount = 400; // Adjust this value to control scroll distance
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {filteredMemes.map((meme: any) => (
-          <Card key={meme.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20 relative">
-            <Link to={`/meme/${meme.id}`}>
-              <CardContent className="p-0">
-                <img
-                  src={meme.imageUrl}
-                  alt={meme.title}
-                  className="w-full h-64 object-cover"
-                />
-              </CardContent>
-              <CardFooter className="p-4 bg-secondary/5">
-                <div>
-                  <h3 className="font-serif text-lg mb-2">{meme.title}</h3>
-                  <p className="text-sm text-gray-600">{meme.description}</p>
-                </div>
-              </CardFooter>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-2 right-2 bg-white/80 hover:bg-white"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                likeMutation.mutate(meme.id);
-              }}
-            >
-              <Heart className="h-5 w-5" fill={meme.likes > 0 ? "red" : "none"} />
-              {meme.likes > 0 && (
-                <span className="absolute -bottom-4 text-xs font-bold">
-                  {meme.likes}
-                </span>
+    <div className="container mx-auto px-4 py-8 relative">
+      <div className="relative">
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white -ml-4"
+          onClick={() => handleScroll('left')}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        
+        <div 
+          ref={scrollContainerRef}
+          className="flex overflow-x-auto gap-6 scroll-smooth hide-scrollbar"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {filteredMemes.map((meme: any) => (
+            <Card 
+              key={meme.id} 
+              className={cn(
+                "flex-shrink-0 w-[300px] overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-2 border-primary/20 relative",
+                "first:ml-0"
               )}
-            </Button>
-          </Card>
-        ))}
+            >
+              <Link to={`/meme/${meme.id}`}>
+                <CardContent className="p-0">
+                  <img
+                    src={meme.imageUrl}
+                    alt={meme.title}
+                    className="w-full h-64 object-cover"
+                  />
+                </CardContent>
+                <CardFooter className="p-4 bg-secondary/5">
+                  <div>
+                    <h3 className="font-serif text-lg mb-2">{meme.title}</h3>
+                    <p className="text-sm text-gray-600">{meme.description}</p>
+                  </div>
+                </CardFooter>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 bg-white/80 hover:bg-white"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  likeMutation.mutate(meme.id);
+                }}
+              >
+                <Heart className="h-5 w-5" fill={meme.likes > 0 ? "red" : "none"} />
+                {meme.likes > 0 && (
+                  <span className="absolute -bottom-4 text-xs font-bold">
+                    {meme.likes}
+                  </span>
+                )}
+              </Button>
+            </Card>
+          ))}
+        </div>
+
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white -mr-4"
+          onClick={() => handleScroll('right')}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
