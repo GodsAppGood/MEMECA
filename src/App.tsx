@@ -9,6 +9,8 @@ import SubmitMeme from "./pages/SubmitMeme";
 import MemeDetail from "./pages/MemeDetail";
 import TopMemes from "./pages/TopMemes";
 import AdminDashboard from "./pages/AdminDashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/meme/:id" element={<MemeDetail />} />
             <Route path="/top-memes" element={<TopMemes />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
