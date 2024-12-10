@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { ImageUploader } from "./ImageUploader";
 import { FormFields } from "./FormFields";
+import { format } from "date-fns";
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -59,6 +60,7 @@ export const MemeForm = () => {
       title,
       description,
       blockchain,
+      dateAdded: isEditing ? undefined : new Date().toISOString(),
       date: date ? format(date, "PPP") : "",
       twitterLink: twitterLink || "",
       telegramLink: telegramLink || "",
@@ -66,7 +68,6 @@ export const MemeForm = () => {
       imageUrl,
       userId: "current-user-id", // This should be replaced with actual user ID
       likes: isEditing ? undefined : 0,
-      dateAdded: isEditing ? undefined : new Date().toISOString(),
     };
 
     const existingMemes = JSON.parse(localStorage.getItem("memes") || "[]");

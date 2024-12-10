@@ -22,6 +22,7 @@ export const Hero = () => {
         playsInline
       >
         <source src="https://cdn.pixabay.com/video/2022/05/20/117606-712421887_large.mp4" type="video/mp4" />
+        Your browser does not support the video tag.
       </video>
       <div className="absolute inset-0 bg-black/50">
         <div className="flex items-center justify-center h-full">
