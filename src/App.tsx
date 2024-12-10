@@ -13,6 +13,9 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import MyStory from "./pages/MyStory";
 import Dashboard from "./pages/Dashboard";
+import MyMemes from "./pages/MyMemes";
+import Watchlist from "./pages/Watchlist";
+import ReferralProgram from "./pages/ReferralProgram";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +36,9 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/my-story" element={<MyStory />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/my-memes" element={<MyMemes />} />
+            <Route path="/watchlist" element={<Watchlist />} />
+            <Route path="/referral-program" element={<ReferralProgram />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

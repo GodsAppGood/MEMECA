@@ -1,24 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { GoogleLogin } from "@react-oauth/google";
 import { useToast } from "./ui/use-toast";
-import { LogOut, LayoutDashboard, Home, Heart, Users } from "lucide-react";
+import { ProfileDropdown } from "./header/ProfileDropdown";
+import { LoginButton } from "./header/LoginButton";
+import { Countdown } from "./header/Countdown";
 
 interface GoogleUser {
   name: string;
@@ -27,34 +13,12 @@ interface GoogleUser {
 }
 
 export const Header = () => {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [user, setUser] = useState<GoogleUser | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const countdownDate = new Date("2024-12-22T22:22:00Z").getTime();
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = countdownDate - now;
-
-      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      if (distance < 0) {
-        clearInterval(interval);
-      } else {
-        setTimeLeft({ days, hours, minutes, seconds });
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem('googleToken');
@@ -80,8 +44,6 @@ export const Header = () => {
   }, []);
 
   const handleLoginSuccess = (credentialResponse: any) => {
-    console.log('Login Success:', credentialResponse);
-    
     if (credentialResponse.credential) {
       localStorage.setItem('googleToken', credentialResponse.credential);
       
@@ -174,9 +136,7 @@ export const Header = () => {
         </div>
 
         <div className="flex-1 flex justify-center">
-          <div className="text-primary font-serif text-xl">
-            {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
-          </div>
+          <Countdown />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -189,93 +149,21 @@ export const Header = () => {
             </Button>
           </Link>
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.picture} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="flex items-center justify-start gap-2 p-2">
-                  <div className="flex flex-col space-y-1 leading-none">
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-sm text-muted-foreground">{user.email}</p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                {isDashboardRoute ? (
-                  <>
-                    <DropdownMenuItem onClick={() => navigate('/my-memes')} className="cursor-pointer">
-                      <Home className="mr-2 h-4 w-4" />
-                      <span>My Memes</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/watchlist')} className="cursor-pointer">
-                      <Heart className="mr-2 h-4 w-4" />
-                      <span>Watchlist</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/referral-program')} className="cursor-pointer">
-                      <Users className="mr-2 h-4 w-4" />
-                      <span>Referral Program</span>
-                    </DropdownMenuItem>
-                  </>
-                ) : (
-                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ProfileDropdown
+              user={user}
+              onLogout={handleLogout}
+              isDashboardRoute={isDashboardRoute}
+            />
           ) : (
-            <Button
-              variant="ghost"
-              className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
-              onClick={() => setIsLoginOpen(true)}
-            >
-              Log in
-            </Button>
+            <LoginButton
+              isLoginOpen={isLoginOpen}
+              setIsLoginOpen={setIsLoginOpen}
+              handleLoginSuccess={handleLoginSuccess}
+              handleLoginError={handleLoginError}
+            />
           )}
         </div>
       </div>
-
-      <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Login with Google</DialogTitle>
-            <DialogDescription>
-              We use Google's secure authentication to protect your data. By logging in, you agree to our{" "}
-              <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
-              </Link>{" "}
-              and{" "}
-              <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
-              </Link>
-              .
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col items-center justify-center space-y-4 p-4">
-            <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
-              useOneTap
-              theme="filled_black"
-              shape="pill"
-              size="large"
-              text="continue_with"
-              locale="en"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </header>
   );
 };
