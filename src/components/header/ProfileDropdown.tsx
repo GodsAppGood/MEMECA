@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LogOut, LayoutDashboard, Home, Heart, Users } from "lucide-react";
+import { LogOut, Home, Heart, Users } from "lucide-react";
 
 interface ProfileDropdownProps {
   user: {
@@ -22,12 +22,6 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDropdownProps) => {
   const navigate = useNavigate();
-
-  const handleDashboardClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    navigate('/dashboard');
-  };
 
   return (
     <DropdownMenu>
@@ -47,31 +41,18 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
           </div>
         </div>
         <DropdownMenuSeparator />
-        {isDashboardRoute ? (
-          <>
-            <DropdownMenuItem onClick={handleDashboardClick} className="cursor-pointer">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              <span>Dashboard</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/my-memes')} className="cursor-pointer">
-              <Home className="mr-2 h-4 w-4" />
-              <span>My Memes</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/watchlist')} className="cursor-pointer">
-              <Heart className="mr-2 h-4 w-4" />
-              <span>Watchlist</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate('/referral-program')} className="cursor-pointer">
-              <Users className="mr-2 h-4 w-4" />
-              <span>Referral Program</span>
-            </DropdownMenuItem>
-          </>
-        ) : (
-          <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
-            <LayoutDashboard className="mr-2 h-4 w-4" />
-            <span>Dashboard</span>
-          </DropdownMenuItem>
-        )}
+        <DropdownMenuItem onClick={() => navigate('/my-memes')} className="cursor-pointer">
+          <Home className="mr-2 h-4 w-4" />
+          <span>My Memes</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/watchlist')} className="cursor-pointer">
+          <Heart className="mr-2 h-4 w-4" />
+          <span>Watchlist</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate('/referral-program')} className="cursor-pointer">
+          <Users className="mr-2 h-4 w-4" />
+          <span>Referral Program</span>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />

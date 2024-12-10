@@ -106,11 +106,13 @@ export const MemeForm = () => {
       description,
       blockchain,
       date: date ? format(date, "PPP") : "",
-      twitterLink: twitterLink || "", // Make optional by providing empty string fallback
-      telegramLink,
-      tradeLink: tradeLink || "", // Make optional by providing empty string fallback
+      twitterLink: twitterLink || "",
+      telegramLink: telegramLink,
+      tradeLink: tradeLink || "", // Made optional
       imageUrl,
       userId: "current-user-id", // This should be replaced with actual user ID
+      likes: 0,
+      dateAdded: new Date().toISOString(),
     };
 
     // Get existing memes
@@ -226,14 +228,13 @@ export const MemeForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-serif mb-2">Trade Link (Required)</label>
+          <label className="block text-sm font-serif mb-2">Trade Link (Optional)</label>
           <Input
             type="url"
             value={tradeLink}
             onChange={(e) => setTradeLink(e.target.value)}
             className="font-serif"
             placeholder="https://..."
-            required
           />
         </div>
 

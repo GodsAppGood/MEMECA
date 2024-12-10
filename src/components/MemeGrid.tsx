@@ -76,12 +76,19 @@ export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockc
         watchlist.push(memeId);
         localStorage.setItem("watchlist", JSON.stringify(watchlist));
       }
+
+      // Add to author's watchlist
+      const authorWatchlist = JSON.parse(localStorage.getItem(`watchlist-${meme.userId}`) || "[]");
+      if (!authorWatchlist.includes(memeId)) {
+        authorWatchlist.push(memeId);
+        localStorage.setItem(`watchlist-${meme.userId}`, JSON.stringify(authorWatchlist));
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
       toast({
         title: "Success",
-        description: "Meme added to your watchlist",
+        description: "Meme added to watchlist",
       });
     },
   });
