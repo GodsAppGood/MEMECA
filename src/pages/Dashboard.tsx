@@ -13,10 +13,10 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="pt-16"> {/* Add padding top to account for fixed header */}
+      <div className="pt-16"> {/* Padding for header */}
         <SidebarProvider>
           <div className="flex w-full">
-            <div className="w-64 min-h-[calc(100vh-4rem)] overflow-y-auto sticky top-16"> {/* Add sticky positioning and top offset */}
+            <div className="w-64 min-h-[calc(100vh-4rem)] overflow-y-auto sticky top-[calc(4rem+10vh)] pt-[10vh]"> {/* Added pt-[10vh] for 10% top spacing and adjusted sticky positioning */}
               <DashboardSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
             </div>
             <main className="flex-1 p-6 overflow-y-auto">
