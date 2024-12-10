@@ -22,7 +22,14 @@ const Index = () => {
           setBlockchain={setBlockchain}
           onSearch={() => {}}
         />
-        <MemeGrid selectedDate={date} selectedBlockchain={blockchain} />
+        <div className="container mx-auto px-4 py-8">
+          <h2 className="text-3xl font-serif font-bold mb-8">Today's Memes</h2>
+          <MemeGrid showTodayOnly={true} />
+        </div>
+        <div className="container mx-auto px-4 py-8">
+          <h2 className="text-3xl font-serif font-bold mb-8">All Memes</h2>
+          <MemeGrid selectedDate={date} selectedBlockchain={blockchain} />
+        </div>
       </main>
       <Support />
       <Footer />
