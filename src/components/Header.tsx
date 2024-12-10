@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import {
   Dialog,
@@ -13,11 +13,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { GoogleLogin } from "@react-oauth/google";
 import { useToast } from "./ui/use-toast";
-import { LogOut, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, Home, Heart, Users } from "lucide-react";
 
 interface GoogleUser {
   name: string;
@@ -32,6 +33,7 @@ export const Header = () => {
   const [user, setUser] = useState<GoogleUser | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const countdownDate = new Date("2024-12-22T22:22:00Z").getTime();
@@ -55,7 +57,6 @@ export const Header = () => {
   }, []);
 
   useEffect(() => {
-    // Check for existing token and decode user info
     const token = localStorage.getItem('googleToken');
     if (token) {
       try {
@@ -132,6 +133,8 @@ export const Header = () => {
     navigate('/');
   };
 
+  const isDashboardRoute = location.pathname === '/dashboard';
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
@@ -202,10 +205,29 @@ export const Header = () => {
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
-                <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
-                  <LayoutDashboard className="mr-2 h-4 w-4" />
-                  <span>Dashboard</span>
-                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {isDashboardRoute ? (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate('/my-memes')} className="cursor-pointer">
+                      <Home className="mr-2 h-4 w-4" />
+                      <span>My Memes</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/watchlist')} className="cursor-pointer">
+                      <Heart className="mr-2 h-4 w-4" />
+                      <span>Watchlist</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/referral-program')} className="cursor-pointer">
+                      <Users className="mr-2 h-4 w-4" />
+                      <span>Referral Program</span>
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="cursor-pointer">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <span>Dashboard</span>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
