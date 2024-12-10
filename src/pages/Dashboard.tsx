@@ -13,16 +13,20 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <SidebarProvider>
-        <div className="flex w-full">
-          <DashboardSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
-          <main className="flex-1 p-6">
-            {activeSection === 'memes' && <UserMemes />}
-            {activeSection === 'watchlist' && <Watchlist />}
-            {activeSection === 'referral' && <ReferralProgram />}
-          </main>
-        </div>
-      </SidebarProvider>
+      <div className="pt-16">
+        <SidebarProvider>
+          <div className="flex w-full">
+            <div className="w-64 min-h-[calc(100vh-4rem)] overflow-y-auto">
+              <DashboardSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+            </div>
+            <main className="flex-1 p-6 overflow-y-auto">
+              {activeSection === 'memes' && <UserMemes />}
+              {activeSection === 'watchlist' && <Watchlist />}
+              {activeSection === 'referral' && <ReferralProgram />}
+            </main>
+          </div>
+        </SidebarProvider>
+      </div>
       <Footer />
     </div>
   );
