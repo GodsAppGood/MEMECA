@@ -15,7 +15,7 @@ export const Hero = () => {
     <div className="relative w-full h-screen overflow-hidden">
       <video
         ref={videoRef}
-        className="absolute top-0 left-0 w-full h-full object-cover"
+        className="absolute top-0 left-0 min-w-full min-h-full w-auto h-auto object-cover"
         autoPlay
         loop
         muted

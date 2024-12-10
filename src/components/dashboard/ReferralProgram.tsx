@@ -2,22 +2,47 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from "react";
 
 export function ReferralProgram() {
-  // This is a placeholder component - will need to integrate with actual data
-  const referralLink = "https://meowmemes.com/ref/123456";
-  const points = 100;
-  const referrals = [
-    {
-      id: 1,
-      name: "John Doe",
-      registrationDate: "2024-03-07",
-    },
-  ];
+  const { toast } = useToast();
+  const [points, setPoints] = useState(0);
+  const [referrals, setReferrals] = useState<Array<{ id: string; name: string; registrationDate: string; pointsEarned: number }>>([]);
+  
+  // Generate a unique referral link for the current user
+  const userId = "current-user-id"; // This should be replaced with actual user ID
+  const referralLink = `${window.location.origin}/ref/${userId}`;
 
-  const copyReferralLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    // Add toast notification here
+  useEffect(() => {
+    // Load initial points (100 for new users)
+    const userPoints = localStorage.getItem(`points-${userId}`);
+    if (!userPoints) {
+      localStorage.setItem(`points-${userId}`, "100");
+      setPoints(100);
+    } else {
+      setPoints(parseInt(userPoints));
+    }
+
+    // Load referral history
+    const storedReferrals = JSON.parse(localStorage.getItem(`referrals-${userId}`) || "[]");
+    setReferrals(storedReferrals);
+  }, [userId]);
+
+  const copyReferralLink = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink);
+      toast({
+        title: "Success",
+        description: "Referral link copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to copy referral link",
+      });
+    }
   };
 
   return (
@@ -50,6 +75,9 @@ export function ReferralProgram() {
               <Copy className="h-4 w-4" />
             </Button>
           </div>
+          <p className="text-sm text-gray-600 mt-2">
+            Share this link and earn 10 points for each new user who registers!
+          </p>
         </CardContent>
       </Card>
 
@@ -63,6 +91,7 @@ export function ReferralProgram() {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Registration Date</TableHead>
+                <TableHead>Points Earned</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -70,6 +99,7 @@ export function ReferralProgram() {
                 <TableRow key={referral.id}>
                   <TableCell>{referral.name}</TableCell>
                   <TableCell>{referral.registrationDate}</TableCell>
+                  <TableCell>+{referral.pointsEarned}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
