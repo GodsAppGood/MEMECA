@@ -38,10 +38,17 @@ export const MemeGrid: React.FC<MemeGridProps> = ({
   const queryClient = useQueryClient();
   const userId = "current-user-id"; // This should be replaced with actual user ID
 
-  const { data: userPoints = 100 } = useQuery({
+  const { data: userPoints = 0 } = useQuery({
     queryKey: ["user-points", userId],
     queryFn: () => {
       return parseInt(localStorage.getItem(`points-${userId}`) || "100");
+    }
+  });
+
+  const { data: userLikes = [] } = useQuery({
+    queryKey: ["user-likes", userId],
+    queryFn: () => {
+      return JSON.parse(localStorage.getItem(`likes-${userId}`) || "[]");
     }
   });
 
@@ -69,10 +76,8 @@ export const MemeGrid: React.FC<MemeGridProps> = ({
         );
       }
 
-      // Sort by likes in descending order
       storedMemes = storedMemes.sort((a: Meme, b: Meme) => b.likes - a.likes);
 
-      // If showing top memes, limit to top 200
       if (showTopOnly) {
         storedMemes = storedMemes.slice(0, 200);
       }
@@ -83,41 +88,70 @@ export const MemeGrid: React.FC<MemeGridProps> = ({
 
   const likeMutation = useMutation({
     mutationFn: async (memeId: string) => {
-      // Get current points
+      const hasLiked = userLikes.includes(memeId);
       const currentPoints = parseInt(localStorage.getItem(`points-${userId}`) || "100");
       
-      // Check if user has enough points
-      if (currentPoints <= 0) {
+      if (!hasLiked && currentPoints <= 0) {
         throw new Error("No points available");
       }
+
+      // Update user likes
+      const updatedLikes = hasLiked 
+        ? userLikes.filter((id: string) => id !== memeId)
+        : [...userLikes, memeId];
+      localStorage.setItem(`likes-${userId}`, JSON.stringify(updatedLikes));
 
       // Update memes
       const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
       const updatedMemes = storedMemes.map((meme: Meme) => {
         if (meme.id === memeId) {
-          return { ...meme, likes: (meme.likes || 0) + 1 };
+          return { 
+            ...meme, 
+            likes: hasLiked ? Math.max(0, (meme.likes || 0) - 1) : (meme.likes || 0) + 1 
+          };
         }
         return meme;
       });
       localStorage.setItem("memes", JSON.stringify(updatedMemes));
 
-      // Deduct point
-      localStorage.setItem(`points-${userId}`, String(currentPoints - 1));
+      // Update points
+      const newPoints = hasLiked ? currentPoints + 1 : currentPoints - 1;
+      localStorage.setItem(`points-${userId}`, String(newPoints));
 
-      // Add to watchlist
+      // Update watchlist
       const watchlist = JSON.parse(localStorage.getItem(`watchlist-${userId}`) || "[]");
-      if (!watchlist.includes(memeId)) {
-        watchlist.push(memeId);
-        localStorage.setItem(`watchlist-${userId}`, JSON.stringify(watchlist));
-      }
+      const updatedWatchlist = hasLiked
+        ? watchlist.filter((id: string) => id !== memeId)
+        : [...watchlist, memeId];
+      localStorage.setItem(`watchlist-${userId}`, JSON.stringify(updatedWatchlist));
+
+      return { hasLiked, newPoints };
     },
-    onSuccess: () => {
+    onSuccess: ({ hasLiked, newPoints }) => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
       queryClient.invalidateQueries({ queryKey: ["user-points"] });
-      toast({
-        title: "Success",
-        description: "Meme added to watchlist",
-      });
+      queryClient.invalidateQueries({ queryKey: ["user-likes"] });
+      queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] });
+
+      if (hasLiked) {
+        toast({
+          title: "Meme unliked",
+          description: "Meme removed from watchlist and 1 point returned",
+        });
+      } else {
+        if (newPoints <= 10) {
+          toast({
+            title: "Low points warning",
+            description: "You have 10 or fewer points remaining. Invite friends to earn more!",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Meme liked",
+            description: "Meme added to watchlist",
+          });
+        }
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -163,9 +197,9 @@ export const MemeGrid: React.FC<MemeGridProps> = ({
                       likeMutation.mutate(meme.id);
                     }}
                     className="hover:text-red-500"
-                    disabled={userPoints <= 0}
+                    disabled={userPoints <= 0 && !userLikes.includes(meme.id)}
                   >
-                    <Heart className={`h-4 w-4 ${meme.likes > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart className={`h-4 w-4 ${userLikes.includes(meme.id) ? 'fill-red-500 text-red-500' : ''}`} />
                     <span className="ml-1">{meme.likes || 0}</span>
                   </Button>
                 </div>

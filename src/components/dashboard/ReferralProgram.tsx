@@ -3,7 +3,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 export function ReferralProgram() {
@@ -24,7 +23,6 @@ export function ReferralProgram() {
     }
   });
   
-  // Generate a unique referral link for the current user
   const referralLink = `${window.location.origin}/ref/${userId}`;
 
   const copyReferralLink = async () => {
@@ -57,6 +55,10 @@ export function ReferralProgram() {
             {points === 0 ? (
               <span className="text-red-500">
                 You're out of points! Invite friends to earn more.
+              </span>
+            ) : points <= 10 ? (
+              <span className="text-yellow-500">
+                You're running low on points! Invite friends to earn more.
               </span>
             ) : (
               "Points can be used for likes"
