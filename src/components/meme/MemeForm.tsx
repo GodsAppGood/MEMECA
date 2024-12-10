@@ -91,10 +91,10 @@ export const MemeForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!imageUrl || !tradeLink) {
+    if (!imageUrl) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields including image and trade link.",
+        description: "Please upload an image.",
         variant: "destructive"
       });
       return;
@@ -106,9 +106,9 @@ export const MemeForm = () => {
       description,
       blockchain,
       date: date ? format(date, "PPP") : "",
-      twitterLink,
+      twitterLink: twitterLink || "", // Make optional by providing empty string fallback
       telegramLink,
-      tradeLink,
+      tradeLink: tradeLink || "", // Make optional by providing empty string fallback
       imageUrl,
       userId: "current-user-id", // This should be replaced with actual user ID
     };
