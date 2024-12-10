@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
@@ -23,17 +23,29 @@ export const MemeForm = () => {
   const [tradeLink, setTradeLink] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [dragActive, setDragActive] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const blockchains = [
-    "Solana", "Ethereum", "Polygon", "Ton", "BSC", "Base", "Arbitrum", 
-    "Avalanche", "Hyperliquid", "Optimism", "Sui", "Celo", "Osmosis", 
-    "Pulsechain", "Blast", "Mantle", "Aptos", "Linea", "Sei", "Starknet", 
-    "Chronos", "Fantom", "Tron", "Hedera", "Zksync", "Gnosis", "Scroll", 
-    "Cordano", "Near", "Manta", "Injective", "Zora"
-  ];
+  useEffect(() => {
+    const editingMeme = localStorage.getItem("editingMeme");
+    if (editingMeme) {
+      const meme = JSON.parse(editingMeme);
+      setTitle(meme.title);
+      setDescription(meme.description);
+      setBlockchain(meme.blockchain);
+      setDate(meme.date ? new Date(meme.date) : undefined);
+      setTwitterLink(meme.twitterLink || "");
+      setTelegramLink(meme.telegramLink || "");
+      setTradeLink(meme.tradeLink || "");
+      setImageUrl(meme.imageUrl);
+      setIsEditing(true);
+      setEditingId(meme.id);
+      localStorage.removeItem("editingMeme");
+    }
+  }, []);
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
@@ -100,31 +112,40 @@ export const MemeForm = () => {
       return;
     }
 
-    const newMeme = {
-      id: Date.now().toString(),
+    const memeData = {
+      id: isEditing ? editingId! : Date.now().toString(),
       title,
       description,
       blockchain,
       date: date ? format(date, "PPP") : "",
       twitterLink: twitterLink || "",
-      telegramLink: telegramLink,
-      tradeLink: tradeLink || "", // Made optional
+      telegramLink: telegramLink || "",
+      tradeLink: tradeLink || "", // Optional field
       imageUrl,
       userId: "current-user-id", // This should be replaced with actual user ID
-      likes: 0,
-      dateAdded: new Date().toISOString(),
+      likes: isEditing ? undefined : 0,
+      dateAdded: isEditing ? undefined : new Date().toISOString(),
     };
 
     // Get existing memes
     const existingMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-    const updatedMemes = [newMeme, ...existingMemes];
+    let updatedMemes;
+
+    if (isEditing) {
+      updatedMemes = existingMemes.map((meme: any) => 
+        meme.id === editingId ? { ...meme, ...memeData } : meme
+      );
+    } else {
+      updatedMemes = [memeData, ...existingMemes];
+    }
+
     localStorage.setItem("memes", JSON.stringify(updatedMemes));
     
     await queryClient.invalidateQueries({ queryKey: ["memes"] });
     
     toast({
       title: "Success!",
-      description: "Your meme has been submitted successfully.",
+      description: isEditing ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
     });
     
     navigate("/");
@@ -194,7 +215,11 @@ export const MemeForm = () => {
               <SelectValue placeholder="Select blockchain" />
             </SelectTrigger>
             <SelectContent className="bg-white">
-              {blockchains.map((chain) => (
+              {["Solana", "Ethereum", "Polygon", "Ton", "BSC", "Base", "Arbitrum", 
+                "Avalanche", "Hyperliquid", "Optimism", "Sui", "Celo", "Osmosis", 
+                "Pulsechain", "Blast", "Mantle", "Aptos", "Linea", "Sei", "Starknet", 
+                "Chronos", "Fantom", "Tron", "Hedera", "Zksync", "Gnosis", "Scroll", 
+                "Cordano", "Near", "Manta", "Injective", "Zora"].map((chain) => (
                 <SelectItem 
                   key={chain.toLowerCase()} 
                   value={chain.toLowerCase()} 

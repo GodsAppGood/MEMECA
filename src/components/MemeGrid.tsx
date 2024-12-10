@@ -62,6 +62,12 @@ export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockc
   const likeMutation = useMutation({
     mutationFn: async (memeId: string) => {
       const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+      const memeToUpdate = storedMemes.find((m: Meme) => m.id === memeId);
+      
+      if (!memeToUpdate) {
+        throw new Error("Meme not found");
+      }
+
       const updatedMemes = storedMemes.map((meme: Meme) => {
         if (meme.id === memeId) {
           return { ...meme, likes: (meme.likes || 0) + 1 };
@@ -78,10 +84,10 @@ export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockc
       }
 
       // Add to author's watchlist
-      const authorWatchlist = JSON.parse(localStorage.getItem(`watchlist-${meme.userId}`) || "[]");
+      const authorWatchlist = JSON.parse(localStorage.getItem(`watchlist-${memeToUpdate.userId}`) || "[]");
       if (!authorWatchlist.includes(memeId)) {
         authorWatchlist.push(memeId);
-        localStorage.setItem(`watchlist-${meme.userId}`, JSON.stringify(authorWatchlist));
+        localStorage.setItem(`watchlist-${memeToUpdate.userId}`, JSON.stringify(authorWatchlist));
       }
     },
     onSuccess: () => {
