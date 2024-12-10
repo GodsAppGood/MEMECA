@@ -24,15 +24,29 @@ interface MemeGridProps {
   selectedDate?: Date;
   selectedBlockchain?: string;
   showTodayOnly?: boolean;
+  showTopOnly?: boolean;
 }
 
-export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockchain, showTodayOnly }) => {
+export const MemeGrid: React.FC<MemeGridProps> = ({ 
+  selectedDate, 
+  selectedBlockchain, 
+  showTodayOnly,
+  showTopOnly 
+}) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const userId = "current-user-id"; // This should be replaced with actual user ID
+
+  const { data: userPoints = 100 } = useQuery({
+    queryKey: ["user-points", userId],
+    queryFn: () => {
+      return parseInt(localStorage.getItem(`points-${userId}`) || "100");
+    }
+  });
 
   const { data: memes = [], isLoading } = useQuery({
-    queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly],
+    queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly],
     queryFn: () => {
       let storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
       
@@ -55,19 +69,30 @@ export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockc
         );
       }
 
-      return storedMemes.sort((a: Meme, b: Meme) => b.likes - a.likes);
+      // Sort by likes in descending order
+      storedMemes = storedMemes.sort((a: Meme, b: Meme) => b.likes - a.likes);
+
+      // If showing top memes, limit to top 200
+      if (showTopOnly) {
+        storedMemes = storedMemes.slice(0, 200);
+      }
+
+      return storedMemes;
     }
   });
 
   const likeMutation = useMutation({
     mutationFn: async (memeId: string) => {
-      const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-      const memeToUpdate = storedMemes.find((m: Meme) => m.id === memeId);
+      // Get current points
+      const currentPoints = parseInt(localStorage.getItem(`points-${userId}`) || "100");
       
-      if (!memeToUpdate) {
-        throw new Error("Meme not found");
+      // Check if user has enough points
+      if (currentPoints <= 0) {
+        throw new Error("No points available");
       }
 
+      // Update memes
+      const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
       const updatedMemes = storedMemes.map((meme: Meme) => {
         if (meme.id === memeId) {
           return { ...meme, likes: (meme.likes || 0) + 1 };
@@ -76,27 +101,31 @@ export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockc
       });
       localStorage.setItem("memes", JSON.stringify(updatedMemes));
 
+      // Deduct point
+      localStorage.setItem(`points-${userId}`, String(currentPoints - 1));
+
       // Add to watchlist
-      const watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
+      const watchlist = JSON.parse(localStorage.getItem(`watchlist-${userId}`) || "[]");
       if (!watchlist.includes(memeId)) {
         watchlist.push(memeId);
-        localStorage.setItem("watchlist", JSON.stringify(watchlist));
-      }
-
-      // Add to author's watchlist
-      const authorWatchlist = JSON.parse(localStorage.getItem(`watchlist-${memeToUpdate.userId}`) || "[]");
-      if (!authorWatchlist.includes(memeId)) {
-        authorWatchlist.push(memeId);
-        localStorage.setItem(`watchlist-${memeToUpdate.userId}`, JSON.stringify(authorWatchlist));
+        localStorage.setItem(`watchlist-${userId}`, JSON.stringify(watchlist));
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
+      queryClient.invalidateQueries({ queryKey: ["user-points"] });
       toast({
         title: "Success",
         description: "Meme added to watchlist",
       });
     },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to like meme",
+      });
+    }
   });
 
   if (isLoading) {
@@ -134,6 +163,7 @@ export const MemeGrid: React.FC<MemeGridProps> = ({ selectedDate, selectedBlockc
                       likeMutation.mutate(meme.id);
                     }}
                     className="hover:text-red-500"
+                    disabled={userPoints <= 0}
                   >
                     <Heart className={`h-4 w-4 ${meme.likes > 0 ? 'fill-red-500 text-red-500' : ''}`} />
                     <span className="ml-1">{meme.likes || 0}</span>

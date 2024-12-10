@@ -4,30 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export function ReferralProgram() {
   const { toast } = useToast();
-  const [points, setPoints] = useState(0);
-  const [referrals, setReferrals] = useState<Array<{ id: string; name: string; registrationDate: string; pointsEarned: number }>>([]);
+  const userId = "current-user-id"; // This should be replaced with actual user ID
+  
+  const { data: points = 0 } = useQuery({
+    queryKey: ["user-points", userId],
+    queryFn: () => {
+      return parseInt(localStorage.getItem(`points-${userId}`) || "100");
+    }
+  });
+
+  const { data: referrals = [] } = useQuery({
+    queryKey: ["referrals", userId],
+    queryFn: () => {
+      return JSON.parse(localStorage.getItem(`referrals-${userId}`) || "[]");
+    }
+  });
   
   // Generate a unique referral link for the current user
-  const userId = "current-user-id"; // This should be replaced with actual user ID
   const referralLink = `${window.location.origin}/ref/${userId}`;
-
-  useEffect(() => {
-    // Load initial points (100 for new users)
-    const userPoints = localStorage.getItem(`points-${userId}`);
-    if (!userPoints) {
-      localStorage.setItem(`points-${userId}`, "100");
-      setPoints(100);
-    } else {
-      setPoints(parseInt(userPoints));
-    }
-
-    // Load referral history
-    const storedReferrals = JSON.parse(localStorage.getItem(`referrals-${userId}`) || "[]");
-    setReferrals(storedReferrals);
-  }, [userId]);
 
   const copyReferralLink = async () => {
     try {
@@ -55,7 +53,15 @@ export function ReferralProgram() {
         </CardHeader>
         <CardContent>
           <p className="text-4xl font-bold">{points}</p>
-          <p className="text-sm text-gray-600 mt-2">Points can be used for paid likes</p>
+          <p className="text-sm text-gray-600 mt-2">
+            {points === 0 ? (
+              <span className="text-red-500">
+                You're out of points! Invite friends to earn more.
+              </span>
+            ) : (
+              "Points can be used for likes"
+            )}
+          </p>
         </CardContent>
       </Card>
 
@@ -95,7 +101,7 @@ export function ReferralProgram() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {referrals.map((referral) => (
+              {referrals.map((referral: any) => (
                 <TableRow key={referral.id}>
                   <TableCell>{referral.name}</TableCell>
                   <TableCell>{referral.registrationDate}</TableCell>
