@@ -6,13 +6,16 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { GoogleLogin } from "@react-oauth/google";
+import { useToast } from "./ui/use-toast";
 
 export const Header = () => {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const countdownDate = new Date("2024-12-22T22:22:00Z").getTime();
@@ -35,13 +38,43 @@ export const Header = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLoginSuccess = (response: any) => {
-    console.log('Login Success:', response);
+  const handleLoginSuccess = (credentialResponse: any) => {
+    console.log('Login Success:', credentialResponse);
+    
+    // Store the token in localStorage
+    if (credentialResponse.credential) {
+      localStorage.setItem('googleToken', credentialResponse.credential);
+      
+      // Decode the JWT token to get user info
+      try {
+        const base64Url = credentialResponse.credential.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        
+        const user = JSON.parse(jsonPayload);
+        console.log('User Info:', user);
+        
+        toast({
+          title: "Successfully logged in",
+          description: `Welcome ${user.name}!`,
+        });
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+    
     setIsLoginOpen(false);
   };
 
   const handleLoginError = () => {
     console.log('Login Failed');
+    toast({
+      variant: "destructive",
+      title: "Login failed",
+      description: "Please try again or contact support if the problem persists.",
+    });
     setIsLoginOpen(false);
   };
 
@@ -109,14 +142,31 @@ export const Header = () => {
       </div>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Login with Google</DialogTitle>
+            <DialogDescription>
+              We use Google's secure authentication to protect your data. By logging in, you agree to our{" "}
+              <Link to="/privacy" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>{" "}
+              and{" "}
+              <Link to="/terms" className="text-primary hover:underline">
+                Terms of Service
+              </Link>
+              .
+            </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-center p-4">
+          <div className="flex flex-col items-center justify-center space-y-4 p-4">
             <GoogleLogin
               onSuccess={handleLoginSuccess}
               onError={handleLoginError}
+              useOneTap
+              theme="filled_black"
+              shape="pill"
+              size="large"
+              text="continue_with"
+              locale="en"
             />
           </div>
         </DialogContent>

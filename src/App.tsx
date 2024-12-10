@@ -17,7 +17,7 @@ import Dashboard from "./pages/Dashboard";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+  <GoogleOAuthProvider clientId="815250406099-4l39oo62a19gcpihekksnrn37bo7jpcr.apps.googleusercontent.com">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
