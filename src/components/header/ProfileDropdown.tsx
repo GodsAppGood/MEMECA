@@ -23,6 +23,12 @@ interface ProfileDropdownProps {
 export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDropdownProps) => {
   const navigate = useNavigate();
 
+  const handleDashboardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/dashboard');
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -43,6 +49,10 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
         <DropdownMenuSeparator />
         {isDashboardRoute ? (
           <>
+            <DropdownMenuItem onClick={handleDashboardClick} className="cursor-pointer">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate('/my-memes')} className="cursor-pointer">
               <Home className="mr-2 h-4 w-4" />
               <span>My Memes</span>
