@@ -68,9 +68,9 @@ const PrivacyPolicy = () => {
         
         <div className="fixed top-32 right-8 w-64 h-64 lg:w-80 lg:h-80">
           <img
-            src="/lovable-uploads/fe4a6b50-511b-47ff-8a83-ced443561ccb.png"
+            src="/lovable-uploads/f06c7230-5d4d-42b4-b93c-0d469e7af951.png"
             alt="Privacy Policy Illustration"
-            className="w-full h-full object-cover rounded-lg shadow-lg animate-float"
+            className="w-full h-full object-contain animate-float"
           />
         </div>
       </div>

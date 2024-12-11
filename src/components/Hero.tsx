@@ -34,7 +34,7 @@ export const Hero = () => {
           <img
             src="/lovable-uploads/4b2ce54e-e40a-4877-b49a-fb1d71a232f3.png"
             alt="Main Cat"
-            className="w-[900px] h-[900px] object-contain animate-float"
+            className="w-[600px] h-[600px] object-contain animate-float"
           />
         </div>
       </div>

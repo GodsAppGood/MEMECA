@@ -20,15 +20,15 @@ export const Footer = () => {
               Legal
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-40 bg-white border border-gray-200">
+          <DropdownMenuContent className="w-40 bg-secondary border border-gray-200">
             <DropdownMenuGroup className="p-2 space-y-2">
               <Link to="/privacy" className="block">
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer text-primary-foreground hover:text-primary">
                   Privacy Policy
                 </DropdownMenuItem>
               </Link>
               <Link to="/terms" className="block">
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem className="cursor-pointer text-primary-foreground hover:text-primary">
                   Terms of Service
                 </DropdownMenuItem>
               </Link>
