@@ -55,7 +55,7 @@ const MyStory = () => {
           <div className="flex flex-col lg:flex-row gap-8 items-center">
             <div className="lg:w-1/2">
               <img
-                src="/lovable-uploads/718ee44f-c209-41ff-aa4c-3a6fa2a24df8.png"
+                src="/lovable-uploads/687016b8-6c47-4357-9f3f-b4af5d2da3a7.png"
                 alt="Project Illustration"
                 className="w-full max-w-[500px] mx-auto rounded-lg shadow-lg"
               />
@@ -75,7 +75,7 @@ const MyStory = () => {
           <div className="flex flex-col lg:flex-row gap-8 items-center">
             <div className="lg:w-1/2">
               <img
-                src="/lovable-uploads/fe4a6b50-511b-47ff-8a83-ced443561ccb.png"
+                src="/lovable-uploads/64675aff-6e69-4c08-ada3-33ce2e7497e7.png"
                 alt="Project Features"
                 className="w-full max-w-[500px] mx-auto rounded-lg shadow-lg"
               />
