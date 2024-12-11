@@ -32,7 +32,7 @@ export const Hero = () => {
         />
         <div className="flex items-center justify-center h-full">
           <img
-            src="/lovable-uploads/fe4a6b50-511b-47ff-8a83-ced443561ccb.png"
+            src="/lovable-uploads/4b2ce54e-e40a-4877-b49a-fb1d71a232f3.png"
             alt="Main Cat"
             className="w-[900px] h-[900px] object-contain animate-float"
           />

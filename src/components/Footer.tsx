@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -19,17 +20,17 @@ export const Footer = () => {
               Legal
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-40">
+          <DropdownMenuContent className="w-40 bg-white border border-gray-200">
             <DropdownMenuGroup className="p-2 space-y-2">
               <Link to="/privacy" className="block">
-                <Button variant="ghost" className="w-full justify-start">
+                <DropdownMenuItem className="cursor-pointer">
                   Privacy Policy
-                </Button>
+                </DropdownMenuItem>
               </Link>
               <Link to="/terms" className="block">
-                <Button variant="ghost" className="w-full justify-start">
+                <DropdownMenuItem className="cursor-pointer">
                   Terms of Service
-                </Button>
+                </DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>
           </DropdownMenuContent>
