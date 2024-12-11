@@ -11,16 +11,20 @@ import {
 
 export const Footer = () => {
   return (
-    <footer className="bg-secondary text-primary-foreground py-4 relative">
+    <footer className="bg-secondary text-primary-foreground py-4 relative w-full bottom-0">
       {/* Legal Button in bottom left */}
-      <div className="absolute bottom-4 left-4">
+      <div className="absolute bottom-4 left-4 z-50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="hover:text-primary">
               Legal
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-40 bg-secondary border border-gray-200">
+          <DropdownMenuContent 
+            className="w-40 bg-secondary border border-gray-200"
+            side="top"
+            align="start"
+          >
             <DropdownMenuGroup className="p-2 space-y-2">
               <Link to="/privacy" className="block">
                 <DropdownMenuItem className="cursor-pointer text-primary-foreground hover:text-primary">
