@@ -34,18 +34,12 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
                 {date ? format(date, "PPP") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent 
-              className="w-auto p-0 bg-white" 
-              align="center" 
-              sideOffset={4}
-              side="bottom"
-            >
+            <PopoverContent className="w-auto p-0 bg-white">
               <Calendar
                 mode="single"
                 selected={date}
                 onSelect={setDate}
                 initialFocus
-                className="bg-white"
               />
             </PopoverContent>
           </Popover>
@@ -57,13 +51,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
             <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg">
               <SelectValue placeholder="Select blockchain" />
             </SelectTrigger>
-            <SelectContent 
-              position="popper" 
-              className="w-[280px] bg-white" 
-              align="center"
-              sideOffset={4}
-              side="bottom"
-            >
+            <SelectContent className="w-[280px] bg-white">
               {blockchains.map((chain) => (
                 <SelectItem 
                   key={chain.toLowerCase()} 

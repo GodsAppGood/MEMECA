@@ -25,11 +25,16 @@ export const Hero = () => {
         Your browser does not support the video tag.
       </video>
       <div className="absolute inset-0 bg-black/50">
+        <img 
+          src="/lovable-uploads/acdf8231-7c94-43b5-87e5-e390ddb43f42.png"
+          alt="MemeCatndar Logo"
+          className="absolute top-10 left-1/2 transform -translate-x-1/2 w-[80%] max-w-[800px] z-10"
+        />
         <div className="flex items-center justify-center h-full">
           <img
-            src="/lovable-uploads/d7914495-21a4-4298-b790-e4f4e80f3df4.png"
-            alt="MemeCatLandar Logo"
-            className="w-[600px] h-[600px] object-contain animate-float"
+            src="/lovable-uploads/fe4a6b50-511b-47ff-8a83-ced443561ccb.png"
+            alt="Main Cat"
+            className="w-[900px] h-[900px] object-contain animate-float"
           />
         </div>
       </div>

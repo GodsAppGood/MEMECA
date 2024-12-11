@@ -64,9 +64,9 @@ const Terms = () => {
         
         <div className="fixed top-32 right-8 w-64 h-64 lg:w-80 lg:h-80">
           <img
-            src="/lovable-uploads/4d506355-26e6-4469-ad4b-81d89dbd2e8e.png"
+            src="/lovable-uploads/fe4a6b50-511b-47ff-8a83-ced443561ccb.png"
             alt="Terms of Service Illustration"
-            className="w-full h-full object-cover rounded-lg shadow-lg animate-float"
+            className="w-full h-full object-contain animate-float"
           />
         </div>
       </div>
