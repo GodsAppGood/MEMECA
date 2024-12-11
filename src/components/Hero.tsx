@@ -26,7 +26,7 @@ export const Hero = () => {
       </video>
       <div className="absolute inset-0 bg-black/50">
         <img 
-          src="/lovable-uploads/acdf8231-7c94-43b5-87e5-e390ddb43f42.png"
+          src="/lovable-uploads/94d67f05-71a5-4118-8daa-dde5461b41f4.png"
           alt="MemeCatndar Logo"
           className="absolute top-10 left-1/2 transform -translate-x-1/2 w-[80%] max-w-[800px] z-10"
         />
