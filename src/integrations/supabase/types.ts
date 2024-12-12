@@ -9,6 +9,69 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      Memes: {
+        Row: {
+          blockchain: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: number
+          image_url: string | null
+          likes: number | null
+          title: string
+          trade_link: string | null
+        }
+        Insert: {
+          blockchain?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: never
+          image_url?: string | null
+          likes?: number | null
+          title: string
+          trade_link?: string | null
+        }
+        Update: {
+          blockchain?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: never
+          image_url?: string | null
+          likes?: number | null
+          title?: string
+          trade_link?: string | null
+        }
+        Relationships: []
+      }
+      Referrals: {
+        Row: {
+          created_at: string | null
+          id: number
+          points_earned: number | null
+          referred_id: string | null
+          referrer_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          points_earned?: number | null
+          referred_id?: string | null
+          referrer_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          points_earned?: number | null
+          referred_id?: string | null
+          referrer_id?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       Users: {
         Row: {
           auth_id: string | null
