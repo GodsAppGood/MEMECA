@@ -37,13 +37,13 @@ export const TopMemeCard = ({
   const likeMutation = useMutation({
     mutationFn: async () => {
       if (!userId) {
-        throw new Error("Необходимо авторизоваться");
+        throw new Error("Please login to like memes");
       }
 
       const hasLiked = userLikes.includes(meme.id);
 
       if (!hasLiked && userPoints <= 0) {
-        throw new Error("Недостаточно очков");
+        throw new Error("Not enough points");
       }
 
       if (hasLiked) {
@@ -80,77 +80,73 @@ export const TopMemeCard = ({
       queryClient.invalidateQueries({ queryKey: ["user-likes"] });
       queryClient.invalidateQueries({ queryKey: ["user-points"] });
       toast({
-        title: "Успех",
+        title: "Success",
         description: userLikes.includes(meme.id) 
-          ? "Мем удален из избранного" 
-          : "Мем добавлен в избранное",
+          ? "Meme removed from watchlist" 
+          : "Meme added to watchlist",
       });
     },
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось обновить лайк",
+        title: "Error",
+        description: error.message || "Failed to update like",
       });
     }
   });
 
   const handleCardClick = () => {
-    if (!meme.isPlaceholder && !isFirst) {
+    if (!meme.isPlaceholder) {
       navigate(`/meme/${meme.id}`);
     }
   };
 
   return (
     <Card 
-      className={`overflow-hidden transition-transform duration-300 hover:scale-105 ${
+      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer ${
         isFirst ? 'border-2 border-yellow-400' : ''
       } ${meme.isPlaceholder ? 'opacity-50' : ''}`}
+      onClick={handleCardClick}
     >
-      <div 
-        className={`cursor-pointer ${!isFirst && !meme.isPlaceholder ? 'hover:cursor-pointer' : ''}`}
-        onClick={handleCardClick}
-      >
-        <div className="relative">
-          <img
-            src={meme.image_url}
-            alt={meme.title}
-            className="w-full h-48 object-cover"
-          />
-          {isFirst && (
-            <div className="absolute top-2 right-2">
-              <Trophy className="h-6 w-6 text-yellow-400" />
-            </div>
-          )}
-          <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded">
-            #{position}
+      <div className="relative">
+        <img
+          src={meme.image_url}
+          alt={meme.title}
+          className="w-full h-48 object-cover"
+        />
+        {isFirst && (
+          <div className="absolute top-2 right-2">
+            <Trophy className="h-6 w-6 text-yellow-400" />
           </div>
+        )}
+        <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded">
+          #{position}
         </div>
-        <div className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold">{meme.title}</h3>
-            {!meme.isPlaceholder && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!isFirst) {
-                    likeMutation.mutate();
-                  }
-                }}
-                className="hover:text-red-500"
-                disabled={isFirst || (userPoints <= 0 && !userLikes.includes(meme.id))}
-              >
-                <Heart 
-                  className={`h-4 w-4 ${
-                    userLikes.includes(meme.id) ? 'fill-red-500 text-red-500' : ''
-                  }`} 
-                />
-                <span className="ml-1">{meme.likes || 0}</span>
-              </Button>
-            )}
-          </div>
+      </div>
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-semibold">{meme.title}</h3>
+          {!meme.isPlaceholder && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isFirst) {
+                  likeMutation.mutate();
+                }
+              }}
+              className="hover:text-red-500"
+              disabled={isFirst || (userPoints <= 0 && !userLikes.includes(meme.id))}
+            >
+              <Heart 
+                className={`h-4 w-4 ${
+                  userLikes.includes(meme.id) ? 'fill-red-500 text-red-500' : ''
+                }`} 
+              />
+              <span className="ml-1">{meme.likes || 0}</span>
+            </Button>
+          )}
         </div>
       </div>
     </Card>

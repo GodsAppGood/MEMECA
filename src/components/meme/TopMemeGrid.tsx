@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TopMemeCard } from "./TopMemeCard";
 import { useEffect, useState } from "react";
+import { MemeSlider } from "./MemeSlider";
 import {
   Carousel,
   CarouselContent,
@@ -9,7 +10,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Slider } from "@/components/ui/slider";
 
 const placeholderImages = [
   "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
@@ -37,7 +37,6 @@ export const TopMemeGrid = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'Memes' },
         () => {
-          // Invalidate and refetch queries when data changes
           void refetch();
         }
       )
@@ -146,15 +145,11 @@ export const TopMemeGrid = () => {
         <CarouselPrevious />
         <CarouselNext />
       </Carousel>
-      <div className="px-4">
-        <Slider
-          value={[currentSlide]}
-          max={Math.max(0, allCards.length - 1)}
-          step={1}
-          onValueChange={handleSliderChange}
-          className="w-full"
-        />
-      </div>
+      <MemeSlider
+        currentSlide={currentSlide}
+        totalSlides={allCards.length}
+        onSlideChange={handleSliderChange}
+      />
     </div>
   );
 };
