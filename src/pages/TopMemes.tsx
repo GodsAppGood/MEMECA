@@ -1,5 +1,5 @@
 import { Header } from "@/components/Header";
-import { MemeGrid } from "@/components/MemeGrid";
+import { TopMemeGrid } from "@/components/meme/TopMemeGrid";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 
@@ -10,7 +10,7 @@ const TopMemes = () => {
       <main className="pt-16">
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold text-center mb-8">Top 200 Memes</h1>
-          <MemeGrid showTopOnly={true} />
+          <TopMemeGrid />
         </div>
       </main>
       <Support />
