@@ -23,10 +23,28 @@ export const FormWrapper = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error || !session) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to submit memes.",
+          variant: "destructive"
+        });
+        navigate("/");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   useEffect(() => {
     const editingMeme = localStorage.getItem("editingMeme");
@@ -48,6 +66,7 @@ export const FormWrapper = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
     if (!imageUrl) {
       toast({
@@ -55,16 +74,14 @@ export const FormWrapper = () => {
         description: "Please upload an image.",
         variant: "destructive"
       });
+      setIsLoading(false);
       return;
     }
 
     try {
-      const {
-        data: { user },
-        error: userError
-      } = await supabase.auth.getUser();
-
-      if (userError || !user) {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
         throw new Error("You must be logged in to submit a meme");
       }
 
@@ -77,7 +94,7 @@ export const FormWrapper = () => {
         telegram_link: telegramLink || null,
         trade_link: tradeLink || null,
         image_url: imageUrl,
-        created_by: user.id,
+        created_by: session.user.id,
       };
 
       if (isEditing && editingId) {
@@ -102,7 +119,7 @@ export const FormWrapper = () => {
         description: isEditing ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
       });
       
-      navigate("/");
+      navigate("/my-memes");
     } catch (error: any) {
       console.error('Error submitting meme:', error);
       toast({
@@ -110,6 +127,8 @@ export const FormWrapper = () => {
         description: error.message || "Failed to submit meme",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -144,7 +163,7 @@ export const FormWrapper = () => {
           setDate={setDate}
         />
 
-        <SubmitButton isEditing={isEditing} />
+        <SubmitButton isEditing={isEditing} isLoading={isLoading} />
       </div>
     </form>
   );
