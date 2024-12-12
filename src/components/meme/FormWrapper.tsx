@@ -59,8 +59,8 @@ export const FormWrapper = () => {
       if (editingMeme) {
         const meme = JSON.parse(editingMeme);
         setTitle(meme.title);
-        setDescription(meme.description);
-        setBlockchain(meme.blockchain);
+        setDescription(meme.description || "");
+        setBlockchain(meme.blockchain || "");
         setDate(meme.date ? new Date(meme.date) : undefined);
         setTwitterLink(meme.twitter_link || "");
         setTelegramLink(meme.telegram_link || "");
