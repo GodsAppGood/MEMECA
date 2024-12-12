@@ -15,20 +15,18 @@ export const useRealtimeSubscription = (
     const channels: RealtimeChannel[] = tables.map(({ name, event = '*' }) => {
       const channel = supabase.channel(`${name}_changes`);
       
-      channel
-        .on(
-          'postgres_changes' as const,
-          {
-            event,
-            schema: 'public',
-            table: name
-          },
-          (payload) => {
-            console.log(`${name} table changed:`, payload);
-            onUpdate(payload);
-          }
-        )
-        .subscribe();
+      channel.on(
+        'postgres_changes',
+        {
+          event,
+          schema: 'public',
+          table: name
+        },
+        (payload) => {
+          console.log(`${name} table changed:`, payload);
+          onUpdate(payload);
+        }
+      ).subscribe();
 
       return channel;
     });
