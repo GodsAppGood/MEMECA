@@ -33,7 +33,12 @@ export const MemeDetailPage = () => {
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Convert the numeric id to string for MemeCardActions
+      return {
+        ...data,
+        id: data.id.toString()
+      };
     }
   });
 

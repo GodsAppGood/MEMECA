@@ -2,8 +2,13 @@ import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
+interface TableSubscription {
+  name: string;
+  event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+}
+
 export const useRealtimeSubscription = (
-  tables: { name: string; event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*' }[],
+  tables: TableSubscription[],
   onUpdate: () => void
 ) => {
   useEffect(() => {
