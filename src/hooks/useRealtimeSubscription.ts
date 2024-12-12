@@ -16,7 +16,7 @@ export const useRealtimeSubscription = (
       const channel = supabase.channel(`${name}_changes`);
       
       channel.on(
-        'postgres_changes',
+        'postgres_changes' as any, // Temporary type assertion to fix build error
         {
           event,
           schema: 'public',

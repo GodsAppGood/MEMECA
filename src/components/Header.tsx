@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Button } from "./ui/button";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
-import { ProfileDropdown } from "./header/ProfileDropdown";
-import { LoginButton } from "./header/LoginButton";
 import { Countdown } from "./header/Countdown";
 import { supabase } from "@/integrations/supabase/client";
+import { Logo } from "./header/Logo";
+import { Navigation } from "./header/Navigation";
+import { AuthSection } from "./header/AuthSection";
 
 interface User {
   id: string;
@@ -16,7 +16,6 @@ interface User {
 
 export const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [imageError, setImageError] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -32,17 +31,6 @@ export const Header = () => {
       }
 
       if (session?.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('*')
-          .eq('auth_id', session.user.id)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('User data fetch error:', userError);
-          return;
-        }
-
         setUser({
           id: session.user.id,
           name: session.user.user_metadata.name,
@@ -55,8 +43,6 @@ export const Header = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
-      
       if (event === 'SIGNED_IN' && session) {
         setUser({
           id: session.user.id,
@@ -83,7 +69,7 @@ export const Header = () => {
   }, [navigate, toast]);
 
   const handleLoginSuccess = async (credentialResponse: any) => {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.origin
@@ -139,68 +125,23 @@ export const Header = () => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center space-x-6">
-          {!imageError ? (
-            <img 
-              src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
-              alt="Logo" 
-              className="h-8 w-8 animate-float"
-              onError={() => setImageError(true)}
-            />
-          ) : (
-            <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
-              <span className="text-gray-500 text-xs">Logo</span>
-            </div>
-          )}
-          <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link
-              to="/"
-              className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
-            >
-              Home
-            </Link>
-            <Link
-              to="/top-memes"
-              className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
-            >
-              Top Memes
-            </Link>
-            <Link
-              to="/my-story"
-              className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
-            >
-              My Story
-            </Link>
-          </nav>
+          <Logo />
+          <Navigation />
         </div>
 
         <div className="flex-1 flex justify-center">
           <Countdown />
         </div>
 
-        <div className="flex items-center space-x-4">
-          <Link to="/submit">
-            <Button
-              variant="ghost"
-              className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
-            >
-              Submit Meme
-            </Button>
-          </Link>
-          {user ? (
-            <ProfileDropdown
-              user={user}
-              onLogout={handleLogout}
-              isDashboardRoute={isDashboardRoute}
-            />
-          ) : (
-            <LoginButton
-              isLoginOpen={isLoginOpen}
-              setIsLoginOpen={setIsLoginOpen}
-              handleLoginSuccess={handleLoginSuccess}
-              handleLoginError={handleLoginError}
-            />
-          )}
-        </div>
+        <AuthSection
+          user={user}
+          isLoginOpen={isLoginOpen}
+          setIsLoginOpen={setIsLoginOpen}
+          handleLoginSuccess={handleLoginSuccess}
+          handleLoginError={handleLoginError}
+          handleLogout={handleLogout}
+          isDashboardRoute={isDashboardRoute}
+        />
       </div>
     </header>
   );
