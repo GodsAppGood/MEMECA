@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { MemeCard } from "./meme/MemeCard";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -19,8 +20,15 @@ export const MemeGrid = ({
   currentPage = 1,
   itemsPerPage = 100
 }: MemeGridProps) => {
-  const { data: session } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user?.id ?? null);
+    };
+    getSession();
+  }, []);
 
   const { data: userPoints = 0 } = useQuery({
     queryKey: ["user-points", userId],
@@ -47,7 +55,7 @@ export const MemeGrid = ({
         .eq('user_id', userId);
       
       if (error) throw error;
-      return data.map(item => item.meme_id);
+      return data?.map(item => item.meme_id) ?? [];
     }
   });
 
