@@ -14,7 +14,7 @@ export const FormWrapper = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [blockchain, setBlockchain] = useState("");
-  const [date, setDate] = useState<Date>();
+  const [createdAt, setCreatedAt] = useState<Date>();
   const [twitterLink, setTwitterLink] = useState("");
   const [telegramLink, setTelegramLink] = useState("");
   const [tradeLink, setTradeLink] = useState("");
@@ -60,7 +60,7 @@ export const FormWrapper = () => {
         setTitle(meme.title);
         setDescription(meme.description || "");
         setBlockchain(meme.blockchain || "");
-        setDate(meme.date ? new Date(meme.date) : undefined);
+        setCreatedAt(meme.created_at ? new Date(meme.created_at) : undefined);
         setTwitterLink(meme.twitter_link || "");
         setTelegramLink(meme.telegram_link || "");
         setTradeLink(meme.trade_link || "");
@@ -117,8 +117,7 @@ export const FormWrapper = () => {
         trade_link: tradeLink || null,
         image_url: imageUrl,
         created_by: user.id,
-        // Only include date if it's set
-        ...(date && { created_at: date.toISOString() })
+        created_at: createdAt?.toISOString() || new Date().toISOString()
       };
 
       if (isEditing && editingId) {
@@ -181,8 +180,8 @@ export const FormWrapper = () => {
         />
 
         <DateSelector
-          date={date}
-          setDate={setDate}
+          date={createdAt}
+          setDate={setCreatedAt}
         />
 
         <SubmitButton isEditing={isEditing} isLoading={isSubmitting} />
