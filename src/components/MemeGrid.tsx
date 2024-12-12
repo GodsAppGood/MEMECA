@@ -31,25 +31,38 @@ export const MemeGrid = ({
     };
     getSession();
 
-    // Subscribe to realtime updates
-    const channel = supabase
+    // Subscribe to realtime updates for both Memes and Watchlist tables
+    const memesChannel = supabase
       .channel('memes_changes')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'Memes' },
         () => {
-          // Invalidate and refetch queries when data changes
+          console.log('Memes table changed, refetching...');
           void refetch();
         }
       )
       .subscribe();
 
+    const watchlistChannel = supabase
+      .channel('watchlist_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'Watchlist' },
+        () => {
+          console.log('Watchlist changed, refetching likes...');
+          void refetchLikes();
+        }
+      )
+      .subscribe();
+
     return () => {
-      void supabase.removeChannel(channel);
+      void supabase.removeChannel(memesChannel);
+      void supabase.removeChannel(watchlistChannel);
     };
   }, []);
 
-  const { data: userPoints = 0 } = useQuery({
+  const { data: userPoints = 0, refetch: refetchPoints } = useQuery({
     queryKey: ["user-points", userId],
     queryFn: async () => {
       if (!userId) return 100;
@@ -64,7 +77,7 @@ export const MemeGrid = ({
     }
   });
 
-  const { data: userLikes = [] } = useQuery({
+  const { data: userLikes = [], refetch: refetchLikes } = useQuery({
     queryKey: ["user-likes", userId],
     queryFn: async () => {
       if (!userId) return [];

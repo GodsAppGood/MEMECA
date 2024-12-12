@@ -29,13 +29,13 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
   const likeMutation = useMutation({
     mutationFn: async () => {
       if (!userId) {
-        throw new Error("Необходимо авторизоваться");
+        throw new Error("Please login to like memes");
       }
 
       const hasLiked = userLikes.includes(meme.id);
 
       if (!hasLiked && userPoints <= 0) {
-        throw new Error("Недостаточно очков");
+        throw new Error("Not enough points");
       }
 
       if (hasLiked) {
@@ -70,17 +70,17 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
       queryClient.invalidateQueries({ queryKey: ["user-likes"] });
       queryClient.invalidateQueries({ queryKey: ["user-points"] });
       toast({
-        title: "Успех",
+        title: "Success",
         description: userLikes.includes(meme.id) 
-          ? "Мем удален из избранного" 
-          : "Мем добавлен в избранное",
+          ? "Meme removed from watchlist" 
+          : "Meme added to watchlist",
       });
     },
     onError: (error: Error) => {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось обновить лайк",
+        title: "Error",
+        description: error.message || "Failed to update like",
       });
     }
   });
@@ -89,8 +89,8 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
     if (userId !== meme.created_by) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: "Вы можете редактировать только свои мемы",
+        title: "Error",
+        description: "You can only edit your own memes",
       });
       return;
     }
