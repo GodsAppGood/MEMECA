@@ -18,8 +18,10 @@ export type Database = {
           id: number
           image_url: string | null
           likes: number | null
+          telegram_link: string | null
           title: string
           trade_link: string | null
+          twitter_link: string | null
         }
         Insert: {
           blockchain?: string | null
@@ -29,8 +31,10 @@ export type Database = {
           id?: never
           image_url?: string | null
           likes?: number | null
+          telegram_link?: string | null
           title: string
           trade_link?: string | null
+          twitter_link?: string | null
         }
         Update: {
           blockchain?: string | null
@@ -40,8 +44,10 @@ export type Database = {
           id?: never
           image_url?: string | null
           likes?: number | null
+          telegram_link?: string | null
           title?: string
           trade_link?: string | null
+          twitter_link?: string | null
         }
         Relationships: []
       }

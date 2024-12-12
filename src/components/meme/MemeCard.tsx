@@ -22,17 +22,6 @@ interface MemeCardProps {
 }
 
 export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps) => {
-  const checkIfInWatchlist = async (userId: string, memeId: string) => {
-    const { data: watchlistItems } = await supabase
-      .from('Watchlist')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('meme_id', Number(memeId))
-      .single();
-    
-    return !!watchlistItems;
-  };
-
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -110,7 +99,7 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden transition-transform duration-300 hover:scale-105">
       <div 
         className="cursor-pointer" 
         onClick={() => navigate(`/meme/${meme.id}`)}
@@ -118,7 +107,7 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
         <img
           src={meme.image_url}
           alt={meme.title}
-          className="w-full h-48 object-cover"
+          className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
         />
         <div className="p-4">
           <div className="flex justify-between items-start mb-2">

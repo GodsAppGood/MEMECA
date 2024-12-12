@@ -10,6 +10,7 @@ interface MemeGridProps {
   showTopOnly?: boolean;
   currentPage?: number;
   itemsPerPage?: number;
+  userOnly?: boolean;
 }
 
 export const MemeGrid = ({ 
@@ -18,7 +19,8 @@ export const MemeGrid = ({
   showTodayOnly,
   showTopOnly,
   currentPage = 1,
-  itemsPerPage = 100
+  itemsPerPage = 100,
+  userOnly = false
 }: MemeGridProps) => {
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -28,6 +30,23 @@ export const MemeGrid = ({
       setUserId(session?.user?.id ?? null);
     };
     getSession();
+
+    // Subscribe to realtime updates
+    const channel = supabase
+      .channel('memes_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'Memes' },
+        () => {
+          // Invalidate and refetch queries when data changes
+          void refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   const { data: userPoints = 0 } = useQuery({
@@ -59,13 +78,17 @@ export const MemeGrid = ({
     }
   });
 
-  const { data: memes = [], isLoading } = useQuery({
-    queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage],
+  const { data: memes = [], isLoading, refetch } = useQuery({
+    queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage, userOnly, userId],
     queryFn: async () => {
       let query = supabase
         .from('Memes')
         .select('*');
       
+      if (userOnly && userId) {
+        query = query.eq('created_by', userId);
+      }
+
       if (showTodayOnly) {
         const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         query = query.gte('created_at', last24Hours);
@@ -86,7 +109,7 @@ export const MemeGrid = ({
       }
 
       if (showTopOnly) {
-        query = query.order('likes', { ascending: false }).limit(200);
+        query = query.order('likes', { ascending: false });
       } else {
         query = query.order('created_at', { ascending: false });
       }
