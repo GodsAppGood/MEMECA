@@ -36,8 +36,8 @@ export const FormWrapper = () => {
         console.error('Auth check error:', error);
         toast({
           variant: "destructive",
-          title: "Authentication Error",
-          description: "Please try logging in again.",
+          title: "Ошибка аутентификации",
+          description: "Пожалуйста, попробуйте войти снова.",
         });
         navigate('/');
         return;
@@ -46,8 +46,8 @@ export const FormWrapper = () => {
       if (!session) {
         toast({
           variant: "destructive",
-          title: "Authentication Required",
-          description: "Please log in to submit memes.",
+          title: "Требуется аутентификация",
+          description: "Пожалуйста, войдите для отправки мемов.",
         });
         navigate('/');
         return;
@@ -91,8 +91,8 @@ export const FormWrapper = () => {
     if (!imageUrl) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Please upload an image.",
+        title: "Ошибка",
+        description: "Пожалуйста, загрузите изображение.",
       });
       return;
     }
@@ -100,8 +100,8 @@ export const FormWrapper = () => {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Authentication Required",
-        description: "Please log in to submit memes.",
+        title: "Требуется аутентификация",
+        description: "Пожалуйста, войдите для отправки мемов.",
       });
       return;
     }
@@ -121,8 +121,6 @@ export const FormWrapper = () => {
         created_by: user.id
       };
 
-      console.log('Submitting meme with data:', memeData);
-
       if (isEditing && editingId) {
         const { error: updateError } = await supabase
           .from('Memes')
@@ -139,8 +137,8 @@ export const FormWrapper = () => {
       }
 
       toast({
-        title: "Success!",
-        description: isEditing ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
+        title: "Успех!",
+        description: isEditing ? "Мем успешно обновлен." : "Мем успешно отправлен.",
       });
       
       navigate("/my-memes");
@@ -148,8 +146,8 @@ export const FormWrapper = () => {
       console.error('Error submitting meme:', error);
       toast({
         variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to submit meme",
+        title: "Ошибка",
+        description: error.message || "Не удалось отправить мем",
       });
     } finally {
       setIsSubmitting(false);
