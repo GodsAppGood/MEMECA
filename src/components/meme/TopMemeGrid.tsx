@@ -9,6 +9,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { Slider } from "@/components/ui/slider";
 
 const placeholderImages = [
   "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
@@ -20,6 +21,7 @@ const placeholderImages = [
 
 export const TopMemeGrid = () => {
   const [userId, setUserId] = useState<string | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const getSession = async () => {
@@ -85,7 +87,6 @@ export const TopMemeGrid = () => {
         .limit(200);
       
       if (error) throw error;
-      // Convert the id to string in the returned data
       return data?.map(meme => ({
         ...meme,
         id: meme.id.toString()
@@ -109,30 +110,51 @@ export const TopMemeGrid = () => {
     return <div>Loading...</div>;
   }
 
+  const handleSliderChange = (value: number[]) => {
+    setCurrentSlide(value[0]);
+  };
+
   return (
-    <Carousel
-      opts={{
-        align: "start",
-        loop: false,
-      }}
-      className="w-full"
-    >
-      <CarouselContent className="-ml-2 md:-ml-4">
-        {allCards.map((meme, index) => (
-          <CarouselItem key={meme.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-            <TopMemeCard
-              meme={meme}
-              position={index + 1}
-              userLikes={userLikes}
-              userPoints={userPoints}
-              userId={userId}
-              isFirst={index === 0}
-            />
-          </CarouselItem>
-        ))}
-      </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
-    </Carousel>
+    <div className="space-y-4">
+      <Carousel
+        opts={{
+          align: "start",
+          loop: false,
+        }}
+        className="w-full"
+        setApi={(api) => {
+          api?.on("select", () => {
+            const selectedIndex = api.selectedScrollSnap();
+            setCurrentSlide(selectedIndex);
+          });
+        }}
+      >
+        <CarouselContent className="-ml-2 md:-ml-4">
+          {allCards.map((meme, index) => (
+            <CarouselItem key={meme.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
+              <TopMemeCard
+                meme={meme}
+                position={index + 1}
+                userLikes={userLikes}
+                userPoints={userPoints}
+                userId={userId}
+                isFirst={index === 0}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        <CarouselPrevious />
+        <CarouselNext />
+      </Carousel>
+      <div className="px-4">
+        <Slider
+          value={[currentSlide]}
+          max={Math.max(0, allCards.length - 1)}
+          step={1}
+          onValueChange={handleSliderChange}
+          className="w-full"
+        />
+      </div>
+    </div>
   );
 };

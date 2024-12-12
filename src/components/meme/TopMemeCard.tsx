@@ -47,17 +47,20 @@ export const TopMemeCard = ({
       }
 
       if (hasLiked) {
+        // Remove from watchlist
         await supabase
           .from('Watchlist')
           .delete()
           .eq('user_id', userId)
           .eq('meme_id', Number(meme.id));
 
+        // Update meme likes
         await supabase
           .from('Memes')
           .update({ likes: meme.likes - 1 })
           .eq('id', Number(meme.id));
       } else {
+        // Add to watchlist
         await supabase
           .from('Watchlist')
           .insert([{ 
@@ -65,6 +68,7 @@ export const TopMemeCard = ({
             meme_id: Number(meme.id)
           }]);
 
+        // Update meme likes
         await supabase
           .from('Memes')
           .update({ likes: meme.likes + 1 })
