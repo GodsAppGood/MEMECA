@@ -22,17 +22,16 @@ interface MemeCardProps {
 }
 
 export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps) => {
-
-const checkIfInWatchlist = async (userId: string, memeId: string) => {
-  const { data: watchlistItems } = await supabase
-    .from('Watchlist')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('meme_id', parseInt(memeId))
-    .single();
+  const checkIfInWatchlist = async (userId: string, memeId: string) => {
+    const { data: watchlistItems } = await supabase
+      .from('Watchlist')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('meme_id', Number(memeId))
+      .single();
     
-  return !!watchlistItems;
-};
+    return !!watchlistItems;
+  };
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,22 +55,25 @@ const checkIfInWatchlist = async (userId: string, memeId: string) => {
           .from('Watchlist')
           .delete()
           .eq('user_id', userId)
-          .eq('meme_id', meme.id);
+          .eq('meme_id', Number(meme.id));
 
         await supabase
           .from('Memes')
           .update({ likes: meme.likes - 1 })
-          .eq('id', meme.id);
+          .eq('id', Number(meme.id));
       } else {
         // Add like
         await supabase
           .from('Watchlist')
-          .insert([{ user_id: userId, meme_id: meme.id }]);
+          .insert([{ 
+            user_id: userId, 
+            meme_id: Number(meme.id) 
+          }]);
 
         await supabase
           .from('Memes')
           .update({ likes: meme.likes + 1 })
-          .eq('id', meme.id);
+          .eq('id', Number(meme.id));
       }
     },
     onSuccess: () => {
