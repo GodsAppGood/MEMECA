@@ -6,9 +6,22 @@ import { MemeImage } from "./MemeImage";
 import { MemeLinks } from "./MemeLinks";
 import { MemeCardActions } from "../MemeCardActions";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { useUserData } from "@/hooks/useUserData";
+import { useEffect, useState } from "react";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user?.id ?? null);
+    };
+    getSession();
+  }, []);
+
+  const { userPoints, userLikes, refetchLikes } = useUserData(userId);
 
   const { data: meme, refetch } = useQuery({
     queryKey: ["meme", id],
@@ -32,6 +45,7 @@ export const MemeDetailPage = () => {
     [{ name: "Memes" }, { name: "Watchlist" }],
     () => {
       void refetch();
+      void refetchLikes();
     }
   );
 
@@ -45,7 +59,12 @@ export const MemeDetailPage = () => {
         <MemeHeader meme={meme} />
         <MemeImage meme={meme} />
         <MemeLinks meme={meme} />
-        <MemeCardActions meme={meme} />
+        <MemeCardActions 
+          meme={meme}
+          userLikes={userLikes}
+          userPoints={userPoints}
+          userId={userId}
+        />
       </div>
     </div>
   );
