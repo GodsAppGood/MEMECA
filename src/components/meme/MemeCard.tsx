@@ -21,11 +21,15 @@ interface MemeCardProps {
 export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps) => {
   const navigate = useNavigate();
 
+  const handleMemeClick = () => {
+    navigate(`/meme/${meme.id}`);
+  };
+
   return (
     <Card className="overflow-hidden transition-transform duration-300 hover:scale-105">
       <div 
         className="cursor-pointer" 
-        onClick={() => navigate(`/meme/${meme.id}`)}
+        onClick={handleMemeClick}
       >
         <MemeCardImage
           imageUrl={meme.image_url}

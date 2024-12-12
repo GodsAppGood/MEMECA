@@ -3,6 +3,7 @@ import { Heart } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 interface LikeButtonProps {
   meme: {
@@ -24,6 +25,7 @@ export const LikeButton = ({
 }: LikeButtonProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const likeMutation = useMutation({
     mutationFn: async () => {
@@ -32,43 +34,54 @@ export const LikeButton = ({
       }
 
       const hasLiked = userLikes.includes(meme.id);
+      setIsProcessing(true);
 
-      if (!hasLiked && userPoints <= 0) {
-        throw new Error("Not enough points");
-      }
+      try {
+        if (hasLiked) {
+          // Remove from watchlist
+          await supabase
+            .from('Watchlist')
+            .delete()
+            .eq('user_id', userId)
+            .eq('meme_id', Number(meme.id));
 
-      if (hasLiked) {
-        await supabase
-          .from('Watchlist')
-          .delete()
-          .eq('user_id', userId)
-          .eq('meme_id', Number(meme.id));
+          // Decrement likes count
+          await supabase
+            .from('Memes')
+            .update({ likes: meme.likes - 1 })
+            .eq('id', Number(meme.id));
+        } else {
+          if (userPoints <= 0) {
+            throw new Error("Not enough points");
+          }
 
-        await supabase
-          .from('Memes')
-          .update({ likes: meme.likes - 1 })
-          .eq('id', Number(meme.id));
-      } else {
-        await supabase
-          .from('Watchlist')
-          .insert([{ 
-            user_id: userId, 
-            meme_id: Number(meme.id)
-          }]);
+          // Add to watchlist
+          await supabase
+            .from('Watchlist')
+            .insert([{ 
+              user_id: userId, 
+              meme_id: Number(meme.id)
+            }]);
 
-        await supabase
-          .from('Memes')
-          .update({ likes: meme.likes + 1 })
-          .eq('id', Number(meme.id));
+          // Increment likes count
+          await supabase
+            .from('Memes')
+            .update({ likes: meme.likes + 1 })
+            .eq('id', Number(meme.id));
+        }
+      } finally {
+        setIsProcessing(false);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["top-memes"] });
+      queryClient.invalidateQueries({ queryKey: ["memes"] });
       queryClient.invalidateQueries({ queryKey: ["user-likes"] });
       queryClient.invalidateQueries({ queryKey: ["user-points"] });
+      
+      const hasLiked = userLikes.includes(meme.id);
       toast({
         title: "Success",
-        description: userLikes.includes(meme.id) 
+        description: hasLiked 
           ? "Meme removed from watchlist" 
           : "Meme added to watchlist",
       });
@@ -84,20 +97,24 @@ export const LikeButton = ({
 
   if (isFirst) return null;
 
+  const hasLiked = userLikes.includes(meme.id);
+
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={(e) => {
         e.stopPropagation();
-        likeMutation.mutate();
+        if (!isProcessing) {
+          likeMutation.mutate();
+        }
       }}
       className="hover:text-red-500"
-      disabled={userPoints <= 0 && !userLikes.includes(meme.id)}
+      disabled={userPoints <= 0 && !hasLiked}
     >
       <Heart 
         className={`h-4 w-4 ${
-          userLikes.includes(meme.id) ? 'fill-red-500 text-red-500' : ''
+          hasLiked ? 'fill-red-500 text-red-500' : ''
         }`} 
       />
       <span className="ml-1">{meme.likes || 0}</span>

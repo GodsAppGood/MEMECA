@@ -3,12 +3,27 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import { useUserData } from "@/hooks/useUserData";
+import { useEffect, useState } from "react";
+import { MemeCardActions } from "./MemeCardActions";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
 
-  const { data: meme, isLoading } = useQuery({
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUserId(session?.user?.id ?? null);
+    };
+    getSession();
+  }, []);
+
+  const { userPoints, userLikes, refetchLikes } = useUserData(userId);
+
+  const { data: meme, isLoading, refetch } = useQuery({
     queryKey: ["meme-detail", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -21,6 +36,17 @@ export const MemeDetailPage = () => {
       return data;
     }
   });
+
+  useRealtimeSubscription(
+    [
+      { name: 'Memes' },
+      { name: 'Watchlist' }
+    ],
+    () => {
+      void refetch();
+      void refetchLikes();
+    }
+  );
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -42,13 +68,22 @@ export const MemeDetailPage = () => {
       </Button>
 
       <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="flex justify-between items-start mb-6">
+          <h1 className="text-3xl font-serif">{meme.title}</h1>
+          <MemeCardActions
+            meme={meme}
+            userLikes={userLikes}
+            userPoints={userPoints}
+            userId={userId}
+          />
+        </div>
+
         <img
           src={meme.image_url}
           alt={meme.title}
           className="w-full h-auto max-h-[600px] object-contain mb-8 rounded-lg"
         />
         
-        <h1 className="text-3xl font-serif mb-6">{meme.title}</h1>
         <p className="text-lg mb-8">{meme.description}</p>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
