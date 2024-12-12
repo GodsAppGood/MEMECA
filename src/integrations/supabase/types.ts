@@ -20,30 +20,35 @@ export type Database = {
           likes: number | null
           title: string
           trade_link: string | null
+          twitter_link: string | null
+          telegram_link: string | null
         }
         Insert: {
           blockchain?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          id?: never
+          id?: number
           image_url?: string | null
           likes?: number | null
           title: string
           trade_link?: string | null
+          twitter_link?: string | null
+          telegram_link?: string | null
         }
         Update: {
           blockchain?: string | null
           created_at?: string | null
           created_by?: string | null
           description?: string | null
-          id?: never
+          id?: number
           image_url?: string | null
           likes?: number | null
           title?: string
           trade_link?: string | null
+          twitter_link?: string | null
+          telegram_link?: string | null
         }
-        Relationships: []
       }
       Referrals: {
         Row: {
@@ -174,10 +179,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+      Row: infer R
+    }
+    ? R
+    : never
     : never
 
 export type TablesInsert<

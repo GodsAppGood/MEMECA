@@ -4,7 +4,6 @@ import { FormFields } from "./FormFields";
 import { BlockchainSelector } from "./BlockchainSelector";
 import { DateSelector } from "./DateSelector";
 import { SubmitButton } from "./SubmitButton";
-import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,12 +112,13 @@ export const FormWrapper = () => {
         title,
         description,
         blockchain,
-        date: date ? format(date, "yyyy-MM-dd") : null,
         twitter_link: twitterLink || null,
         telegram_link: telegramLink || null,
         trade_link: tradeLink || null,
         image_url: imageUrl,
-        created_by: user.id
+        created_by: user.id,
+        // Only include date if it's set
+        ...(date && { created_at: date.toISOString() })
       };
 
       if (isEditing && editingId) {
