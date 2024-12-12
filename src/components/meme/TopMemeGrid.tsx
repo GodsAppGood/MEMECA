@@ -30,7 +30,6 @@ export const TopMemeGrid = () => {
     };
     getSession();
 
-    // Subscribe to realtime updates
     const channel = supabase
       .channel('memes_changes')
       .on(
