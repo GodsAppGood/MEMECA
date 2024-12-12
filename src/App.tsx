@@ -20,7 +20,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <GoogleOAuthProvider clientId="815250406099-4l39oo62a19gcpihekksnrn37bo7jpcr.apps.googleusercontent.com">
+  <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
