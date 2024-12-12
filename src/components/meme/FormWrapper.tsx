@@ -24,26 +24,90 @@ export const FormWrapper = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState<any>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check authentication status on component mount
+  // Check and set authentication status
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error || !session) {
+      try {
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          throw sessionError;
+        }
+
+        if (!currentSession) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to submit memes.",
+            variant: "destructive"
+          });
+          navigate("/");
+          return;
+        }
+
+        setSession(currentSession);
+        console.log("Current session:", currentSession); // Debug log
+
+        // Verify user exists in Users table
+        const { data: userData, error: userError } = await supabase
+          .from('Users')
+          .select('*')
+          .eq('auth_id', currentSession.user.id)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          console.error('User data error:', userError);
+          throw userError;
+        }
+
+        // If user doesn't exist in Users table, create them
+        if (!userData) {
+          const { error: insertError } = await supabase
+            .from('Users')
+            .insert([
+              {
+                auth_id: currentSession.user.id,
+                email: currentSession.user.email,
+                name: currentSession.user.user_metadata?.name,
+                profile_image: currentSession.user.user_metadata?.picture
+              }
+            ]);
+
+          if (insertError) {
+            console.error('User creation error:', insertError);
+            throw insertError;
+          }
+        }
+      } catch (error: any) {
+        console.error('Auth check error:', error);
         toast({
-          title: "Authentication Required",
-          description: "Please log in to submit memes.",
+          title: "Authentication Error",
+          description: error.message || "Please try logging in again.",
           variant: "destructive"
         });
         navigate("/");
       }
     };
-    
+
     checkAuth();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session); // Debug log
+      if (event === 'SIGNED_OUT') {
+        navigate("/");
+      }
+      setSession(session);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast]);
 
   useEffect(() => {
@@ -78,12 +142,18 @@ export const FormWrapper = () => {
       return;
     }
 
+    if (!session?.user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to submit memes.",
+        variant: "destructive"
+      });
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        throw new Error("You must be logged in to submit a meme");
-      }
+      console.log("Submitting meme with user ID:", session.user.id); // Debug log
 
       const memeData = {
         title,
@@ -97,6 +167,8 @@ export const FormWrapper = () => {
         created_by: session.user.id,
       };
 
+      console.log("Meme data to be submitted:", memeData); // Debug log
+
       if (isEditing && editingId) {
         const { error: updateError } = await supabase
           .from('Memes')
@@ -109,7 +181,10 @@ export const FormWrapper = () => {
           .from('Memes')
           .insert([memeData]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('Insert error:', insertError); // Debug log
+          throw insertError;
+        }
       }
 
       await queryClient.invalidateQueries({ queryKey: ["memes"] });
