@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
 import { ImageUploader } from "./ImageUploader";
 import { FormFields } from "./FormFields";
 import { BlockchainSelector } from "./BlockchainSelector";
 import { DateSelector } from "./DateSelector";
 import { SubmitButton } from "./SubmitButton";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthCheck } from "@/hooks/useAuthCheck";
+import { useMemeSubmission } from "@/hooks/useMemeSubmission";
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -23,92 +21,9 @@ export const FormWrapper = () => {
   const [imageUrl, setImageUrl] = useState("");
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
-  
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Check and set authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          throw sessionError;
-        }
-
-        if (!currentSession) {
-          toast({
-            title: "Authentication Required",
-            description: "Please log in to submit memes.",
-            variant: "destructive"
-          });
-          navigate("/");
-          return;
-        }
-
-        setSession(currentSession);
-        console.log("Current session:", currentSession); // Debug log
-
-        // Verify user exists in Users table
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('*')
-          .eq('auth_id', currentSession.user.id)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('User data error:', userError);
-          throw userError;
-        }
-
-        // If user doesn't exist in Users table, create them
-        if (!userData) {
-          const { error: insertError } = await supabase
-            .from('Users')
-            .insert([
-              {
-                auth_id: currentSession.user.id,
-                email: currentSession.user.email,
-                name: currentSession.user.user_metadata?.name,
-                profile_image: currentSession.user.user_metadata?.picture
-              }
-            ]);
-
-          if (insertError) {
-            console.error('User creation error:', insertError);
-            throw insertError;
-          }
-        }
-      } catch (error: any) {
-        console.error('Auth check error:', error);
-        toast({
-          title: "Authentication Error",
-          description: error.message || "Please try logging in again.",
-          variant: "destructive"
-        });
-        navigate("/");
-      }
-    };
-
-    checkAuth();
-
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session); // Debug log
-      if (event === 'SIGNED_OUT') {
-        navigate("/");
-      }
-      setSession(session);
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, toast]);
+  const { session, isLoading: isAuthLoading } = useAuthCheck();
+  const { submitMeme, isLoading: isSubmitting } = useMemeSubmission();
 
   useEffect(() => {
     const editingMeme = localStorage.getItem("editingMeme");
@@ -130,7 +45,6 @@ export const FormWrapper = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     
     if (!imageUrl) {
       toast({
@@ -138,7 +52,6 @@ export const FormWrapper = () => {
         description: "Please upload an image.",
         variant: "destructive"
       });
-      setIsLoading(false);
       return;
     }
 
@@ -148,64 +61,31 @@ export const FormWrapper = () => {
         description: "Please log in to submit memes.",
         variant: "destructive"
       });
-      setIsLoading(false);
       return;
     }
 
-    try {
-      console.log("Submitting meme with user ID:", session.user.id); // Debug log
+    const memeData = {
+      title,
+      description,
+      blockchain,
+      date: date ? format(date, "PPP") : null,
+      twitter_link: twitterLink || null,
+      telegram_link: telegramLink || null,
+      trade_link: tradeLink || null,
+      image_url: imageUrl,
+      created_by: session.user.id,
+    };
 
-      const memeData = {
-        title,
-        description,
-        blockchain,
-        date: date ? format(date, "PPP") : null,
-        twitter_link: twitterLink || null,
-        telegram_link: telegramLink || null,
-        trade_link: tradeLink || null,
-        image_url: imageUrl,
-        created_by: session.user.id,
-      };
-
-      console.log("Meme data to be submitted:", memeData); // Debug log
-
-      if (isEditing && editingId) {
-        const { error: updateError } = await supabase
-          .from('Memes')
-          .update(memeData)
-          .eq('id', editingId);
-
-        if (updateError) throw updateError;
-      } else {
-        const { error: insertError } = await supabase
-          .from('Memes')
-          .insert([memeData]);
-
-        if (insertError) {
-          console.error('Insert error:', insertError); // Debug log
-          throw insertError;
-        }
-      }
-
-      await queryClient.invalidateQueries({ queryKey: ["memes"] });
-      
-      toast({
-        title: "Success!",
-        description: isEditing ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
-      });
-      
-      navigate("/my-memes");
-    } catch (error: any) {
-      console.error('Error submitting meme:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit meme",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    await submitMeme(memeData, isEditing, editingId);
   };
+
+  if (isAuthLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -238,7 +118,7 @@ export const FormWrapper = () => {
           setDate={setDate}
         />
 
-        <SubmitButton isEditing={isEditing} isLoading={isLoading} />
+        <SubmitButton isEditing={isEditing} isLoading={isSubmitting} />
       </div>
     </form>
   );
