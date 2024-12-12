@@ -8,6 +8,7 @@ import { BlockchainSelector } from "./BlockchainSelector";
 import { DateSelector } from "./DateSelector";
 import { SubmitButton } from "./SubmitButton";
 import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -57,42 +58,59 @@ export const FormWrapper = () => {
       return;
     }
 
-    const memeData = {
-      id: isEditing ? editingId! : Date.now().toString(),
-      title,
-      description,
-      blockchain,
-      dateAdded: isEditing ? undefined : new Date().toISOString(),
-      date: date ? format(date, "PPP") : "",
-      twitterLink: twitterLink || "",
-      telegramLink: telegramLink || "",
-      tradeLink: tradeLink || "",
-      imageUrl,
-      userId: "current-user-id",
-      likes: isEditing ? undefined : 0,
-    };
+    try {
+      const {
+        data: { user },
+        error: userError
+      } = await supabase.auth.getUser();
 
-    const existingMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-    let updatedMemes;
+      if (userError || !user) {
+        throw new Error("You must be logged in to submit a meme");
+      }
 
-    if (isEditing) {
-      updatedMemes = existingMemes.map((meme: any) => 
-        meme.id === editingId ? { ...meme, ...memeData } : meme
-      );
-    } else {
-      updatedMemes = [memeData, ...existingMemes];
+      const memeData = {
+        title,
+        description,
+        blockchain,
+        date: date ? format(date, "PPP") : null,
+        twitter_link: twitterLink || null,
+        telegram_link: telegramLink || null,
+        trade_link: tradeLink || null,
+        image_url: imageUrl,
+        created_by: user.id,
+      };
+
+      if (isEditing && editingId) {
+        const { error: updateError } = await supabase
+          .from('Memes')
+          .update(memeData)
+          .eq('id', editingId);
+
+        if (updateError) throw updateError;
+      } else {
+        const { error: insertError } = await supabase
+          .from('Memes')
+          .insert([memeData]);
+
+        if (insertError) throw insertError;
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["memes"] });
+      
+      toast({
+        title: "Success!",
+        description: isEditing ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
+      });
+      
+      navigate("/");
+    } catch (error: any) {
+      console.error('Error submitting meme:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit meme",
+        variant: "destructive"
+      });
     }
-
-    localStorage.setItem("memes", JSON.stringify(updatedMemes));
-    
-    await queryClient.invalidateQueries({ queryKey: ["memes"] });
-    
-    toast({
-      title: "Success!",
-      description: isEditing ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
-    });
-    
-    navigate("/");
   };
 
   return (

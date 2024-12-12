@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MemeCard } from "./meme/MemeCard";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -18,58 +19,75 @@ export const MemeGrid = ({
   currentPage = 1,
   itemsPerPage = 100
 }: MemeGridProps) => {
-  const userId = "current-user-id"; // This should be replaced with actual user ID
+  const { data: session } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
 
   const { data: userPoints = 0 } = useQuery({
     queryKey: ["user-points", userId],
-    queryFn: () => {
-      return parseInt(localStorage.getItem(`points-${userId}`) || "100");
+    queryFn: async () => {
+      if (!userId) return 100;
+      const { data, error } = await supabase
+        .from('Users')
+        .select('referral_points')
+        .eq('auth_id', userId)
+        .single();
+      
+      if (error) throw error;
+      return data?.referral_points || 100;
     }
   });
 
   const { data: userLikes = [] } = useQuery({
     queryKey: ["user-likes", userId],
-    queryFn: () => {
-      return JSON.parse(localStorage.getItem(`likes-${userId}`) || "[]");
+    queryFn: async () => {
+      if (!userId) return [];
+      const { data, error } = await supabase
+        .from('Watchlist')
+        .select('meme_id')
+        .eq('user_id', userId);
+      
+      if (error) throw error;
+      return data.map(item => item.meme_id);
     }
   });
 
   const { data: memes = [], isLoading } = useQuery({
     queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage],
-    queryFn: () => {
-      let storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+    queryFn: async () => {
+      let query = supabase
+        .from('Memes')
+        .select('*');
       
       if (showTodayOnly) {
-        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        storedMemes = storedMemes.filter((meme: any) => 
-          new Date(meme.dateAdded) > last24Hours
-        );
+        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        query = query.gte('created_at', last24Hours);
       }
 
       if (selectedDate) {
-        storedMemes = storedMemes.filter((meme: any) => 
-          new Date(meme.dateAdded).toDateString() === selectedDate.toDateString()
-        );
+        const startOfDay = new Date(selectedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(selectedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        query = query
+          .gte('created_at', startOfDay.toISOString())
+          .lte('created_at', endOfDay.toISOString());
       }
 
       if (selectedBlockchain) {
-        storedMemes = storedMemes.filter((meme: any) => 
-          meme.blockchain.toLowerCase() === selectedBlockchain.toLowerCase()
-        );
+        query = query.eq('blockchain', selectedBlockchain);
       }
-
-      storedMemes = storedMemes.sort((a: any, b: any) => 
-        new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime()
-      );
 
       if (showTopOnly) {
-        storedMemes = storedMemes.sort((a: any, b: any) => b.likes - a.likes).slice(0, 200);
+        query = query.order('likes', { ascending: false }).limit(200);
+      } else {
+        query = query.order('created_at', { ascending: false });
       }
 
-      // Apply pagination
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      return storedMemes.slice(startIndex, endIndex);
+      const { data, error } = await query
+        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+      
+      if (error) throw error;
+      return data;
     }
   });
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ImageUploaderProps {
   imageUrl: string;
@@ -8,6 +9,7 @@ interface ImageUploaderProps {
 
 export const ImageUploader = ({ imageUrl, onImageChange }: ImageUploaderProps) => {
   const [dragActive, setDragActive] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   const handleDrag = (e: React.DragEvent) => {
@@ -33,8 +35,9 @@ export const ImageUploader = ({ imageUrl, onImageChange }: ImageUploaderProps) =
     handleFile(file);
   };
 
-  const handleFile = (file?: File) => {
+  const handleFile = async (file?: File) => {
     if (!file) return;
+    
     const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
     if (!validTypes.includes(file.type)) {
       toast({
@@ -44,6 +47,7 @@ export const ImageUploader = ({ imageUrl, onImageChange }: ImageUploaderProps) =
       });
       return;
     }
+
     if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Error",
@@ -52,13 +56,46 @@ export const ImageUploader = ({ imageUrl, onImageChange }: ImageUploaderProps) =
       });
       return;
     }
-    const url = URL.createObjectURL(file);
-    onImageChange(url);
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).slice(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('memecardstore')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('memecardstore')
+        .getPublicUrl(filePath);
+
+      onImageChange(publicUrl);
+      
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      });
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload image",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <div
-      className={`border-2 border-dashed rounded-lg p-4 h-80 flex flex-col items-center justify-center cursor-pointer transition-colors
+      className={`border-2 border-dashed rounded-lg p-4 h-80 flex flex-col items-center justify-center cursor-pointer transition-colors relative
         ${dragActive ? 'border-[#FF4500] bg-[#FF4500]/5' : 'border-gray-300 hover:border-[#FF4500] hover:bg-[#FF4500]/5'}
         ${imageUrl ? 'bg-gray-50' : ''}`}
       onDragEnter={handleDrag}
@@ -67,6 +104,12 @@ export const ImageUploader = ({ imageUrl, onImageChange }: ImageUploaderProps) =
       onDrop={handleDrop}
       onClick={() => document.getElementById('file-upload')?.click()}
     >
+      {isUploading && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-lg">
+          <div className="text-white">Uploading...</div>
+        </div>
+      )}
+      
       {imageUrl ? (
         <img src={imageUrl} alt="Preview" className="max-h-full object-contain" />
       ) : (
