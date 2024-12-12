@@ -22,6 +22,18 @@ interface MemeCardProps {
 }
 
 export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps) => {
+
+const checkIfInWatchlist = async (userId: string, memeId: string) => {
+  const { data: watchlistItems } = await supabase
+    .from('Watchlist')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('meme_id', parseInt(memeId))
+    .single();
+    
+  return !!watchlistItems;
+};
+
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
