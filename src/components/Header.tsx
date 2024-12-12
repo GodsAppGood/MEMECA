@@ -5,8 +5,10 @@ import { useToast } from "./ui/use-toast";
 import { ProfileDropdown } from "./header/ProfileDropdown";
 import { LoginButton } from "./header/LoginButton";
 import { Countdown } from "./header/Countdown";
+import { supabase } from "@/integrations/supabase/client";
 
-interface GoogleUser {
+interface User {
+  id: string;
   name: string;
   email: string;
   picture: string;
@@ -15,68 +17,93 @@ interface GoogleUser {
 export const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [user, setUser] = useState<GoogleUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    const token = localStorage.getItem('googleToken');
-    if (token) {
-      try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        
-        const decodedUser = JSON.parse(jsonPayload);
-        setUser({
-          name: decodedUser.name,
-          email: decodedUser.email,
-          picture: decodedUser.picture,
-        });
-      } catch (error) {
-        console.error('Error decoding token:', error);
-        localStorage.removeItem('googleToken');
-      }
-    }
-  }, []);
-
-  const handleLoginSuccess = (credentialResponse: any) => {
-    if (credentialResponse.credential) {
-      localStorage.setItem('googleToken', credentialResponse.credential);
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
       
-      try {
-        const base64Url = credentialResponse.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        
-        const decodedUser = JSON.parse(jsonPayload);
+      if (error) {
+        console.error('Session check error:', error);
+        return;
+      }
+
+      if (session?.user) {
+        const { data: userData, error: userError } = await supabase
+          .from('Users')
+          .select('*')
+          .eq('auth_id', session.user.id)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          console.error('User data fetch error:', userError);
+          return;
+        }
+
         setUser({
-          name: decodedUser.name,
-          email: decodedUser.email,
-          picture: decodedUser.picture,
+          id: session.user.id,
+          name: session.user.user_metadata.name,
+          email: session.user.email || '',
+          picture: session.user.user_metadata.picture
         });
-        
+      }
+    };
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
+      if (event === 'SIGNED_IN' && session) {
+        setUser({
+          id: session.user.id,
+          name: session.user.user_metadata.name,
+          email: session.user.email || '',
+          picture: session.user.user_metadata.picture
+        });
+
         toast({
           title: "Successfully logged in",
-          description: `Welcome ${decodedUser.name}!`,
+          description: `Welcome ${session.user.user_metadata.name}!`,
         });
-        
+
         navigate('/dashboard');
-      } catch (error) {
-        console.error('Error decoding token:', error);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        navigate('/');
       }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
+  const handleLoginSuccess = async (credentialResponse: any) => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+
+    if (error) {
+      console.error('Login error:', error);
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: error.message,
+      });
     }
     
     setIsLoginOpen(false);
   };
 
   const handleLoginError = () => {
-    console.log('Login Failed');
+    console.error('Login Failed');
     toast({
       variant: "destructive",
       title: "Login failed",
@@ -85,8 +112,19 @@ export const Header = () => {
     setIsLoginOpen(false);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('googleToken');
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('Logout error:', error);
+      toast({
+        variant: "destructive",
+        title: "Logout failed",
+        description: error.message,
+      });
+      return;
+    }
+
     setUser(null);
     toast({
       title: "Logged out",
