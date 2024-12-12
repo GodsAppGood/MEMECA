@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { MemeCard } from "./meme/MemeCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { useUserData } from "@/hooks/useUserData";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -62,34 +63,7 @@ export const MemeGrid = ({
     };
   }, []);
 
-  const { data: userPoints = 0, refetch: refetchPoints } = useQuery({
-    queryKey: ["user-points", userId],
-    queryFn: async () => {
-      if (!userId) return 100;
-      const { data, error } = await supabase
-        .from('Users')
-        .select('referral_points')
-        .eq('auth_id', userId)
-        .single();
-      
-      if (error) throw error;
-      return data?.referral_points || 100;
-    }
-  });
-
-  const { data: userLikes = [], refetch: refetchLikes } = useQuery({
-    queryKey: ["user-likes", userId],
-    queryFn: async () => {
-      if (!userId) return [];
-      const { data, error } = await supabase
-        .from('Watchlist')
-        .select('meme_id')
-        .eq('user_id', userId);
-      
-      if (error) throw error;
-      return data?.map(item => item.meme_id.toString()) ?? [];
-    }
-  });
+  const { userPoints, userLikes, refetchLikes } = useUserData(userId);
 
   const { data: memes = [], isLoading, refetch } = useQuery({
     queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage, userOnly, userId],
