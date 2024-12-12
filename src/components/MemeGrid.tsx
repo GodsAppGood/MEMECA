@@ -55,7 +55,8 @@ export const MemeGrid = ({
         .eq('user_id', userId);
       
       if (error) throw error;
-      return data?.map(item => item.meme_id) ?? [];
+      // Convert the meme_id numbers to strings to match the expected type
+      return data?.map(item => item.meme_id.toString()) ?? [];
     }
   });
 
