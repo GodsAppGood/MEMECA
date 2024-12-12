@@ -85,7 +85,11 @@ export const TopMemeGrid = () => {
         .limit(200);
       
       if (error) throw error;
-      return data || [];
+      // Convert the id to string in the returned data
+      return data?.map(meme => ({
+        ...meme,
+        id: meme.id.toString()
+      })) || [];
     }
   });
 
