@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MemeCard } from "./meme/MemeCard";
+import { UnifiedMemeCard } from "./meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useMemeQuery } from "@/hooks/useMemeQuery";
@@ -65,7 +65,7 @@ export const MemeGrid = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {memes.map((meme: any) => (
-        <MemeCard
+        <UnifiedMemeCard
           key={meme.id}
           meme={meme}
           userLikes={userLikes}

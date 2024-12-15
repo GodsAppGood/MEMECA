@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { TopMemeCard } from "./TopMemeCard";
+import { UnifiedMemeCard } from "./UnifiedMemeCard";
 import { useEffect, useState } from "react";
 import { MemeSlider } from "./MemeSlider";
 import {
@@ -29,21 +29,6 @@ export const TopMemeGrid = () => {
       setUserId(session?.user?.id ?? null);
     };
     getSession();
-
-    const channel = supabase
-      .channel('memes_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'Memes' },
-        () => {
-          void refetch();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
   }, []);
 
   const { data: userLikes = [] } = useQuery({
@@ -63,7 +48,7 @@ export const TopMemeGrid = () => {
   const { data: userPoints = 100 } = useQuery({
     queryKey: ["user-points", userId],
     queryFn: async () => {
-      return 100; // Default points since referral system is removed
+      return 100;
     }
   });
 
@@ -84,6 +69,23 @@ export const TopMemeGrid = () => {
     }
   });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('memes_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'Memes' },
+        () => {
+          void refetch();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [refetch]);
+
   const totalSlots = 200;
   const remainingSlots = Math.max(0, totalSlots - memes.length);
   const placeholderCards = Array.from({ length: remainingSlots }, (_, index) => ({
@@ -91,6 +93,7 @@ export const TopMemeGrid = () => {
     title: "Empty Slot",
     image_url: placeholderImages[index % placeholderImages.length],
     likes: 0,
+    created_at: new Date().toISOString(),
     isPlaceholder: true
   }));
 
@@ -122,7 +125,7 @@ export const TopMemeGrid = () => {
         <CarouselContent className="-ml-2 md:-ml-4">
           {allCards.map((meme, index) => (
             <CarouselItem key={meme.id} className="pl-2 md:pl-4 basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4">
-              <TopMemeCard
+              <UnifiedMemeCard
                 meme={meme}
                 position={index + 1}
                 userLikes={userLikes}
