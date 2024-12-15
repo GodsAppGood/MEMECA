@@ -1,4 +1,4 @@
-import { Home, Heart, Users } from "lucide-react";
+import { Home, Heart, Moon } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/sidebar";
 
 interface DashboardSidebarProps {
-  activeSection: 'memes' | 'watchlist' | 'referral';
-  setActiveSection: (section: 'memes' | 'watchlist' | 'referral') => void;
+  activeSection: 'memes' | 'watchlist' | 'tuzemoon';
+  setActiveSection: (section: 'memes' | 'watchlist' | 'tuzemoon') => void;
 }
 
 export function DashboardSidebar({ activeSection, setActiveSection }: DashboardSidebarProps) {
@@ -28,9 +28,9 @@ export function DashboardSidebar({ activeSection, setActiveSection }: DashboardS
       icon: Heart,
     },
     {
-      title: "Referral Program",
-      id: 'referral' as const,
-      icon: Users,
+      title: "Tuzemoon",
+      id: 'tuzemoon' as const,
+      icon: Moon,
     },
   ];
 

@@ -15,7 +15,7 @@ import MyStory from "./pages/MyStory";
 import Dashboard from "./pages/Dashboard";
 import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
-import ReferralProgram from "./pages/ReferralProgram";
+import Tuzemoon from "./pages/Tuzemoon";
 
 const queryClient = new QueryClient();
 
@@ -38,7 +38,7 @@ const App = () => (
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/my-memes" element={<MyMemes />} />
             <Route path="/watchlist" element={<Watchlist />} />
-            <Route path="/referral-program" element={<ReferralProgram />} />
+            <Route path="/tuzemoon" element={<Tuzemoon />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>

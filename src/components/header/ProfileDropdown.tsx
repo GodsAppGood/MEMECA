@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Heart, Users } from "lucide-react";
+import { LogOut, Home, Heart, Moon } from "lucide-react";
 
 interface ProfileDropdownProps {
   user: {
@@ -33,7 +33,11 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg border border-gray-200">
+      <DropdownMenuContent 
+        align="end" 
+        className="w-56 bg-white shadow-lg border border-gray-200 fixed"
+        style={{ transform: 'translateX(0)' }}
+      >
         <div className="flex items-center justify-start gap-2 p-2">
           <div className="flex flex-col space-y-1 leading-none">
             <p className="font-medium text-gray-900">{user.name}</p>
@@ -49,9 +53,9 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
           <Heart className="mr-2 h-4 w-4" />
           <span>Watchlist</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate('/referral-program')} className="cursor-pointer">
-          <Users className="mr-2 h-4 w-4" />
-          <span>Referral Program</span>
+        <DropdownMenuItem onClick={() => navigate('/tuzemoon')} className="cursor-pointer">
+          <Moon className="mr-2 h-4 w-4" />
+          <span>Tuzemoon</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout} className="cursor-pointer">

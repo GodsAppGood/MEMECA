@@ -51,33 +51,6 @@ export type Database = {
         }
         Relationships: []
       }
-      Referrals: {
-        Row: {
-          created_at: string | null
-          id: number
-          points_earned: number | null
-          referred_id: string | null
-          referrer_id: string | null
-          status: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: never
-          points_earned?: number | null
-          referred_id?: string | null
-          referrer_id?: string | null
-          status?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: never
-          points_earned?: number | null
-          referred_id?: string | null
-          referrer_id?: string | null
-          status?: string | null
-        }
-        Relationships: []
-      }
       Users: {
         Row: {
           auth_id: string | null
@@ -86,9 +59,6 @@ export type Database = {
           id: number
           name: string | null
           profile_image: string | null
-          referral_code: string | null
-          referral_points: number | null
-          referrals_count: number | null
         }
         Insert: {
           auth_id?: string | null
@@ -97,9 +67,6 @@ export type Database = {
           id?: number
           name?: string | null
           profile_image?: string | null
-          referral_code?: string | null
-          referral_points?: number | null
-          referrals_count?: number | null
         }
         Update: {
           auth_id?: string | null
@@ -108,9 +75,6 @@ export type Database = {
           id?: number
           name?: string | null
           profile_image?: string | null
-          referral_code?: string | null
-          referral_points?: number | null
-          referrals_count?: number | null
         }
         Relationships: []
       }
