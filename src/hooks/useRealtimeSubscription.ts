@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 interface TableSubscription {
   name: string;
@@ -11,7 +12,7 @@ export const useRealtimeSubscription = (
   onUpdate: () => void
 ) => {
   useEffect(() => {
-    const channels = tables.map(({ name, event = '*' }) => {
+    const channels: RealtimeChannel[] = tables.map(({ name, event = '*' }) => {
       return supabase
         .channel(`${name}_changes`)
         .on(
