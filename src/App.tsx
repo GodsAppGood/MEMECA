@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Index from "./pages/Index";
 import SubmitMeme from "./pages/SubmitMeme";
-import MemeDetail from "./pages/MemeDetail";
+import { MemeDetailPage } from "./components/meme/detail/MemeDetailPage";
 import TopMemes from "./pages/TopMemes";
 import AdminDashboard from "./pages/AdminDashboard";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -29,7 +29,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/submit" element={<SubmitMeme />} />
-            <Route path="/meme/:id" element={<MemeDetail />} />
+            <Route path="/meme/:id" element={<MemeDetailPage />} />
             <Route path="/top-memes" element={<TopMemes />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
