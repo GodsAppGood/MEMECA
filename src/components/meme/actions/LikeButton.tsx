@@ -22,7 +22,7 @@ export const LikeButton = ({
 }: LikeButtonProps) => {
   const hasLiked = userLikes.includes(meme.id);
 
-  const { mutate: handleLike, isLoading } = useLikeMutation({
+  const { mutate: handleLike, isPending } = useLikeMutation({
     memeId: meme.id,
     currentLikes: meme.likes,
     userId,
@@ -38,7 +38,7 @@ export const LikeButton = ({
       size="icon"
       onClick={(e) => {
         e.stopPropagation();
-        if (!isLoading) {
+        if (!isPending) {
           handleLike();
         }
       }}
