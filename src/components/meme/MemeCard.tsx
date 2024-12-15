@@ -41,7 +41,7 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
       const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((distance % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${hours}h ${minutes}m ${seconds}s`);
+      setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
     };
 
     updateTimer();
@@ -57,7 +57,7 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
   return (
     <Card className="overflow-hidden transition-transform duration-300 hover:scale-105 relative">
       {timeLeft && (
-        <div className="absolute top-2 left-2 z-10 bg-black/70 text-white px-2 py-1 rounded text-sm">
+        <div className="absolute top-2 left-2 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
           {timeLeft}
         </div>
       )}

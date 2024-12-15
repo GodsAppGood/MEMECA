@@ -27,8 +27,12 @@ export const useMemeQuery = ({
     queryFn: async () => {
       let query = supabase
         .from('Memes')
-        .select('*')
-        .gt('time_until_listing', new Date().toISOString());
+        .select('*');
+      
+      if (!userOnly) {
+        // Only show memes that are past their listing time for non-owners
+        query = query.lte('time_until_listing', new Date().toISOString());
+      }
       
       if (userOnly && userId) {
         query = query.eq('created_by', userId);
