@@ -27,7 +27,8 @@ export const useMemeQuery = ({
     queryFn: async () => {
       let query = supabase
         .from('Memes')
-        .select('*');
+        .select('*')
+        .gt('time_until_listing', new Date().toISOString());
       
       if (userOnly && userId) {
         query = query.eq('created_by', userId);

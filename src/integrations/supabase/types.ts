@@ -19,6 +19,7 @@ export type Database = {
           image_url: string | null
           likes: number | null
           telegram_link: string | null
+          time_until_listing: string | null
           title: string
           trade_link: string | null
           twitter_link: string | null
@@ -32,6 +33,7 @@ export type Database = {
           image_url?: string | null
           likes?: number | null
           telegram_link?: string | null
+          time_until_listing?: string | null
           title: string
           trade_link?: string | null
           twitter_link?: string | null
@@ -45,6 +47,7 @@ export type Database = {
           image_url?: string | null
           likes?: number | null
           telegram_link?: string | null
+          time_until_listing?: string | null
           title?: string
           trade_link?: string | null
           twitter_link?: string | null

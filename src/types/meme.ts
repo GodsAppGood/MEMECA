@@ -10,4 +10,5 @@ export interface Meme {
   likes: number;
   created_by?: string;
   created_at?: string;
+  time_until_listing?: string;
 }
