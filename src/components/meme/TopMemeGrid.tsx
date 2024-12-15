@@ -60,18 +60,10 @@ export const TopMemeGrid = () => {
     }
   });
 
-  const { data: userPoints = 0 } = useQuery({
+  const { data: userPoints = 100 } = useQuery({
     queryKey: ["user-points", userId],
     queryFn: async () => {
-      if (!userId) return 100;
-      const { data, error } = await supabase
-        .from('Users')
-        .select('referral_points')
-        .eq('auth_id', userId)
-        .single();
-      
-      if (error) throw error;
-      return data?.referral_points || 100;
+      return 100; // Default points since referral system is removed
     }
   });
 

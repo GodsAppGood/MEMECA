@@ -2,18 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useUserData = (userId: string | null) => {
-  const { data: userPoints = 0, refetch: refetchPoints } = useQuery({
+  const { data: userPoints = 100 } = useQuery({
     queryKey: ["user-points", userId],
     queryFn: async () => {
-      if (!userId) return 100;
-      const { data, error } = await supabase
-        .from('Users')
-        .select('referral_points')
-        .eq('auth_id', userId)
-        .single();
-      
-      if (error) throw error;
-      return data?.referral_points || 100;
+      return 100; // Default points since referral system is removed
     }
   });
 
@@ -34,7 +26,6 @@ export const useUserData = (userId: string | null) => {
   return {
     userPoints,
     userLikes,
-    refetchPoints,
     refetchLikes
   };
 };
