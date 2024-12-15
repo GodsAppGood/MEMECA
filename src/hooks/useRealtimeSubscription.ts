@@ -14,7 +14,7 @@ export const useRealtimeSubscription = (
   useEffect(() => {
     const channels: RealtimeChannel[] = tables.map(({ name, event = '*' }) => {
       return supabase
-        .channel(`${name}_changes`)
+        .channel(`realtime:${name}`)
         .on(
           'postgres_changes',
           {
