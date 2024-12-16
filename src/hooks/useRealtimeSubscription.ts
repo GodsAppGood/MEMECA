@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { RealtimeChannel } from "@supabase/supabase-js";
+import { RealtimeChannel, RealtimePostgresChangesFilter } from "@supabase/supabase-js";
 
 interface TableSubscription {
   name: string;
@@ -17,13 +17,13 @@ export const useRealtimeSubscription = (
 
     tables.forEach(({ name, event = "*", filter }) => {
       channel.on(
-        'postgres_changes',
+        'postgres_changes' as const,
         {
           event,
           schema: 'public',
           table: name,
           filter,
-        },
+        } satisfies RealtimePostgresChangesFilter<any>,
         () => {
           onUpdate();
         }
