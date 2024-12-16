@@ -9,7 +9,6 @@ import { useState } from "react";
 interface DateSelectorProps {
   date: Date | undefined;
   setDate: (value: Date | undefined) => void;
-  maxDescriptionLength: number;
 }
 
 export const DateSelector = ({ date, setDate }: DateSelectorProps) => {

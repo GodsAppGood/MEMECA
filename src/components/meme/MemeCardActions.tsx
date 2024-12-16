@@ -13,9 +13,10 @@ interface MemeCardActionsProps {
   userLikes?: string[];
   userPoints?: number;
   userId?: string | null;
+  isFirst?: boolean;
 }
 
-export const MemeCardActions = ({ meme, userLikes = [], userId }: MemeCardActionsProps) => {
+export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeCardActionsProps) => {
   const [isLiked, setIsLiked] = useState(userLikes.includes(meme.id));
   const { toast } = useToast();
 
