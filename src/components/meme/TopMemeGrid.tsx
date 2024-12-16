@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { UnifiedMemeCard } from "./UnifiedMemeCard";
 import { useEffect, useState } from "react";
-import { MemeSlider } from "./MemeSlider";
 import {
   Carousel,
   CarouselContent,
@@ -103,10 +102,6 @@ export const TopMemeGrid = () => {
     return <div>Loading...</div>;
   }
 
-  const handleSliderChange = (value: number[]) => {
-    setCurrentSlide(value[0]);
-  };
-
   return (
     <div className="space-y-4">
       <Carousel
@@ -139,11 +134,6 @@ export const TopMemeGrid = () => {
         <CarouselPrevious />
         <CarouselNext />
       </Carousel>
-      <MemeSlider
-        currentSlide={currentSlide}
-        totalSlides={allCards.length}
-        onSlideChange={handleSliderChange}
-      />
     </div>
   );
 };
