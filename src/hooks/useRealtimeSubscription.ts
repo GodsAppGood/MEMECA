@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { RealtimeChannel, RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import { RealtimeChannel } from "@supabase/supabase-js";
 
 interface TableSubscription {
   name: string;
-  event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+  event?: "INSERT" | "UPDATE" | "DELETE" | "*";
+  filter?: string;
 }
 
 export const useRealtimeSubscription = (
@@ -12,27 +13,27 @@ export const useRealtimeSubscription = (
   onUpdate: () => void
 ) => {
   useEffect(() => {
-    const channels: RealtimeChannel[] = tables.map(({ name, event = '*' }) => {
-      return supabase
-        .channel(`realtime:${name}`)
-        .on(
-          'postgres_changes' as const,
-          {
-            event,
-            schema: 'public',
-            table: name
-          },
-          (payload: RealtimePostgresChangesPayload<{[key: string]: any}>) => {
-            onUpdate();
-          }
-        )
-        .subscribe();
+    const channel = supabase.channel('db-changes');
+
+    tables.forEach(({ name, event = "*", filter }) => {
+      channel.on(
+        'postgres_changes',
+        {
+          event,
+          schema: 'public',
+          table: name,
+          filter,
+        },
+        () => {
+          onUpdate();
+        }
+      );
     });
 
+    channel.subscribe();
+
     return () => {
-      channels.forEach(channel => {
-        void supabase.removeChannel(channel);
-      });
+      void supabase.removeChannel(channel);
     };
   }, [tables, onUpdate]);
 };
