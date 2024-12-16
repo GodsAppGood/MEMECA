@@ -17,13 +17,13 @@ export const useRealtimeSubscription = (
 
     tables.forEach(({ name, event = "*", filter }) => {
       channel.on(
-        'postgres_changes' as const,
+        'postgres_changes',
         {
           event,
           schema: 'public',
           table: name,
           filter,
-        } satisfies RealtimePostgresChangesFilter<any>,
+        } as RealtimePostgresChangesFilter<any>,
         () => {
           onUpdate();
         }

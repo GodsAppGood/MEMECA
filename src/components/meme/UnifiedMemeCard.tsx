@@ -37,39 +37,37 @@ export const UnifiedMemeCard = ({
   };
 
   return (
-    <Card className={`overflow-hidden transition-transform duration-300 hover:scale-105 ${
-      isFirst ? 'border-2 border-yellow-400' : ''
-    }`}>
-      <div 
-        className="cursor-pointer" 
-        onClick={handleCardClick}
-      >
-        <MemeCardImage
-          imageUrl={meme.image_url}
-          title={meme.title}
-          position={position}
-          isFirst={isFirst}
-        />
-        <div className="p-4">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold">{meme.title}</h3>
-            <MemeCardActions
-              meme={meme}
-              userLikes={userLikes}
-              userPoints={userPoints}
-              userId={userId}
-              isFirst={isFirst}
-            />
-          </div>
-          {meme.description && (
-            <p className="text-sm text-muted-foreground mb-4">
-              {meme.description}
-            </p>
-          )}
-          <span className="text-sm text-muted-foreground">
-            {format(new Date(meme.created_at), 'PPP')}
-          </span>
+    <Card 
+      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer ${
+        isFirst ? 'border-2 border-yellow-400' : ''
+      }`}
+      onClick={handleCardClick}
+    >
+      <MemeCardImage
+        imageUrl={meme.image_url}
+        title={meme.title}
+        position={position}
+        isFirst={isFirst}
+      />
+      <div className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-semibold">{meme.title}</h3>
+          <MemeCardActions
+            meme={meme}
+            userLikes={userLikes}
+            userPoints={userPoints}
+            userId={userId}
+            isFirst={isFirst}
+          />
         </div>
+        {meme.description && (
+          <p className="text-sm text-muted-foreground mb-4">
+            {meme.description}
+          </p>
+        )}
+        <span className="text-sm text-muted-foreground">
+          {format(new Date(meme.created_at), 'PPP')}
+        </span>
       </div>
     </Card>
   );

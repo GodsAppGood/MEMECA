@@ -39,7 +39,9 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     enabled: !!userId
   });
 
-  const handleLike = async () => {
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    
     if (!userId) {
       toast({
         title: "Authentication required",
@@ -76,7 +78,9 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     }
   };
 
-  const handleFeatureToggle = async () => {
+  const handleFeatureToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    
     try {
       const { error } = await supabase
         .from("Memes")
@@ -102,7 +106,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="icon"
