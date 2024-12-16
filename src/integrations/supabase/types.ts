@@ -17,6 +17,7 @@ export type Database = {
           description: string | null
           id: number
           image_url: string | null
+          is_featured: boolean | null
           likes: number | null
           telegram_link: string | null
           time_until_listing: string | null
@@ -31,6 +32,7 @@ export type Database = {
           description?: string | null
           id?: never
           image_url?: string | null
+          is_featured?: boolean | null
           likes?: number | null
           telegram_link?: string | null
           time_until_listing?: string | null
@@ -45,6 +47,7 @@ export type Database = {
           description?: string | null
           id?: never
           image_url?: string | null
+          is_featured?: boolean | null
           likes?: number | null
           telegram_link?: string | null
           time_until_listing?: string | null
@@ -60,6 +63,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: number
+          is_admin: boolean | null
           name: string | null
           profile_image: string | null
         }
@@ -68,6 +72,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: number
+          is_admin?: boolean | null
           name?: string | null
           profile_image?: string | null
         }
@@ -76,6 +81,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: number
+          is_admin?: boolean | null
           name?: string | null
           profile_image?: string | null
         }
