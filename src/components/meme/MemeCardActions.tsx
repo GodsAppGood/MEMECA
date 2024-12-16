@@ -20,7 +20,6 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   const [isLiked, setIsLiked] = useState(userLikes.includes(meme.id));
   const { toast } = useToast();
 
-  // Check if user is admin
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
@@ -54,14 +53,17 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
       if (!isLiked) {
         await supabase
           .from("Watchlist")
-          .insert([{ user_id: userId, meme_id: meme.id }]);
+          .insert([{ 
+            user_id: userId, 
+            meme_id: parseInt(meme.id) 
+          }]);
         setIsLiked(true);
       } else {
         await supabase
           .from("Watchlist")
           .delete()
           .eq("user_id", userId)
-          .eq("meme_id", meme.id);
+          .eq("meme_id", parseInt(meme.id));
         setIsLiked(false);
       }
     } catch (error) {
@@ -79,7 +81,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
       const { error } = await supabase
         .from("Memes")
         .update({ is_featured: !meme.is_featured })
-        .eq("id", meme.id);
+        .eq("id", parseInt(meme.id));
 
       if (error) throw error;
 
