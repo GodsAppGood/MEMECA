@@ -11,9 +11,9 @@ import {
 
 export const Footer = () => {
   return (
-    <footer className="bg-secondary text-primary-foreground py-4 w-full mt-auto">
+    <footer className="bg-secondary text-primary-foreground py-4 w-full mt-auto relative">
       {/* Legal Button in bottom left */}
-      <div className="absolute bottom-0 left-0 p-4">
+      <div className="absolute left-0 bottom-0 p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="hover:text-primary">
