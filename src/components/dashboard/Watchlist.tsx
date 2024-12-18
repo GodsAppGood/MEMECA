@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { UnifiedMemeCard } from "../meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
+import { useWatchlistSubscription } from "@/hooks/useWatchlistSubscription";
 
 export function Watchlist() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -18,7 +19,7 @@ export function Watchlist() {
 
   const { userPoints, userLikes } = useUserData(userId);
 
-  const { data: likedMemes = [], isLoading } = useQuery({
+  const { data: likedMemes = [], isLoading, refetch } = useQuery({
     queryKey: ["watchlist-memes", userId],
     queryFn: async () => {
       if (!userId) return [];
@@ -45,6 +46,11 @@ export function Watchlist() {
     enabled: !!userId
   });
 
+  // Add real-time subscription
+  useWatchlistSubscription(() => {
+    void refetch();
+  });
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -65,4 +71,4 @@ export function Watchlist() {
       </div>
     </div>
   );
-};
+}

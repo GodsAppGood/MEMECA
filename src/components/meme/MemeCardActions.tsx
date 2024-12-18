@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { useLikesSubscription } from "@/hooks/useLikesSubscription";
+import { WatchlistButton } from "./actions/WatchlistButton";
 
 interface MemeCardActionsProps {
   meme: {
@@ -102,58 +103,6 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     }
   };
 
-  const handleWatchlist = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    if (!userId) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to add to watchlist",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      const { data: existingWatch } = await supabase
-        .from("Watchlist")
-        .select()
-        .eq("user_id", userId)
-        .eq("meme_id", parseInt(meme.id))
-        .single();
-
-      if (!existingWatch) {
-        await supabase
-          .from("Watchlist")
-          .insert([{ 
-            user_id: userId, 
-            meme_id: parseInt(meme.id) 
-          }]);
-        toast({
-          title: "Success",
-          description: "Added to watchlist",
-        });
-      } else {
-        await supabase
-          .from("Watchlist")
-          .delete()
-          .eq("user_id", userId)
-          .eq("meme_id", parseInt(meme.id));
-        toast({
-          title: "Success",
-          description: "Removed from watchlist",
-        });
-      }
-    } catch (error) {
-      console.error("Error toggling watchlist:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update watchlist",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleFeatureToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -193,14 +142,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
         <span className="ml-1">{likesCount}</span>
       </Button>
 
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleWatchlist}
-        className="text-yellow-500"
-      >
-        <Star className="h-5 w-5" />
-      </Button>
+      <WatchlistButton memeId={meme.id} userId={userId || null} />
       
       {isAdmin && (
         <Button
