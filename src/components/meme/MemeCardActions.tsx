@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Heart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { useLikesSubscription } from "@/hooks/useLikesSubscription";
 
 interface MemeCardActionsProps {
   meme: {
@@ -18,7 +19,30 @@ interface MemeCardActionsProps {
 
 export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeCardActionsProps) => {
   const [isLiked, setIsLiked] = useState(userLikes.includes(meme.id));
+  const [likesCount, setLikesCount] = useState(0);
   const { toast } = useToast();
+
+  const fetchLikesCount = async () => {
+    const { data, error } = await supabase
+      .from("Likes")
+      .select("id")
+      .eq("meme_id", parseInt(meme.id));
+    
+    if (error) {
+      console.error("Error fetching likes count:", error);
+      return;
+    }
+    
+    setLikesCount(data.length);
+  };
+
+  useEffect(() => {
+    void fetchLikesCount();
+  }, [meme.id]);
+
+  useLikesSubscription(() => {
+    void fetchLikesCount();
+  });
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
@@ -40,7 +64,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   });
 
   const handleLike = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     
     if (!userId) {
       toast({
@@ -79,7 +103,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   };
 
   const handleWatchlist = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     
     if (!userId) {
       toast({
@@ -131,7 +155,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   };
 
   const handleFeatureToggle = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     
     try {
       const { error } = await supabase
@@ -166,6 +190,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
         className={isLiked ? "text-red-500" : ""}
       >
         <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
+        <span className="ml-1">{likesCount}</span>
       </Button>
 
       <Button
