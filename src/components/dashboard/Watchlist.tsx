@@ -66,20 +66,16 @@ export function Watchlist() {
         return memesData || [];
       } catch (error: any) {
         console.error("Unexpected error:", error);
-        throw error; // Let React Query handle the error
+        throw error;
       }
     },
     enabled: !!userId,
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 1000 * 60, // Consider data fresh for 1 minute
+    staleTime: 1000 * 60,
     refetchOnWindowFocus: true,
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to fetch watchlist",
-        variant: "destructive",
-      });
+    meta: {
+      errorMessage: "Failed to fetch watchlist"
     }
   });
 
