@@ -23,6 +23,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   const [likesCount, setLikesCount] = useState(0);
   const { toast } = useToast();
 
+  // Fetch initial likes count
   const fetchLikesCount = async () => {
     const { data, error } = await supabase
       .from("Likes")
@@ -41,10 +42,12 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     void fetchLikesCount();
   }, [meme.id]);
 
+  // Subscribe to likes changes
   useLikesSubscription(() => {
     void fetchLikesCount();
   });
 
+  // Check if user is admin
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
@@ -64,6 +67,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     enabled: !!userId
   });
 
+  // Handle like toggle
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -78,22 +82,40 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
 
     try {
       if (!isLiked) {
-        await supabase
+        const { error: insertError } = await supabase
           .from("Likes")
           .insert([{ 
             user_id: userId, 
             meme_id: parseInt(meme.id) 
           }]);
+
+        if (insertError) {
+          if (insertError.code === '23505') { // Unique violation
+            toast({
+              title: "Already liked",
+              description: "You have already liked this meme",
+              variant: "destructive",
+            });
+            return;
+          }
+          throw insertError;
+        }
+        
         setIsLiked(true);
+        setLikesCount(prev => prev + 1);
       } else {
-        await supabase
+        const { error: deleteError } = await supabase
           .from("Likes")
           .delete()
           .eq("user_id", userId)
           .eq("meme_id", parseInt(meme.id));
+
+        if (deleteError) throw deleteError;
+        
         setIsLiked(false);
+        setLikesCount(prev => Math.max(0, prev - 1));
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error toggling like:", error);
       toast({
         title: "Error",
@@ -103,6 +125,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     }
   };
 
+  // Handle feature toggle (admin only)
   const handleFeatureToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
