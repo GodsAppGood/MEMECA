@@ -19,11 +19,12 @@ export function Watchlist() {
 
   const { userPoints, userLikes } = useUserData(userId);
 
-  const { data: likedMemes = [], isLoading, refetch } = useQuery({
+  const { data: watchlistMemes = [], isLoading, refetch } = useQuery({
     queryKey: ["watchlist-memes", userId],
     queryFn: async () => {
       if (!userId) return [];
       
+      // First, get all watchlist entries for the current user
       const { data: watchlistData, error: watchlistError } = await supabase
         .from('Watchlist')
         .select('meme_id')
@@ -35,6 +36,7 @@ export function Watchlist() {
       
       if (memeIds.length === 0) return [];
       
+      // Then fetch all corresponding memes
       const { data: memesData, error: memesError } = await supabase
         .from('Memes')
         .select('*')
@@ -59,7 +61,7 @@ export function Watchlist() {
     <div className="space-y-6">
       <h2 className="text-3xl font-serif font-bold">My Watchlist</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {likedMemes.map((meme: any) => (
+        {watchlistMemes.map((meme: any) => (
           <UnifiedMemeCard
             key={meme.id}
             meme={meme}
