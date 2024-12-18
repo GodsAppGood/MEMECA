@@ -25,10 +25,17 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
 
   // Fetch initial likes count
   const fetchLikesCount = async () => {
+    // Validate meme ID
+    const memeId = parseInt(meme.id);
+    if (isNaN(memeId)) {
+      console.error("Invalid meme ID:", meme.id);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("Likes")
       .select("id")
-      .eq("meme_id", parseInt(meme.id));
+      .eq("meme_id", memeId);
     
     if (error) {
       console.error("Error fetching likes count:", error);
@@ -80,13 +87,25 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
       return;
     }
 
+    // Validate meme ID
+    const memeId = parseInt(meme.id);
+    if (isNaN(memeId)) {
+      console.error("Invalid meme ID:", meme.id);
+      toast({
+        title: "Error",
+        description: "Invalid meme ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       if (!isLiked) {
         const { error: insertError } = await supabase
           .from("Likes")
           .insert([{ 
             user_id: userId, 
-            meme_id: parseInt(meme.id) 
+            meme_id: memeId 
           }]);
 
         if (insertError) {
@@ -108,7 +127,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
           .from("Likes")
           .delete()
           .eq("user_id", userId)
-          .eq("meme_id", parseInt(meme.id));
+          .eq("meme_id", memeId);
 
         if (deleteError) throw deleteError;
         
@@ -129,11 +148,23 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
   const handleFeatureToggle = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
+    // Validate meme ID
+    const memeId = parseInt(meme.id);
+    if (isNaN(memeId)) {
+      console.error("Invalid meme ID:", meme.id);
+      toast({
+        title: "Error",
+        description: "Invalid meme ID",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from("Memes")
         .update({ is_featured: !meme.is_featured })
-        .eq("id", parseInt(meme.id));
+        .eq("id", memeId);
 
       if (error) throw error;
 
