@@ -12,23 +12,38 @@ interface WatchlistButtonProps {
 
 export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const checkWatchlistStatus = async () => {
     if (!userId) return;
     
-    const { data, error } = await supabase
-      .from("Watchlist")
-      .select()
-      .eq("user_id", userId)
-      .eq("meme_id", parseInt(memeId))
-      .single();
-    
-    if (error && error.code !== 'PGRST116') {
-      console.error("Error checking watchlist status:", error);
+    try {
+      const { data, error } = await supabase
+        .from("Watchlist")
+        .select()
+        .eq("user_id", userId)
+        .eq("meme_id", parseInt(memeId))
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error("Error checking watchlist status:", error);
+        toast({
+          title: "Error",
+          description: "Failed to check watchlist status",
+          variant: "destructive",
+        });
+      }
+      
+      setIsInWatchlist(!!data);
+    } catch (error: any) {
+      console.error("Unexpected error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
-    
-    setIsInWatchlist(!!data);
   };
 
   useEffect(() => {
@@ -51,6 +66,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       return;
     }
 
+    setIsLoading(true);
     try {
       if (!isInWatchlist) {
         const { error: insertError } = await supabase
@@ -87,6 +103,8 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
         description: error.message || "Failed to update watchlist",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,6 +114,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       size="icon"
       onClick={handleWatchlist}
       className={`text-yellow-500 ${isInWatchlist ? 'bg-yellow-50' : ''}`}
+      disabled={isLoading}
     >
       <Star className={`h-5 w-5 ${isInWatchlist ? "fill-current" : ""}`} />
     </Button>

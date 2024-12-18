@@ -5,17 +5,29 @@ import { useEffect, useState } from "react";
 import { UnifiedMemeCard } from "../meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
 import { useWatchlistSubscription } from "@/hooks/useWatchlistSubscription";
+import { useToast } from "@/components/ui/use-toast";
 
 export function Watchlist() {
   const [userId, setUserId] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id ?? null);
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setUserId(session?.user?.id ?? null);
+      } catch (error: any) {
+        console.error("Session error:", error);
+        toast({
+          title: "Authentication Error",
+          description: "Please try logging in again",
+          variant: "destructive",
+        });
+      }
     };
-    getSession();
-  }, []);
+    void getSession();
+  }, [toast]);
 
   const { userPoints, userLikes } = useUserData(userId);
 
@@ -24,35 +36,57 @@ export function Watchlist() {
     queryFn: async () => {
       if (!userId) return [];
       
-      // First, get all watchlist entries for the current user
-      const { data: watchlistData, error: watchlistError } = await supabase
-        .from('Watchlist')
-        .select('meme_id')
-        .eq('user_id', userId);
-      
-      if (watchlistError) {
-        console.error("Error fetching watchlist:", watchlistError);
+      try {
+        // First, get all watchlist entries for the current user
+        const { data: watchlistData, error: watchlistError } = await supabase
+          .from('Watchlist')
+          .select('meme_id')
+          .eq('user_id', userId);
+        
+        if (watchlistError) {
+          console.error("Error fetching watchlist:", watchlistError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch watchlist",
+            variant: "destructive",
+          });
+          return [];
+        }
+        
+        const memeIds = watchlistData?.map(item => item.meme_id) || [];
+        
+        if (memeIds.length === 0) return [];
+        
+        // Then fetch all corresponding memes
+        const { data: memesData, error: memesError } = await supabase
+          .from('Memes')
+          .select('*')
+          .in('id', memeIds);
+        
+        if (memesError) {
+          console.error("Error fetching memes:", memesError);
+          toast({
+            title: "Error",
+            description: "Failed to fetch memes",
+            variant: "destructive",
+          });
+          return [];
+        }
+        
+        return memesData || [];
+      } catch (error: any) {
+        console.error("Unexpected error:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
         return [];
       }
-      
-      const memeIds = watchlistData?.map(item => item.meme_id) || [];
-      
-      if (memeIds.length === 0) return [];
-      
-      // Then fetch all corresponding memes
-      const { data: memesData, error: memesError } = await supabase
-        .from('Memes')
-        .select('*')
-        .in('id', memeIds);
-      
-      if (memesError) {
-        console.error("Error fetching memes:", memesError);
-        return [];
-      }
-      
-      return memesData || [];
     },
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 3, // Add retry logic
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   // Add real-time subscription
