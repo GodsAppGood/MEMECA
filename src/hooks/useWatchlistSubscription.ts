@@ -8,7 +8,8 @@ export const useWatchlistSubscription = (onUpdate: () => void) => {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'Watchlist' },
-        () => {
+        (payload) => {
+          console.log("Watchlist change detected:", payload);
           onUpdate();
         }
       )

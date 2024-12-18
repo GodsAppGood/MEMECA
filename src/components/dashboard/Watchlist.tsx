@@ -30,9 +30,12 @@ export function Watchlist() {
         .select('meme_id')
         .eq('user_id', userId);
       
-      if (watchlistError) throw watchlistError;
+      if (watchlistError) {
+        console.error("Error fetching watchlist:", watchlistError);
+        return [];
+      }
       
-      const memeIds = watchlistData.map(item => item.meme_id);
+      const memeIds = watchlistData?.map(item => item.meme_id) || [];
       
       if (memeIds.length === 0) return [];
       
@@ -42,7 +45,11 @@ export function Watchlist() {
         .select('*')
         .in('id', memeIds);
       
-      if (memesError) throw memesError;
+      if (memesError) {
+        console.error("Error fetching memes:", memesError);
+        return [];
+      }
+      
       return memesData || [];
     },
     enabled: !!userId
@@ -50,6 +57,7 @@ export function Watchlist() {
 
   // Add real-time subscription
   useWatchlistSubscription(() => {
+    console.log("Watchlist updated, refetching...");
     void refetch();
   });
 
@@ -60,17 +68,21 @@ export function Watchlist() {
   return (
     <div className="space-y-6">
       <h2 className="text-3xl font-serif font-bold">My Watchlist</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {watchlistMemes.map((meme: any) => (
-          <UnifiedMemeCard
-            key={meme.id}
-            meme={meme}
-            userLikes={userLikes}
-            userPoints={userPoints}
-            userId={userId}
-          />
-        ))}
-      </div>
+      {watchlistMemes.length === 0 ? (
+        <p className="text-muted-foreground">Your watchlist is empty. Add some memes!</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {watchlistMemes.map((meme: any) => (
+            <UnifiedMemeCard
+              key={meme.id}
+              meme={meme}
+              userLikes={userLikes}
+              userPoints={userPoints}
+              userId={userId}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -17,12 +17,16 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
   const checkWatchlistStatus = async () => {
     if (!userId) return;
     
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("Watchlist")
       .select()
       .eq("user_id", userId)
       .eq("meme_id", parseInt(memeId))
       .single();
+    
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error checking watchlist status:", error);
+    }
     
     setIsInWatchlist(!!data);
   };
@@ -49,32 +53,38 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
 
     try {
       if (!isInWatchlist) {
-        await supabase
+        const { error: insertError } = await supabase
           .from("Watchlist")
           .insert([{ 
             user_id: userId, 
             meme_id: parseInt(memeId) 
           }]);
+
+        if (insertError) throw insertError;
+
         toast({
           title: "Success",
           description: "Added to watchlist",
         });
       } else {
-        await supabase
+        const { error: deleteError } = await supabase
           .from("Watchlist")
           .delete()
           .eq("user_id", userId)
           .eq("meme_id", parseInt(memeId));
+
+        if (deleteError) throw deleteError;
+
         toast({
           title: "Success",
           description: "Removed from watchlist",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error toggling watchlist:", error);
       toast({
         title: "Error",
-        description: "Failed to update watchlist",
+        description: error.message || "Failed to update watchlist",
         variant: "destructive",
       });
     }
