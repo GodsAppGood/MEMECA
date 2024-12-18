@@ -9,6 +9,35 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      Likes: {
+        Row: {
+          created_at: string
+          id: number
+          meme_id: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          meme_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          meme_id?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Likes_meme_id_fkey"
+            columns: ["meme_id"]
+            isOneToOne: false
+            referencedRelation: "Memes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Memes: {
         Row: {
           blockchain: string | null

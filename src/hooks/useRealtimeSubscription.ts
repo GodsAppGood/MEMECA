@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { RealtimeChannel, RealtimePostgresChangesFilter } from "@supabase/supabase-js";
+import { RealtimePostgresChangesFilter } from "@supabase/supabase-js";
 
 interface TableSubscription {
   name: string;

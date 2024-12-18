@@ -54,7 +54,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
     try {
       if (!isLiked) {
         await supabase
-          .from("Watchlist")
+          .from("Likes")
           .insert([{ 
             user_id: userId, 
             meme_id: parseInt(meme.id) 
@@ -62,7 +62,7 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
         setIsLiked(true);
       } else {
         await supabase
-          .from("Watchlist")
+          .from("Likes")
           .delete()
           .eq("user_id", userId)
           .eq("meme_id", parseInt(meme.id));
@@ -73,6 +73,58 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
       toast({
         title: "Error",
         description: "Failed to update like status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleWatchlist = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    
+    if (!userId) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to add to watchlist",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { data: existingWatch } = await supabase
+        .from("Watchlist")
+        .select()
+        .eq("user_id", userId)
+        .eq("meme_id", parseInt(meme.id))
+        .single();
+
+      if (!existingWatch) {
+        await supabase
+          .from("Watchlist")
+          .insert([{ 
+            user_id: userId, 
+            meme_id: parseInt(meme.id) 
+          }]);
+        toast({
+          title: "Success",
+          description: "Added to watchlist",
+        });
+      } else {
+        await supabase
+          .from("Watchlist")
+          .delete()
+          .eq("user_id", userId)
+          .eq("meme_id", parseInt(meme.id));
+        toast({
+          title: "Success",
+          description: "Removed from watchlist",
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling watchlist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update watchlist",
         variant: "destructive",
       });
     }
@@ -114,6 +166,15 @@ export const MemeCardActions = ({ meme, userLikes = [], userId, isFirst }: MemeC
         className={isLiked ? "text-red-500" : ""}
       >
         <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
+      </Button>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleWatchlist}
+        className="text-yellow-500"
+      >
+        <Star className="h-5 w-5" />
       </Button>
       
       {isAdmin && (

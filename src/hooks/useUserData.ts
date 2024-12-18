@@ -14,7 +14,7 @@ export const useUserData = (userId: string | null) => {
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
-        .from('Watchlist')
+        .from('Likes')
         .select('meme_id')
         .eq('user_id', userId);
       
