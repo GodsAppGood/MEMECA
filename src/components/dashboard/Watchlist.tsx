@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { UnifiedMemeCard } from "../meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
 import { useWatchlistSubscription } from "@/hooks/useWatchlistSubscription";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export function Watchlist() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function Watchlist() {
 
   const { userPoints, userLikes } = useUserData(userId);
 
-  const { data: watchlistMemes = [], isLoading, refetch } = useQuery({
+  const { data: watchlistMemes = [], isLoading, error, refetch } = useQuery({
     queryKey: ["watchlist-memes", userId],
     queryFn: async () => {
       if (!userId) return [];
@@ -45,12 +45,7 @@ export function Watchlist() {
         
         if (watchlistError) {
           console.error("Error fetching watchlist:", watchlistError);
-          toast({
-            title: "Error",
-            description: "Failed to fetch watchlist",
-            variant: "destructive",
-          });
-          return [];
+          throw new Error("Failed to fetch watchlist");
         }
         
         const memeIds = watchlistData?.map(item => item.meme_id) || [];
@@ -65,28 +60,27 @@ export function Watchlist() {
         
         if (memesError) {
           console.error("Error fetching memes:", memesError);
-          toast({
-            title: "Error",
-            description: "Failed to fetch memes",
-            variant: "destructive",
-          });
-          return [];
+          throw new Error("Failed to fetch memes");
         }
         
         return memesData || [];
       } catch (error: any) {
         console.error("Unexpected error:", error);
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        });
-        return [];
+        throw error; // Let React Query handle the error
       }
     },
     enabled: !!userId,
-    retry: 3, // Add retry logic
+    retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 1000 * 60, // Consider data fresh for 1 minute
+    refetchOnWindowFocus: true,
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to fetch watchlist",
+        variant: "destructive",
+      });
+    }
   });
 
   // Add real-time subscription
@@ -97,6 +91,20 @@ export function Watchlist() {
 
   if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-4">
+        <p className="text-red-500">Failed to load watchlist</p>
+        <button 
+          onClick={() => void refetch()}
+          className="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+        >
+          Try Again
+        </button>
+      </div>
+    );
   }
 
   return (
