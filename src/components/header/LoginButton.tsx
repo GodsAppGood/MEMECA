@@ -19,8 +19,8 @@ export const LoginButton = ({
   return (
     <>
       <Button
-        variant="ghost"
-        className="bg-[#FF4500] text-white hover:bg-[#FF4500]/90"
+        variant="default"
+        className="bg-primary text-primary-foreground hover:bg-primary/90"
         onClick={() => setIsLoginOpen(true)}
       >
         Log in

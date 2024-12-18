@@ -13,7 +13,7 @@ export const Footer = () => {
   return (
     <footer className="bg-secondary text-primary-foreground py-4 w-full mt-auto">
       {/* Legal Button in bottom left */}
-      <div className="absolute bottom-4 left-4 z-50">
+      <div className="absolute bottom-0 left-0 p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="hover:text-primary">
