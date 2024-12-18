@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useWatchlistSubscription } from "@/hooks/useWatchlistSubscription";
@@ -13,10 +13,14 @@ interface WatchlistButtonProps {
 export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const { toast } = useToast();
 
-  const checkWatchlistStatus = async () => {
-    if (!userId) return;
+  const checkWatchlistStatus = useCallback(async () => {
+    if (!userId || isCheckingStatus) return;
+    
+    setIsCheckingStatus(true);
+    console.log(`Checking watchlist status for meme ${memeId} and user ${userId}`);
     
     try {
       const { data, error } = await supabase
@@ -24,33 +28,28 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
         .select()
         .eq("user_id", userId)
         .eq("meme_id", parseInt(memeId))
-        .single();
+        .maybeSingle();
       
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error("Error checking watchlist status:", error);
-        toast({
-          title: "Error",
-          description: "Failed to check watchlist status",
-          variant: "destructive",
-        });
+        return;
       }
       
+      console.log("Watchlist check result:", data);
       setIsInWatchlist(!!data);
     } catch (error: any) {
-      console.error("Unexpected error:", error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
+      console.error("Unexpected error checking watchlist:", error);
+    } finally {
+      setIsCheckingStatus(false);
     }
-  };
+  }, [userId, memeId]);
 
   useEffect(() => {
     void checkWatchlistStatus();
-  }, [userId, memeId]);
+  }, [checkWatchlistStatus]);
 
   useWatchlistSubscription(() => {
+    console.log("Watchlist subscription triggered, updating status");
     void checkWatchlistStatus();
   });
 
@@ -66,7 +65,11 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       return;
     }
 
+    if (isLoading) return;
+
     setIsLoading(true);
+    console.log(`Toggling watchlist for meme ${memeId}`);
+
     try {
       if (!isInWatchlist) {
         const { error: insertError } = await supabase
@@ -76,8 +79,15 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
             meme_id: parseInt(memeId) 
           }]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          if (insertError.code === '23505') {
+            console.log("Meme already in watchlist");
+            return;
+          }
+          throw insertError;
+        }
 
+        console.log("Successfully added to watchlist");
         toast({
           title: "Success",
           description: "Added to watchlist",
@@ -91,6 +101,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
 
         if (deleteError) throw deleteError;
 
+        console.log("Successfully removed from watchlist");
         toast({
           title: "Success",
           description: "Removed from watchlist",
@@ -114,7 +125,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       size="icon"
       onClick={handleWatchlist}
       className={`text-yellow-500 ${isInWatchlist ? 'bg-yellow-50' : ''}`}
-      disabled={isLoading}
+      disabled={isLoading || isCheckingStatus}
     >
       <Star className={`h-5 w-5 ${isInWatchlist ? "fill-current" : ""}`} />
     </Button>
