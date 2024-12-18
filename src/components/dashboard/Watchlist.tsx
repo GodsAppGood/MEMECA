@@ -37,10 +37,9 @@ export function Watchlist() {
       if (!userId) return [];
       
       try {
-        // First, get all watchlist entries for the current user
         const { data: watchlistData, error: watchlistError } = await supabase
           .from('Watchlist')
-          .select('meme_id')
+          .select('meme_id, Memes(*)')
           .eq('user_id', userId);
         
         if (watchlistError) {
@@ -48,22 +47,13 @@ export function Watchlist() {
           throw new Error("Failed to fetch watchlist");
         }
         
-        const memeIds = watchlistData?.map(item => item.meme_id) || [];
+        console.log("Watchlist data:", watchlistData); // Debug log
         
-        if (memeIds.length === 0) return [];
+        if (!watchlistData) return [];
         
-        // Then fetch all corresponding memes
-        const { data: memesData, error: memesError } = await supabase
-          .from('Memes')
-          .select('*')
-          .in('id', memeIds);
-        
-        if (memesError) {
-          console.error("Error fetching memes:", memesError);
-          throw new Error("Failed to fetch memes");
-        }
-        
-        return memesData || [];
+        // Transform the data to get the Memes objects
+        const memes = watchlistData.map(item => item.Memes);
+        return memes || [];
       } catch (error: any) {
         console.error("Unexpected error:", error);
         throw error;
@@ -79,48 +69,54 @@ export function Watchlist() {
     }
   });
 
-  // Add real-time subscription
   useWatchlistSubscription(() => {
     console.log("Watchlist updated, refetching...");
     void refetch();
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return (
-      <div className="text-center p-4">
-        <p className="text-red-500">Failed to load watchlist</p>
-        <button 
-          onClick={() => void refetch()}
-          className="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-serif font-bold">My Watchlist</h2>
-      {watchlistMemes.length === 0 ? (
-        <p className="text-muted-foreground">Your watchlist is empty. Add some memes!</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {watchlistMemes.map((meme: any) => (
-            <UnifiedMemeCard
-              key={meme.id}
-              meme={meme}
-              userLikes={userLikes}
-              userPoints={userPoints}
-              userId={userId}
-            />
-          ))}
-        </div>
-      )}
+    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
+      <div className="flex-1 container mx-auto px-4 py-8">
+        <h2 className="text-3xl font-serif font-bold mb-8">My Watchlist</h2>
+        
+        {isLoading && (
+          <div className="flex justify-center items-center h-32">
+            <p>Loading...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center p-4">
+            <p className="text-red-500">Failed to load watchlist</p>
+            <button 
+              onClick={() => void refetch()}
+              className="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !error && watchlistMemes.length === 0 && (
+          <div className="flex justify-center items-center h-32">
+            <p className="text-muted-foreground">Your watchlist is empty. Add some memes!</p>
+          </div>
+        )}
+
+        {watchlistMemes.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {watchlistMemes.map((meme: any) => (
+              <UnifiedMemeCard
+                key={meme.id}
+                meme={meme}
+                userLikes={userLikes}
+                userPoints={userPoints}
+                userId={userId}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

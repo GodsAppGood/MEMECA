@@ -11,7 +11,7 @@ import {
 
 export const Footer = () => {
   return (
-    <footer className="bg-secondary text-primary-foreground py-4 relative w-full bottom-0">
+    <footer className="bg-secondary text-primary-foreground py-4 w-full mt-auto">
       {/* Legal Button in bottom left */}
       <div className="absolute bottom-4 left-4 z-50">
         <DropdownMenu>
