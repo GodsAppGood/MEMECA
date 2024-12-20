@@ -3,11 +3,12 @@ import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Meme } from "@/types/meme";
+import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 
 interface MemeActionsProps {
   meme: Meme;
   isAdmin: boolean;
-  onUpdate: () => Promise<void>;
+  onUpdate: (options?: RefetchOptions | undefined) => Promise<QueryObserverResult<any, Error>>;
 }
 
 export const MemeActions = ({ meme, isAdmin, onUpdate }: MemeActionsProps) => {
@@ -29,7 +30,8 @@ export const MemeActions = ({ meme, isAdmin, onUpdate }: MemeActionsProps) => {
 
       if (error) throw error;
 
-      await onUpdate();
+      void onUpdate();
+      
       toast({
         title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
         description: meme.is_featured 
