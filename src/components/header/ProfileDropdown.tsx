@@ -16,9 +16,10 @@ interface ProfileDropdownProps {
     picture: string;
   };
   onLogout: () => void;
+  isDashboardRoute?: boolean;
 }
 
-export const ProfileDropdown = ({ user, onLogout }: ProfileDropdownProps) => {
+export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDropdownProps) => {
   const navigate = useNavigate();
 
   return (
