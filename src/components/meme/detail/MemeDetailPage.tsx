@@ -50,7 +50,7 @@ export const MemeDetailPage = () => {
     try {
       const tuzemoonUntil = meme?.is_featured 
         ? null 
-        : new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Convert Date to ISO string
 
       const { error } = await supabase
         .from("Memes")
@@ -143,8 +143,7 @@ export const MemeDetailPage = () => {
           </div>
 
           <MemeImage
-            imageUrl={meme.image_url}
-            title={meme.title}
+            meme={meme}
             className={meme.is_featured ? 'animate-float' : ''}
           />
 
@@ -162,7 +161,7 @@ export const MemeDetailPage = () => {
             
             <div>
               <h3 className="font-serif text-lg mb-2">Date Added</h3>
-              <p>{format(new Date(meme.created_at), 'PPP')}</p>
+              <p>{meme.created_at ? format(new Date(meme.created_at), 'PPP') : 'N/A'}</p>
             </div>
 
             <MemeLinks meme={meme} />
