@@ -40,11 +40,18 @@ export const useMemeQuery = ({
         .from('Memes')
         .select('*');
 
-      // Only apply time_until_listing filter for non-owners
+      // Handle time_until_listing filter differently based on user authentication
+      const currentTime = new Date().toISOString();
+      console.log("Current time:", currentTime);
+
       if (!userOnly) {
-        const currentTime = new Date().toISOString();
-        console.log("Current time:", currentTime);
-        query = query.or(`time_until_listing.lte.${currentTime},created_by.eq.${userId}`);
+        if (userId) {
+          // For logged-in users: show their memes plus listed memes from others
+          query = query.or(`time_until_listing.lte.${currentTime},created_by.eq.${userId}`);
+        } else {
+          // For non-logged-in users: only show listed memes
+          query = query.lte('time_until_listing', currentTime);
+        }
       }
       
       if (userOnly && userId) {
