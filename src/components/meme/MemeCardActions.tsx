@@ -51,12 +51,26 @@ export const MemeCardActions = ({
   const handleFeatureClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
+      const tuzemoonUntil = !meme.is_featured 
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      const { error } = await supabase
+        .from("Memes")
+        .update({ 
+          is_featured: !meme.is_featured,
+          tuzemoon_until: tuzemoonUntil
+        })
+        .eq("id", meme.id);
+
+      if (error) throw error;
+
       await handleFeatureToggle();
       toast({
         title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
         description: meme.is_featured 
           ? "The meme has been removed from Tuzemoon" 
-          : "The meme has been added to Tuzemoon",
+          : "The meme has been added to Tuzemoon for 24 hours",
       });
     } catch (error) {
       console.error("Error toggling feature status:", error);

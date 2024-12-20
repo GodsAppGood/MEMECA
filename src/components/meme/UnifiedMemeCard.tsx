@@ -4,6 +4,8 @@ import { MemeCardActions } from "./MemeCardActions";
 import { MemeCardImage } from "./MemeCardImage";
 import { CountdownTimer } from "./CountdownTimer";
 import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
+import { Flame } from "lucide-react";
 
 interface UnifiedMemeCardProps {
   meme: {
@@ -15,6 +17,8 @@ interface UnifiedMemeCardProps {
     likes: number;
     created_by?: string;
     time_until_listing?: string;
+    is_featured?: boolean;
+    tuzemoon_until?: string | null;
   };
   userLikes: string[];
   userPoints: number;
@@ -32,6 +36,7 @@ export const UnifiedMemeCard = ({
   isFirst 
 }: UnifiedMemeCardProps) => {
   const navigate = useNavigate();
+  const isTuzemoon = meme.is_featured && meme.tuzemoon_until && new Date(meme.tuzemoon_until) > new Date();
 
   const handleCardClick = () => {
     if (!meme.id) return;
@@ -40,9 +45,9 @@ export const UnifiedMemeCard = ({
 
   return (
     <Card 
-      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer ${
-        isFirst ? 'border-2 border-yellow-400' : ''
-      }`}
+      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative
+        ${isFirst ? 'border-2 border-yellow-400' : ''}
+        ${isTuzemoon ? 'animate-pulse-border' : ''}`}
       onClick={handleCardClick}
     >
       <MemeCardImage
@@ -54,7 +59,15 @@ export const UnifiedMemeCard = ({
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-2">
-            <h3 className="text-lg font-semibold">{meme.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold">{meme.title}</h3>
+              {isTuzemoon && (
+                <Badge className="bg-red-500 text-white animate-pulse">
+                  <Flame className="w-4 h-4 mr-1" />
+                  Hot
+                </Badge>
+              )}
+            </div>
             {meme.time_until_listing && (
               <CountdownTimer listingTime={meme.time_until_listing} />
             )}
