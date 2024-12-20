@@ -1,14 +1,16 @@
 export interface Meme {
-  id: string;
+  id: number;
   title: string;
-  description?: string;
-  image_url?: string;
-  blockchain?: string;
-  trade_link?: string;
-  twitter_link?: string;
-  telegram_link?: string;
+  description?: string | null;
+  image_url?: string | null;
+  blockchain?: string | null;
+  trade_link?: string | null;
+  twitter_link?: string | null;
+  telegram_link?: string | null;
   likes: number;
-  created_by?: string;
-  created_at?: string;
-  time_until_listing?: string;
+  created_by?: string | null;
+  created_at?: string | null;
+  time_until_listing?: string | null;
+  is_featured?: boolean | null;
+  tuzemoon_until?: string | null;
 }

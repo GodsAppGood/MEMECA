@@ -7,6 +7,18 @@ interface MemeImageProps {
 }
 
 export const MemeImage = ({ meme, className = '' }: MemeImageProps) => {
+  if (!meme || !meme.image_url) {
+    return (
+      <div className="mb-6">
+        <AspectRatio ratio={16 / 9} className="bg-muted">
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+            No image available
+          </div>
+        </AspectRatio>
+      </div>
+    );
+  }
+
   return (
     <div className="mb-6">
       <AspectRatio ratio={16 / 9} className="bg-muted">

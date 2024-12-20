@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,9 +22,10 @@ export const MemeDetailPage = () => {
         .from("Memes")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) throw new Error("Meme not found");
       return data;
     },
   });
@@ -39,7 +40,7 @@ export const MemeDetailPage = () => {
         .from("Users")
         .select("is_admin")
         .eq("auth_id", session.user.id)
-        .single();
+        .maybeSingle();
 
       if (error) return false;
       return data?.is_admin || false;
@@ -47,15 +48,17 @@ export const MemeDetailPage = () => {
   });
 
   const handleTuzemoonToggle = async () => {
+    if (!meme) return;
+    
     try {
-      const tuzemoonUntil = meme?.is_featured 
+      const tuzemoonUntil = meme.is_featured 
         ? null 
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // Convert Date to ISO string
+        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
       const { error } = await supabase
         .from("Memes")
         .update({ 
-          is_featured: !meme?.is_featured,
+          is_featured: !meme.is_featured,
           tuzemoon_until: tuzemoonUntil
         })
         .eq("id", id);
@@ -64,8 +67,8 @@ export const MemeDetailPage = () => {
 
       await refetch();
       toast({
-        title: meme?.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
-        description: meme?.is_featured 
+        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
+        description: meme.is_featured 
           ? "The meme has been removed from Tuzemoon" 
           : "The meme has been added to Tuzemoon for 24 hours",
       });
