@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { MemeCardActions } from "./MemeCardActions";
 import { MemeCardImage } from "./MemeCardImage";
+import { CountdownTimer } from "./CountdownTimer";
 import { format } from "date-fns";
 
 interface UnifiedMemeCardProps {
@@ -13,6 +14,7 @@ interface UnifiedMemeCardProps {
     created_at: string;
     likes: number;
     created_by?: string;
+    time_until_listing?: string;
   };
   userLikes: string[];
   userPoints: number;
@@ -51,7 +53,12 @@ export const UnifiedMemeCard = ({
       />
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-semibold">{meme.title}</h3>
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">{meme.title}</h3>
+            {meme.time_until_listing && (
+              <CountdownTimer listingTime={meme.time_until_listing} />
+            )}
+          </div>
           <MemeCardActions
             meme={meme}
             userLikes={userLikes}

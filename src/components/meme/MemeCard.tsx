@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { MemeCardActions } from "./MemeCardActions";
 import { MemeCardImage } from "./MemeCardImage";
-import { useState, useEffect } from "react";
+import { CountdownTimer } from "./CountdownTimer";
 
 interface MemeCardProps {
   meme: {
@@ -22,33 +22,6 @@ interface MemeCardProps {
 
 export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps) => {
   const navigate = useNavigate();
-  const [timeLeft, setTimeLeft] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!meme.time_until_listing) return;
-
-    const updateTimer = () => {
-      const now = new Date().getTime();
-      const listingTime = new Date(meme.time_until_listing).getTime();
-      const distance = listingTime - now;
-
-      if (distance < 0) {
-        setTimeLeft(null);
-        return;
-      }
-
-      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-      setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-    };
-
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-
-    return () => clearInterval(interval);
-  }, [meme.time_until_listing]);
 
   const handleMemeClick = () => {
     navigate(`/meme/${meme.id}`);
@@ -56,11 +29,6 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
 
   return (
     <Card className="overflow-hidden transition-transform duration-300 hover:scale-105 relative">
-      {timeLeft && (
-        <div className="absolute top-2 left-2 z-10 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-          {timeLeft}
-        </div>
-      )}
       <div 
         className="cursor-pointer" 
         onClick={handleMemeClick}
@@ -71,7 +39,12 @@ export const MemeCard = ({ meme, userLikes, userPoints, userId }: MemeCardProps)
         />
         <div className="p-4">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold">{meme.title}</h3>
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">{meme.title}</h3>
+              {meme.time_until_listing && (
+                <CountdownTimer listingTime={meme.time_until_listing} />
+              )}
+            </div>
             <MemeCardActions
               meme={meme}
               userLikes={userLikes}
