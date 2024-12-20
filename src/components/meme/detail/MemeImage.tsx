@@ -1,5 +1,5 @@
-import { Meme } from "@/types/meme";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { Meme } from "@/types/meme";
 
 interface MemeImageProps {
   meme: Meme;
@@ -7,7 +7,7 @@ interface MemeImageProps {
 }
 
 export const MemeImage = ({ meme, className = '' }: MemeImageProps) => {
-  if (!meme || !meme.image_url) {
+  if (!meme?.image_url) {
     return (
       <div className="mb-6">
         <AspectRatio ratio={16 / 9} className="bg-muted">

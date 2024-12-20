@@ -1,3 +1,5 @@
+import { Badge } from "@/components/ui/badge";
+import { Star } from "lucide-react";
 import { Meme } from "@/types/meme";
 
 interface MemeHeaderProps {
@@ -6,10 +8,16 @@ interface MemeHeaderProps {
 
 export const MemeHeader = ({ meme }: MemeHeaderProps) => {
   return (
-    <div className="mb-6">
-      <h1 className="text-3xl font-bold mb-2">{meme.title}</h1>
-      {meme.description && (
-        <p className="text-gray-600 dark:text-gray-400">{meme.description}</p>
+    <div className="space-y-2">
+      <h1 className="text-3xl font-serif">{meme.title}</h1>
+      {meme.is_featured && (
+        <Badge 
+          className="bg-yellow-500 text-white animate-pulse"
+          variant="secondary"
+        >
+          <Star className="w-4 h-4 mr-1" />
+          Tuzemoon
+        </Badge>
       )}
     </div>
   );

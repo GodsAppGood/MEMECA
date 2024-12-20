@@ -2,33 +2,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star } from "lucide-react";
-import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 import { MemeHeader } from "./MemeHeader";
 import { MemeImage } from "./MemeImage";
 import { MemeLinks } from "./MemeLinks";
+import { MemeActions } from "./MemeActions";
+import { MemeMetadata } from "./MemeMetadata";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const { data: meme, isLoading, refetch } = useQuery({
-    queryKey: ["meme", id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("Memes")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("Meme not found");
-      return data;
-    },
-  });
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin"],
@@ -47,40 +30,20 @@ export const MemeDetailPage = () => {
     },
   });
 
-  const handleTuzemoonToggle = async () => {
-    if (!meme) return;
-    
-    try {
-      const tuzemoonUntil = meme.is_featured 
-        ? null 
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-      const { error } = await supabase
+  const { data: meme, isLoading, refetch } = useQuery({
+    queryKey: ["meme", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("Memes")
-        .update({ 
-          is_featured: !meme.is_featured,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq("id", id);
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
 
       if (error) throw error;
-
-      await refetch();
-      toast({
-        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
-        description: meme.is_featured 
-          ? "The meme has been removed from Tuzemoon" 
-          : "The meme has been added to Tuzemoon for 24 hours",
-      });
-    } catch (error) {
-      console.error("Error toggling Tuzemoon status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update Tuzemoon status",
-        variant: "destructive",
-      });
-    }
-  };
+      if (!data) throw new Error("Meme not found");
+      return data;
+    },
+  });
 
   if (isLoading) {
     return (
@@ -121,28 +84,12 @@ export const MemeDetailPage = () => {
 
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="flex justify-between items-start mb-6">
-            <div className="space-y-2">
-              <h1 className="text-3xl font-serif">{meme.title}</h1>
-              {meme.is_featured && (
-                <Badge 
-                  className="bg-yellow-500 text-white animate-pulse"
-                  variant="secondary"
-                >
-                  <Star className="w-4 h-4 mr-1" />
-                  Tuzemoon
-                </Badge>
-              )}
-            </div>
-            {isAdmin && (
-              <Button
-                variant="outline"
-                onClick={handleTuzemoonToggle}
-                className={`group ${meme.is_featured ? 'text-yellow-500' : ''}`}
-              >
-                <Star className={`h-5 w-5 mr-2 ${meme.is_featured ? 'fill-current' : ''}`} />
-                {meme.is_featured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
-              </Button>
-            )}
+            <MemeHeader meme={meme} />
+            <MemeActions 
+              meme={meme} 
+              isAdmin={isAdmin || false} 
+              onUpdate={refetch}
+            />
           </div>
 
           <MemeImage
@@ -154,21 +101,8 @@ export const MemeDetailPage = () => {
             <p className="text-lg mb-8 mt-6">{meme.description}</p>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {meme.blockchain && (
-              <div>
-                <h3 className="font-serif text-lg mb-2">Blockchain</h3>
-                <p className="capitalize">{meme.blockchain}</p>
-              </div>
-            )}
-            
-            <div>
-              <h3 className="font-serif text-lg mb-2">Date Added</h3>
-              <p>{meme.created_at ? format(new Date(meme.created_at), 'PPP') : 'N/A'}</p>
-            </div>
-
-            <MemeLinks meme={meme} />
-          </div>
+          <MemeMetadata meme={meme} />
+          <MemeLinks meme={meme} />
         </div>
       </div>
     </div>

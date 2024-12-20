@@ -1,12 +1,9 @@
-import { ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
+import { Meme } from "@/types/meme";
 
 interface MemeLinksProps {
-  meme: {
-    trade_link?: string | null;
-    twitter_link?: string | null;
-    telegram_link?: string | null;
-  };
+  meme: Meme;
 }
 
 export const MemeLinks = ({ meme }: MemeLinksProps) => {
@@ -19,7 +16,7 @@ export const MemeLinks = ({ meme }: MemeLinksProps) => {
   if (links.length === 0) return null;
 
   return (
-    <div className="col-span-full">
+    <div className="col-span-full mt-6">
       <h3 className="font-serif text-lg mb-4">Links</h3>
       <div className="flex flex-wrap gap-4">
         {links.map(({ type, url }) => (
