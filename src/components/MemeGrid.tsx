@@ -36,7 +36,7 @@ export const MemeGrid = ({
 
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
   
-  const { data: memes = [], isLoading, refetch } = useMemeQuery({
+  const { data: memes = [], isLoading, error } = useMemeQuery({
     selectedDate,
     selectedBlockchain,
     showTodayOnly,
@@ -47,19 +47,42 @@ export const MemeGrid = ({
     userId
   });
 
+  useEffect(() => {
+    if (error) {
+      console.error("Error in MemeGrid:", error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    console.log("MemeGrid rendered with props:", {
+      selectedDate,
+      selectedBlockchain,
+      showTodayOnly,
+      showTopOnly,
+      currentPage,
+      itemsPerPage,
+      userOnly,
+      userId,
+      memesCount: memes?.length
+    });
+  }, [selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage, itemsPerPage, userOnly, userId, memes]);
+
   useRealtimeSubscription(
     [
       { name: 'Memes' },
       { name: 'Watchlist' }
     ],
     () => {
-      void refetch();
       void refetchLikes();
     }
   );
 
   if (isLoading) {
     return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error loading memes. Please try again later.</div>;
   }
 
   return (

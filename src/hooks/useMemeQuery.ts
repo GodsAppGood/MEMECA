@@ -25,13 +25,26 @@ export const useMemeQuery = ({
   return useQuery({
     queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage, userOnly, userId],
     queryFn: async () => {
+      console.log("Fetching memes with params:", {
+        selectedDate,
+        selectedBlockchain,
+        showTodayOnly,
+        showTopOnly,
+        currentPage,
+        itemsPerPage,
+        userOnly,
+        userId
+      });
+
       let query = supabase
         .from('Memes')
         .select('*');
-      
+
+      // Only apply time_until_listing filter for non-owners
       if (!userOnly) {
-        // Only show memes that are past their listing time for non-owners
-        query = query.lte('time_until_listing', new Date().toISOString());
+        const currentTime = new Date().toISOString();
+        console.log("Current time:", currentTime);
+        query = query.or(`time_until_listing.lte.${currentTime},created_by.eq.${userId}`);
       }
       
       if (userOnly && userId) {
@@ -66,7 +79,12 @@ export const useMemeQuery = ({
       const { data, error } = await query
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching memes:", error);
+        throw error;
+      }
+
+      console.log("Fetched memes:", data);
       return data;
     }
   });
