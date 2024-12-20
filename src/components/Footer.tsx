@@ -18,7 +18,7 @@ export const Footer = () => {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
-              className="hover:text-primary transition-all duration-200 hover:scale-105"
+              className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105"
             >
               Legal
             </Button>
@@ -30,12 +30,12 @@ export const Footer = () => {
           >
             <DropdownMenuGroup className="p-2 space-y-2">
               <Link to="/privacy" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-primary transition-all duration-200 hover:scale-105">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105">
                   Privacy Policy
                 </DropdownMenuItem>
               </Link>
               <Link to="/terms" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-primary transition-all duration-200 hover:scale-105">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105">
                   Terms of Service
                 </DropdownMenuItem>
               </Link>
@@ -51,16 +51,16 @@ export const Footer = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:text-primary transition-all duration-200 hover:scale-105"
+            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group"
           >
-            <Twitter className="w-6 h-6" />
+            <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:text-primary transition-all duration-200 hover:scale-105"
+            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group"
           >
-            <Send className="w-6 h-6" />
+            <Send className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
         </div>
 

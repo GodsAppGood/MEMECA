@@ -36,12 +36,21 @@ const config = {
             boxShadow: "0 0 20px 0px rgba(239, 68, 68, 0.7)",
             borderColor: "rgba(239, 68, 68, 0.7)"
           }
+        },
+        "bounce-rotate": {
+          "0%, 100%": { 
+            transform: "translateY(0) rotate(0deg)",
+          },
+          "50%": {
+            transform: "translateY(-3px) rotate(5deg)",
+          }
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+        "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "bounce-rotate": "bounce-rotate 0.5s ease-in-out"
       },
       colors: {
         border: "hsl(var(--border))",
