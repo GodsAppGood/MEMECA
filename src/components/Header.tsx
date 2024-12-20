@@ -56,7 +56,7 @@ export const Header = () => {
           description: `Welcome ${session.user.user_metadata.name}!`,
         });
 
-        navigate('/dashboard');
+        navigate('/my-memes');
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         navigate('/');
@@ -119,7 +119,7 @@ export const Header = () => {
     navigate('/');
   };
 
-  const isDashboardRoute = location.pathname === '/dashboard';
+  const isMyMemesRoute = location.pathname === '/my-memes';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -140,7 +140,7 @@ export const Header = () => {
           handleLoginSuccess={handleLoginSuccess}
           handleLoginError={handleLoginError}
           handleLogout={handleLogout}
-          isDashboardRoute={isDashboardRoute}
+          isDashboardRoute={isMyMemesRoute}
         />
       </div>
     </header>

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useWatchlistStore, subscribeToWatchlistChanges } from "@/stores/watchlistStore";
+import { useToast } from "@/components/ui/use-toast";
 
 interface WatchlistButtonProps {
   memeId: string;
@@ -11,6 +12,7 @@ interface WatchlistButtonProps {
 export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
   const { isInWatchlist, toggleWatchlist, isLoading } = useWatchlistStore();
   const [isAnimating, setIsAnimating] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!userId) return;
@@ -27,11 +29,38 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
 
   const handleWatchlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!userId || isLoading) return;
+    
+    if (!userId) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to add memes to your watchlist",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (isLoading) return;
 
-    setIsAnimating(true);
-    await toggleWatchlist(memeId, userId);
-    setTimeout(() => setIsAnimating(false), 300);
+    try {
+      setIsAnimating(true);
+      await toggleWatchlist(memeId, userId);
+      
+      toast({
+        title: isInWatchlist(memeId) ? "Removed from Watchlist" : "Added to Watchlist",
+        description: isInWatchlist(memeId) 
+          ? "The meme has been removed from your watchlist" 
+          : "The meme has been added to your watchlist"
+      });
+    } catch (error) {
+      console.error("Error toggling watchlist:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update watchlist. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setTimeout(() => setIsAnimating(false), 300);
+    }
   };
 
   return (
