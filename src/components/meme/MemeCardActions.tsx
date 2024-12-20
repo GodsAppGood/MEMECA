@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { WatchlistButton } from "./actions/WatchlistButton";
 import { useLikeActions } from "@/hooks/useLikeActions";
 import { useFeatureToggle } from "@/hooks/useFeatureToggle";
+import { useToast } from "@/hooks/use-toast";
 
 interface MemeCardActionsProps {
   meme: {
@@ -25,6 +26,7 @@ export const MemeCardActions = ({
 }: MemeCardActionsProps) => {
   const { isLiked, likesCount, handleLike } = useLikeActions(meme.id, userId || null);
   const { handleFeatureToggle } = useFeatureToggle(meme.id, meme.is_featured || false);
+  const { toast } = useToast();
 
   // Check if user is admin
   const { data: isAdmin } = useQuery({
@@ -46,6 +48,26 @@ export const MemeCardActions = ({
     enabled: !!userId
   });
 
+  const handleFeatureClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await handleFeatureToggle();
+      toast({
+        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
+        description: meme.is_featured 
+          ? "The meme has been removed from Tuzemoon" 
+          : "The meme has been added to Tuzemoon",
+      });
+    } catch (error) {
+      console.error("Error toggling feature status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update Tuzemoon status. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
       <Button
@@ -64,10 +86,17 @@ export const MemeCardActions = ({
         <Button
           variant="ghost"
           size="icon"
-          onClick={handleFeatureToggle}
-          className={meme.is_featured ? "text-yellow-500" : ""}
+          onClick={handleFeatureClick}
+          className={`group relative ${meme.is_featured ? "text-yellow-500" : ""}`}
+          title={meme.is_featured ? "Remove from Tuzemoon" : "Add to Tuzemoon"}
         >
           <Star className={`h-5 w-5 ${meme.is_featured ? "fill-current" : ""}`} />
+          <span className="sr-only">
+            {meme.is_featured ? "Remove from Tuzemoon" : "Add to Tuzemoon"}
+          </span>
+          <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            {meme.is_featured ? "Remove from Tuzemoon" : "Add to Tuzemoon"}
+          </span>
         </Button>
       )}
     </div>
