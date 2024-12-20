@@ -29,7 +29,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
           <span className="font-serif text-2xl">1</span>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-[280px] h-[48px] font-serif text-lg">
+              <Button variant="outline" className="w-[280px] h-[48px] font-serif text-lg transition-all duration-200 hover:scale-105">
                 <CalendarIcon className="mr-2 h-5 w-5" />
                 {date ? format(date, "PPP") : "Pick a date"}
               </Button>
@@ -48,7 +48,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
         <div className="flex flex-col items-center gap-4">
           <span className="font-serif text-2xl">2</span>
           <Select value={blockchain} onValueChange={setBlockchain}>
-            <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg">
+            <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg transition-all duration-200 hover:scale-105">
               <SelectValue placeholder="Select blockchain" />
             </SelectTrigger>
             <SelectContent className="w-[280px] bg-white">
@@ -68,7 +68,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
         <div className="flex flex-col items-center gap-4">
           <span className="font-serif text-2xl">3</span>
           <Button 
-            className="w-[280px] h-[48px] bg-[#FFB74D] text-accent-foreground hover:bg-[#FFB74D]/90 font-serif text-lg"
+            className="w-[280px] h-[48px] bg-[#FFB74D] text-accent-foreground hover:bg-[#FFB74D]/90 font-serif text-lg transition-all duration-200 hover:scale-105"
             onClick={() => {
               const audio = new Audio('/meow.mp3');
               audio.play().catch(console.error);

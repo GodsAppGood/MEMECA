@@ -34,7 +34,7 @@ export const AuthSection = ({
       <Link to="/submit">
         <Button
           variant="default"
-          className="bg-[#FF4500] hover:bg-[#FF4500]/90 active:bg-[#FF4500]/80 transition-colors"
+          className="bg-[#FF4500] hover:bg-[#FF4500]/90 active:bg-[#FF4500]/80 transition-all duration-200 hover:scale-105"
         >
           Submit Meme
         </Button>
