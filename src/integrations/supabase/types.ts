@@ -52,6 +52,7 @@ export type Database = {
           time_until_listing: string | null
           title: string
           trade_link: string | null
+          tuzemoon_until: string | null
           twitter_link: string | null
         }
         Insert: {
@@ -67,6 +68,7 @@ export type Database = {
           time_until_listing?: string | null
           title: string
           trade_link?: string | null
+          tuzemoon_until?: string | null
           twitter_link?: string | null
         }
         Update: {
@@ -82,6 +84,7 @@ export type Database = {
           time_until_listing?: string | null
           title?: string
           trade_link?: string | null
+          tuzemoon_until?: string | null
           twitter_link?: string | null
         }
         Relationships: []
@@ -150,7 +153,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      check_tuzemoon_expiry: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
