@@ -5,37 +5,37 @@ export const Navigation = () => {
     <nav className="flex items-center space-x-6 text-sm font-medium">
       <Link
         to="/"
-        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
       >
         Home
       </Link>
       <Link
         to="/top-memes"
-        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
       >
         Top Memes
       </Link>
       <Link
         to="/my-story"
-        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
       >
         My Story
       </Link>
       <Link
         to="/my-memes"
-        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
       >
         My Memes
       </Link>
       <Link
         to="/watchlist"
-        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
       >
         Watchlist
       </Link>
       <Link
         to="/tuzemoon"
-        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
       >
         Tuzemoon
       </Link>
