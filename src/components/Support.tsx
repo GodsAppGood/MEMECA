@@ -28,7 +28,6 @@ export const Support = () => {
                 Hello! How can I help you today? 🐱
               </div>
             </div>
-            {/* Add more chat messages here */}
           </div>
           <div className="flex gap-2 mt-4">
             <input

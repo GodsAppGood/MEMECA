@@ -21,6 +21,24 @@ export const Navigation = () => {
       >
         My Story
       </Link>
+      <Link
+        to="/my-memes"
+        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+      >
+        My Memes
+      </Link>
+      <Link
+        to="/watchlist"
+        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+      >
+        Watchlist
+      </Link>
+      <Link
+        to="/tuzemoon"
+        className="transition-colors hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform hover:after:origin-bottom-left hover:after:scale-x-100"
+      >
+        Tuzemoon
+      </Link>
     </nav>
   );
 };
