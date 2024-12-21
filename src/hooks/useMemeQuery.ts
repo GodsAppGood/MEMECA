@@ -40,20 +40,21 @@ export const useMemeQuery = ({
         .from('Memes')
         .select('*');
 
-      // Handle time_until_listing filter differently based on user authentication
+      // Handle visibility based on listing time and user authentication
       const currentTime = new Date().toISOString();
       console.log("Current time:", currentTime);
 
       if (!userOnly) {
+        // For all users (authenticated or not), show memes that:
+        // 1. Have passed their listing time OR
+        // 2. Were created by the current user (if authenticated)
         if (userId) {
-          // For logged-in users: show their memes plus listed memes from others
           query = query.or(`time_until_listing.lte.${currentTime},created_by.eq.${userId}`);
         } else {
-          // For non-logged-in users: only show listed memes
           query = query.lte('time_until_listing', currentTime);
         }
       }
-      
+
       if (userOnly && userId) {
         query = query.eq('created_by', userId);
       }
