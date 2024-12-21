@@ -66,6 +66,7 @@ export const useMemeQuery = ({
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
         
+        // Search in both time_until_listing and created_at fields
         query = query.or(
           `and(time_until_listing.gte.${startOfDay.toISOString()},time_until_listing.lte.${endOfDay.toISOString()}),and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()})`
         );
