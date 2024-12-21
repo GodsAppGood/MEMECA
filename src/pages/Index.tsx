@@ -21,7 +21,7 @@ const Index = () => {
     console.log("Applying filters:", { selectedDate, selectedBlockchain });
     setAppliedDate(selectedDate);
     setAppliedBlockchain(selectedBlockchain);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when applying new filters
   };
 
   return (
