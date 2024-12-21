@@ -44,19 +44,20 @@ export const useMemeQuery = ({
       const currentTime = new Date().toISOString();
       console.log("Current time:", currentTime);
 
-      if (!userOnly) {
-        // For all users (authenticated or not), show memes that:
-        // 1. Have passed their listing time OR
-        // 2. Were created by the current user (if authenticated)
+      if (userOnly) {
+        // If viewing user's own memes, show all their memes regardless of listing time
         if (userId) {
-          query = query.or(`time_until_listing.lte.${currentTime},created_by.eq.${userId}`);
-        } else {
-          query = query.lte('time_until_listing', currentTime);
+          query = query.eq('created_by', userId);
         }
-      }
-
-      if (userOnly && userId) {
-        query = query.eq('created_by', userId);
+      } else {
+        // For the main feed:
+        // 1. Show all memes that have passed their listing time
+        // 2. For authenticated users, also show their own memes regardless of listing time
+        if (userId) {
+          query = query.or(`time_until_listing.is.null,time_until_listing.lte.${currentTime},created_by.eq.${userId}`);
+        } else {
+          query = query.or(`time_until_listing.is.null,time_until_listing.lte.${currentTime}`);
+        }
       }
 
       // Apply date filter if selected
@@ -66,7 +67,6 @@ export const useMemeQuery = ({
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
         
-        // Search in both time_until_listing and created_at fields
         query = query.or(
           `and(time_until_listing.gte.${startOfDay.toISOString()},time_until_listing.lte.${endOfDay.toISOString()}),and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()})`
         );
