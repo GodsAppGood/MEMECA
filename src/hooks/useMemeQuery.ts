@@ -59,9 +59,7 @@ export const useMemeQuery = ({
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
         
-        query = query.or(
-          `and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()})`
-        );
+        query = query.and(`created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()}`);
       }
 
       // Apply blockchain filter if selected
