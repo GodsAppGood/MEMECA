@@ -59,31 +59,36 @@ export const useMemeQuery = ({
         query = query.eq('created_by', userId);
       }
 
-      if (showTodayOnly) {
-        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        query = query.gte('created_at', last24Hours);
-      }
-
+      // Apply date filter if selected
       if (selectedDate) {
         const startOfDay = new Date(selectedDate);
         startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(selectedDate);
         endOfDay.setHours(23, 59, 59, 999);
-        query = query
-          .gte('created_at', startOfDay.toISOString())
-          .lte('created_at', endOfDay.toISOString());
+        
+        query = query.or(
+          `and(time_until_listing.gte.${startOfDay.toISOString()},time_until_listing.lte.${endOfDay.toISOString()}),and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()})`
+        );
       }
 
+      // Apply blockchain filter if selected
       if (selectedBlockchain) {
         query = query.eq('blockchain', selectedBlockchain);
       }
 
+      if (showTodayOnly) {
+        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+        query = query.gte('created_at', last24Hours);
+      }
+
+      // Apply sorting
       if (showTopOnly) {
         query = query.order('likes', { ascending: false });
       } else {
         query = query.order('created_at', { ascending: false });
       }
 
+      // Apply pagination
       const { data, error } = await query
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
       

@@ -38,7 +38,9 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={(newDate) => {
+                  setDate(newDate);
+                }}
                 initialFocus
               />
             </PopoverContent>
