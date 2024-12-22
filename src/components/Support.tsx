@@ -11,7 +11,7 @@ export const Support = () => {
         className="fixed bottom-4 right-4 w-16 h-16 z-50 transition-transform hover:scale-110"
       >
         <img
-          src="/lovable-uploads/новый цвет значок.png"
+          src="/lovable-uploads/a9ff8038-20e7-4068-a542-5e51c2a168d8.png"
           alt="24/7 Support"
           className="w-full h-full"
         />
