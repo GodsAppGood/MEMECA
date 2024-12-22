@@ -10,7 +10,7 @@ export const SubmitButton = ({ isEditing, isLoading }: SubmitButtonProps) => {
   return (
     <Button
       type="submit"
-      className="w-full bg-[#FF4500] hover:bg-[#FF4500]/90 font-serif text-lg py-6"
+      className="w-full bg-[#FFB74D] hover:bg-[#FFB74D]/90 font-serif text-lg py-6 text-black"
       disabled={isLoading}
     >
       {isLoading ? (
