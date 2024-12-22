@@ -1,3 +1,4 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,31 +20,35 @@ import Tuzemoon from "./pages/Tuzemoon";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/submit" element={<SubmitMeme />} />
-            <Route path="/meme/:id" element={<MemeDetailPage />} />
-            <Route path="/top-memes" element={<TopMemes />} />
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/terms" element={<Terms />} />
-            <Route path="/my-story" element={<MyStory />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/my-memes" element={<MyMemes />} />
-            <Route path="/watchlist" element={<Watchlist />} />
-            <Route path="/tuzemoon" element={<Tuzemoon />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </GoogleOAuthProvider>
-);
+const App = () => {
+  return (
+    <React.StrictMode>
+      <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/submit" element={<SubmitMeme />} />
+                <Route path="/meme/:id" element={<MemeDetailPage />} />
+                <Route path="/top-memes" element={<TopMemes />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/my-story" element={<MyStory />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/my-memes" element={<MyMemes />} />
+                <Route path="/watchlist" element={<Watchlist />} />
+                <Route path="/tuzemoon" element={<Tuzemoon />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </GoogleOAuthProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;
