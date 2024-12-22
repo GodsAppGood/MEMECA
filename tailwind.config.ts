@@ -44,13 +44,22 @@ const config = {
           "50%": {
             transform: "translateY(-3px) rotate(5deg)",
           }
+        },
+        float: {
+          "0%, 100%": { 
+            transform: "translateY(0) scale(1) rotate(0deg)",
+          },
+          "50%": {
+            transform: "translateY(-20px) scale(1.01) rotate(1deg)",
+          }
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "bounce-rotate": "bounce-rotate 0.5s ease-in-out"
+        "bounce-rotate": "bounce-rotate 0.5s ease-in-out",
+        "float": "float 4s ease-in-out infinite"
       },
       colors: {
         border: "hsl(var(--border))",
