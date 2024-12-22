@@ -21,7 +21,7 @@ export const Hero = () => {
         muted
         playsInline
       >
-        <source src="https://cdn.pixabay.com/video/2022/05/20/117606-712421887_large.mp4" type="video/mp4" />
+        <source src="/background-video.webm" type="video/webm" />
         Your browser does not support the video tag.
       </video>
       <div className="absolute inset-0 bg-black/50">
