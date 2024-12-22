@@ -7,6 +7,7 @@ import { SubmitButton } from "./SubmitButton";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
@@ -26,6 +27,7 @@ export const FormWrapper = () => {
 
   const navigate = useNavigate();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -35,8 +37,8 @@ export const FormWrapper = () => {
         console.error('Auth check error:', error);
         toast({
           variant: "destructive",
-          title: "Ошибка аутентификации",
-          description: "Пожалуйста, попробуйте войти снова.",
+          title: "Authentication Error",
+          description: "Please try logging in again.",
         });
         navigate('/');
         return;
@@ -45,8 +47,8 @@ export const FormWrapper = () => {
       if (!session) {
         toast({
           variant: "destructive",
-          title: "Требуется аутентификация",
-          description: "Пожалуйста, войдите для отправки мемов.",
+          title: "Authentication Required",
+          description: "Please log in to submit memes.",
         });
         navigate('/');
         return;
@@ -90,8 +92,8 @@ export const FormWrapper = () => {
     if (!imageUrl) {
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: "Пожалуйста, загрузите изображение.",
+        title: "Error",
+        description: "Please upload an image.",
       });
       return;
     }
@@ -99,8 +101,8 @@ export const FormWrapper = () => {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Требуется аутентификация",
-        description: "Пожалуйста, войдите для отправки мемов.",
+        title: "Authentication Required",
+        description: "Please log in to submit memes.",
       });
       return;
     }
@@ -117,7 +119,8 @@ export const FormWrapper = () => {
         trade_link: tradeLink || null,
         image_url: imageUrl,
         created_by: user.id,
-        created_at: createdAt?.toISOString() || new Date().toISOString()
+        created_at: createdAt?.toISOString() || new Date().toISOString(),
+        time_until_listing: createdAt?.toISOString() || new Date().toISOString()
       };
 
       if (isEditing && editingId) {
@@ -135,18 +138,21 @@ export const FormWrapper = () => {
         if (insertError) throw insertError;
       }
 
+      // Invalidate and refetch queries to update the UI
+      await queryClient.invalidateQueries({ queryKey: ["memes"] });
+
       toast({
-        title: "Успех!",
-        description: isEditing ? "Мем успешно обновлен." : "Мем успешно отправлен.",
+        title: "Success!",
+        description: isEditing ? "Meme updated successfully." : "Meme submitted successfully.",
       });
       
-      navigate("/my-memes");
+      navigate("/");
     } catch (error: any) {
       console.error('Error submitting meme:', error);
       toast({
         variant: "destructive",
-        title: "Ошибка",
-        description: error.message || "Не удалось отправить мем",
+        title: "Error",
+        description: "Unable to submit the meme. Please try again later.",
       });
     } finally {
       setIsSubmitting(false);

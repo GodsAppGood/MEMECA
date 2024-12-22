@@ -22,14 +22,7 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
       const [hours, minutes] = timeValue.split(':').map(Number);
       const newDate = new Date(date);
       newDate.setHours(hours, minutes);
-      
-      // Validate that the selected time is at least 5 minutes in the future
-      const minAllowedTime = new Date();
-      minAllowedTime.setMinutes(minAllowedTime.getMinutes() + 5);
-      
-      if (newDate > minAllowedTime) {
-        setDate(newDate);
-      }
+      setDate(newDate);
     }
   };
 
@@ -60,7 +53,6 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
                 }
               }}
               initialFocus
-              disabled={(date) => date < new Date()}
             />
           </PopoverContent>
         </Popover>
@@ -72,7 +64,6 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
             value={timeInput}
             onChange={handleTimeChange}
             className="pl-10 font-serif"
-            min={format(new Date(), "HH:mm")}
           />
         </div>
       </div>

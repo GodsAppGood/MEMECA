@@ -36,7 +36,7 @@ export const MemeGrid = ({
 
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
   
-  const { data: memes = [], isLoading, error } = useMemeQuery({
+  const { data: memes = [], isLoading, error, refetch } = useMemeQuery({
     selectedDate,
     selectedBlockchain,
     showTodayOnly,
@@ -53,26 +53,13 @@ export const MemeGrid = ({
     }
   }, [error]);
 
-  useEffect(() => {
-    console.log("MemeGrid rendered with props:", {
-      selectedDate,
-      selectedBlockchain,
-      showTodayOnly,
-      showTopOnly,
-      currentPage,
-      itemsPerPage,
-      userOnly,
-      userId,
-      memesCount: memes?.length
-    });
-  }, [selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage, itemsPerPage, userOnly, userId, memes]);
-
   useRealtimeSubscription(
     [
       { name: 'Memes' },
       { name: 'Watchlist' }
     ],
     () => {
+      void refetch();
       void refetchLikes();
     }
   );
