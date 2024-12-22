@@ -41,19 +41,12 @@ export const useMemeQuery = ({
         .from('Memes')
         .select('*');
 
-      // For the main feed, show all memes that have passed their listing time
-      const currentTime = new Date().toISOString();
-      console.log("Current time:", currentTime);
-      
+      // For user's own memes, show all their memes
       if (userOnly && userId) {
-        // If viewing user's own memes, show all their memes
         query = query.eq('created_by', userId);
-      } else {
-        // For the main feed, show all memes that have passed their listing time
-        query = query.or(`time_until_listing.is.null,time_until_listing.lte.${currentTime}`);
       }
 
-      // Apply date filter if selected
+      // Apply date filter only if explicitly selected
       if (selectedDate) {
         const start = startOfDay(selectedDate);
         const end = endOfDay(selectedDate);
@@ -61,11 +54,12 @@ export const useMemeQuery = ({
                     .lte('created_at', end.toISOString());
       }
 
-      // Apply blockchain filter if selected
+      // Apply blockchain filter only if explicitly selected
       if (selectedBlockchain) {
         query = query.eq('blockchain', selectedBlockchain);
       }
 
+      // Apply 24-hour filter only if explicitly requested
       if (showTodayOnly) {
         const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         query = query.gte('created_at', last24Hours);
