@@ -29,12 +29,12 @@ const config = {
         },
         "pulse-border": {
           "0%, 100%": { 
-            boxShadow: "0 0 0 0 rgba(239, 68, 68, 0.4)",
-            borderColor: "rgba(239, 68, 68, 0.4)"
+            boxShadow: "0 0 0 0 rgba(255, 183, 77, 0.4)",
+            borderColor: "rgba(255, 183, 77, 0.4)"
           },
           "50%": { 
-            boxShadow: "0 0 20px 0px rgba(239, 68, 68, 0.7)",
-            borderColor: "rgba(239, 68, 68, 0.7)"
+            boxShadow: "0 0 20px 0px rgba(255, 183, 77, 0.7)",
+            borderColor: "rgba(255, 183, 77, 0.7)"
           }
         },
         "bounce-rotate": {
