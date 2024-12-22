@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { WatchlistButton } from "./actions/WatchlistButton";
+import { EditButton } from "./actions/EditButton";
+import { DeleteButton } from "./actions/DeleteButton";
 import { useLikeActions } from "@/hooks/useLikeActions";
 import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +13,7 @@ interface MemeCardActionsProps {
   meme: {
     id: string;
     is_featured?: boolean;
+    created_by?: string | null;
   };
   userLikes?: string[];
   userPoints?: number;
@@ -113,6 +116,9 @@ export const MemeCardActions = ({
           </span>
         </Button>
       )}
+
+      <EditButton meme={meme} userId={userId || null} />
+      <DeleteButton meme={meme} userId={userId || null} />
     </div>
   );
 };

@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 interface EditButtonProps {
   meme: {
     id: string;
-    created_by?: string;
+    created_by?: string | null;
   };
   userId: string | null;
 }
