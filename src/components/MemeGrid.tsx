@@ -4,6 +4,8 @@ import { UnifiedMemeCard } from "./meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useMemeQuery } from "@/hooks/useMemeQuery";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -65,11 +67,33 @@ export const MemeGrid = ({
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div>Error loading memes. Please try again later.</div>;
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Error loading memes. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (memes.length === 0) {
+    return (
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          No memes found. Try using different filters.
+        </AlertDescription>
+      </Alert>
+    );
   }
 
   return (

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { startOfDay, endOfDay } from "date-fns";
 
 interface MemeQueryOptions {
   selectedDate?: Date;
@@ -54,14 +55,10 @@ export const useMemeQuery = ({
 
       // Apply date filter if selected
       if (selectedDate) {
-        const startOfDay = new Date(selectedDate);
-        startOfDay.setHours(0, 0, 0, 0);
-        const endOfDay = new Date(selectedDate);
-        endOfDay.setHours(23, 59, 59, 999);
-        
-        query = query.or(
-          `and(created_at.gte.${startOfDay.toISOString()},created_at.lte.${endOfDay.toISOString()})`
-        );
+        const start = startOfDay(selectedDate);
+        const end = endOfDay(selectedDate);
+        query = query.gte('created_at', start.toISOString())
+                    .lte('created_at', end.toISOString());
       }
 
       // Apply blockchain filter if selected
@@ -91,7 +88,7 @@ export const useMemeQuery = ({
       }
 
       console.log("Fetched memes:", data);
-      return data;
+      return data || [];
     }
   });
 };
