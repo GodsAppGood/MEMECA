@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
-import { differenceInSeconds, format } from 'date-fns';
+import { differenceInSeconds, addHours } from 'date-fns';
 
 interface CountdownTimerProps {
   listingTime: string;
@@ -13,14 +13,15 @@ export const CountdownTimer = ({ listingTime }: CountdownTimerProps) => {
     const calculateTimeRemaining = () => {
       const now = new Date();
       const listingDate = new Date(listingTime);
-      const diffInSeconds = differenceInSeconds(listingDate, now);
+      const twentyFourHoursFromNow = addHours(now, 24);
       
-      // If more than 24 hours or past listing time, don't show timer
-      if (diffInSeconds > 86400 || diffInSeconds < 0) {
+      // If listing time is in the past or more than 24 hours in the future
+      if (listingDate <= now || listingDate > twentyFourHoursFromNow) {
         setTimeRemaining(null);
         return;
       }
       
+      const diffInSeconds = differenceInSeconds(listingDate, now);
       setTimeRemaining(diffInSeconds);
     };
 
@@ -34,7 +35,7 @@ export const CountdownTimer = ({ listingTime }: CountdownTimerProps) => {
   }, [listingTime]);
 
   if (timeRemaining === null) {
-    if (new Date(listingTime) < new Date()) {
+    if (new Date(listingTime) <= new Date()) {
       return (
         <Badge className="bg-green-500 hover:bg-green-600">
           Listed

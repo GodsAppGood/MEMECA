@@ -43,10 +43,13 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
               selected={date}
               onSelect={(newDate) => {
                 if (newDate) {
-                  const currentDate = new Date();
-                  newDate.setHours(currentDate.getHours(), currentDate.getMinutes());
+                  // Keep existing time if available, otherwise use current time
+                  const currentTime = timeInput ? timeInput.split(':').map(Number) : [new Date().getHours(), new Date().getMinutes()];
+                  newDate.setHours(currentTime[0], currentTime[1]);
                   setDate(newDate);
-                  setTimeInput(format(newDate, "HH:mm"));
+                  if (!timeInput) {
+                    setTimeInput(format(newDate, "HH:mm"));
+                  }
                 } else {
                   setDate(undefined);
                   setTimeInput("");
