@@ -84,7 +84,7 @@ const MyStory = () => {
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
-              <p className="lead">Welcome to the Meme Calendar MVP, a Minimum Viable Product designed to bring your creative and humorous ideas to life while fostering a vibrant community of meme enthusiasts. Here's what makes it unique:</p>
+              <p className="lead">Minimum Viable Product designed to bring your creative and humorous ideas to life while fostering a vibrant community of meme enthusiasts. Here's what makes it unique:</p>
               <ul className="space-y-4">
                 <li><strong>Top 200 Memes</strong>: A dynamic leaderboard showcasing the best memes based purely on community votes. Sponsored memes are clearly marked to maintain transparency.</li>
                 <li><strong>Watchlist</strong>: Your personal space to save and revisit your favorite memes anytime.</li>
