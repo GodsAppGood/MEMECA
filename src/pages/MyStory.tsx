@@ -84,9 +84,14 @@ const MyStory = () => {
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
-              <p>My site combines simplicity and honesty. If people like your memes, they automatically appear in the "Top Memes" section. This is a space for those who don't want to spend much time searching—it's easy to find what most people already enjoy. This category will also feature memes promoted on a paid basis (such memes will be specially marked to distinguish them from organically liked ones).</p>
-              <p>I plan to integrate AI technologies so that your personal AI assistant is always there. This assistant will grow smarter and evolve alongside the project, quickly adapting to your needs and questions. All memes uploaded to the site are automatically duplicated to my Telegram channel, where they can also be discussed and shared in a chat.</p>
-              <p>Thus, the "Meme Calendar" project is not just a platform for posting memes. It's a community, an opportunity for memes to become favorites, for ideas to find their resonance, and for you to gain support and access to bright, creative stories. Let's dive into the world of memes together!</p>
+              <p className="lead">Welcome to the Meme Calendar MVP, a Minimum Viable Product designed to bring your creative and humorous ideas to life while fostering a vibrant community of meme enthusiasts. Here's what makes it unique:</p>
+              <ul className="space-y-4">
+                <li><strong>Top 200 Memes</strong>: A dynamic leaderboard showcasing the best memes based purely on community votes. Sponsored memes are clearly marked to maintain transparency.</li>
+                <li><strong>Watchlist</strong>: Your personal space to save and revisit your favorite memes anytime.</li>
+                <li><strong>Tuzemoon</strong>: A premium section for exclusive content that gets extra visibility and reach.</li>
+                <li><strong>AI-Powered Features (Coming Soon)</strong>: An intelligent assistant to enhance your experience with recommendations and support.</li>
+                <li><strong>Telegram Integration</strong>: All memes are automatically shared in our Telegram channel to spark conversations and extend reach.</li>
+              </ul>
             </div>
           </div>
         </section>
