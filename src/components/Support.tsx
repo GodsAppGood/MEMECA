@@ -4,8 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "./ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { Bell } from "lucide-react";
-import { Button } from "./ui/button";
 
 export const Support = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,19 +26,6 @@ export const Support = () => {
     
     setIsOpen(true);
   };
-
-  if (isMobile) {
-    return (
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleSupportClick}
-        className="relative p-2"
-      >
-        <Bell className="h-5 w-5" />
-      </Button>
-    );
-  }
 
   return (
     <>
