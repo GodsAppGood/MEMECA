@@ -125,50 +125,51 @@ export const Header = () => {
     navigate('/');
   };
 
-  const isMyMemesRoute = location.pathname === '/my-memes';
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-auto flex-col md:h-14 md:flex-row items-center px-4">
-        <div className="flex w-full md:w-auto items-center justify-between py-2 md:py-0 md:space-x-6">
-          <Logo />
-          {isMobile && (
+      <div className="container flex h-14 items-center justify-between px-4">
+        {isMobile ? (
+          <>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="ml-0 p-1"
+              className="p-1"
             >
               <Menu className="h-5 w-5" />
             </Button>
-          )}
-        </div>
-
-        {!isMobile && <Navigation />}
-        
-        <div className="flex-1 flex justify-end items-center gap-2 py-2 md:py-0">
-          {isMobile && <Support />}
-          <AuthSection
-            user={user}
-            isLoginOpen={isLoginOpen}
-            setIsLoginOpen={setIsLoginOpen}
-            handleLoginSuccess={handleLoginSuccess}
-            handleLoginError={handleLoginError}
-            handleLogout={handleLogout}
-            isDashboardRoute={isMyMemesRoute}
-          />
-        </div>
+            <div className="flex-1 flex justify-center">
+              <Logo />
+            </div>
+            <div className="w-8" /> {/* Spacer to balance the hamburger menu */}
+          </>
+        ) : (
+          <>
+            <Logo />
+            <Navigation />
+            <AuthSection
+              user={user}
+              isLoginOpen={isLoginOpen}
+              setIsLoginOpen={setIsLoginOpen}
+              handleLoginSuccess={handleLoginSuccess}
+              handleLoginError={handleLoginError}
+              handleLogout={handleLogout}
+              isDashboardRoute={location.pathname === '/my-memes'}
+            />
+          </>
+        )}
       </div>
       
-      {isMobile && (
-        <>
-          <Navigation />
-          <MobileMenu 
-            isOpen={isMobileMenuOpen} 
-            onClose={() => setIsMobileMenuOpen(false)} 
-          />
-        </>
-      )}
+      <MobileMenu 
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        user={user}
+        isLoginOpen={isLoginOpen}
+        setIsLoginOpen={setIsLoginOpen}
+        handleLoginSuccess={handleLoginSuccess}
+        handleLoginError={handleLoginError}
+        handleLogout={handleLogout}
+      />
     </header>
   );
 };
