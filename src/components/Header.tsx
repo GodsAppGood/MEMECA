@@ -129,10 +129,9 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-12 md:h-14 items-center px-4">
-        <div className="flex items-center space-x-4 md:space-x-6">
+      <div className="container flex h-auto flex-col md:h-14 md:flex-row items-center px-4">
+        <div className="flex w-full md:w-auto items-center justify-between py-2 md:py-0 md:space-x-6">
           <Logo />
-          {!isMobile && <Navigation />}
           {isMobile && (
             <Button
               variant="ghost"
@@ -145,7 +144,9 @@ export const Header = () => {
           )}
         </div>
 
-        <div className="flex-1 flex justify-end items-center gap-2">
+        {!isMobile && <Navigation />}
+        
+        <div className="flex-1 flex justify-end items-center gap-2 py-2 md:py-0">
           {isMobile && <Support />}
           <AuthSection
             user={user}
@@ -160,10 +161,13 @@ export const Header = () => {
       </div>
       
       {isMobile && (
-        <MobileMenu 
-          isOpen={isMobileMenuOpen} 
-          onClose={() => setIsMobileMenuOpen(false)} 
-        />
+        <>
+          <Navigation />
+          <MobileMenu 
+            isOpen={isMobileMenuOpen} 
+            onClose={() => setIsMobileMenuOpen(false)} 
+          />
+        </>
       )}
     </header>
   );
