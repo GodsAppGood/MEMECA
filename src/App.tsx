@@ -20,9 +20,12 @@ import Tuzemoon from "./pages/Tuzemoon";
 
 const queryClient = new QueryClient();
 
+// Updated Google OAuth configuration to support new domains
+const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
+
 const AppContent = () => {
   return (
-    <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
