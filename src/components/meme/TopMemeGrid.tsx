@@ -52,7 +52,7 @@ export const TopMemeGrid = () => {
     }
   });
 
-  const { data: memes = [], isLoading } = useQuery({
+  const { data: memes = [], isLoading, refetch } = useQuery({
     queryKey: ["top-memes"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -84,7 +84,7 @@ export const TopMemeGrid = () => {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, []);
+  }, [refetch]);
 
   const totalSlots = 200;
   const remainingSlots = Math.max(0, totalSlots - memes.length);
