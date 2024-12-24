@@ -1,19 +1,52 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { Filters } from "@/components/Filters";
 import { MemeGrid } from "@/components/MemeGrid";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
+import { MemePagination } from "@/components/MemePagination";
 
 const Index = () => {
+  // State for selected filters (not yet applied)
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedBlockchain, setSelectedBlockchain] = useState<string>();
+  
+  // State for applied filters (after clicking Meow)
+  const [appliedDate, setAppliedDate] = useState<Date>();
+  const [appliedBlockchain, setAppliedBlockchain] = useState<string>();
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSearch = () => {
+    console.log("Applying filters:", { selectedDate, selectedBlockchain });
+    setAppliedDate(selectedDate);
+    setAppliedBlockchain(selectedBlockchain);
+    setCurrentPage(1); // Reset to first page when applying new filters
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="pt-16">
         <Hero />
-        <Filters />
+        <Filters
+          date={selectedDate}
+          setDate={setSelectedDate}
+          blockchain={selectedBlockchain}
+          setBlockchain={setSelectedBlockchain}
+          onSearch={handleSearch}
+        />
         <div className="container mx-auto px-4 py-8">
-          <MemeGrid />
+          <MemeGrid 
+            selectedDate={appliedDate} 
+            selectedBlockchain={appliedBlockchain}
+            currentPage={currentPage}
+            itemsPerPage={100}
+          />
+          <MemePagination 
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+          />
         </div>
       </main>
       <Support />
