@@ -5,6 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { AuthSection } from "./header/AuthSection";
+import { Menu } from "lucide-react";
+import { Button } from "./ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MobileMenu } from "./header/MobileMenu";
 
 interface User {
   id: string;
@@ -15,10 +19,12 @@ interface User {
 
 export const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -125,7 +131,17 @@ export const Header = () => {
       <div className="container flex h-14 items-center">
         <div className="flex items-center space-x-6">
           <Logo />
-          <Navigation />
+          {!isMobile && <Navigation />}
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="ml-2"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          )}
         </div>
 
         <div className="flex-1 flex justify-end">
@@ -140,6 +156,13 @@ export const Header = () => {
           />
         </div>
       </div>
+      
+      {isMobile && (
+        <MobileMenu 
+          isOpen={isMobileMenuOpen} 
+          onClose={() => setIsMobileMenuOpen(false)} 
+        />
+      )}
     </header>
   );
 };
