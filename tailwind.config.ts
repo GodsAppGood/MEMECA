@@ -52,6 +52,10 @@ const config = {
           "50%": {
             transform: "translateY(-20px) scale(1.01) rotate(1deg)",
           }
+        },
+        "slide-in": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(0)" }
         }
       },
       animation: {
@@ -59,7 +63,8 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-rotate": "bounce-rotate 0.5s ease-in-out",
-        "float": "float 4s ease-in-out infinite"
+        "float": "float 4s ease-in-out infinite",
+        "slide-in": "slide-in 0.3s ease-out"
       },
       colors: {
         border: "hsl(var(--border))",

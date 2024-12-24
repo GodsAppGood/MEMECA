@@ -3,6 +3,7 @@ import { Button } from "../ui/button";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { LoginButton } from "./LoginButton";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Plus } from "lucide-react";
 
 interface User {
   id: string;
@@ -65,9 +66,10 @@ export const AuthSection = ({
         <Link to="/submit">
           <Button
             variant="default"
-            className="fixed bottom-4 right-4 z-50 bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-full w-16 h-16 shadow-lg"
+            size="icon"
+            className="fixed bottom-4 right-4 z-50 bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-full w-14 h-14 shadow-lg animate-bounce-rotate"
           >
-            +
+            <Plus className="h-6 w-6" />
           </Button>
         </Link>
       )}

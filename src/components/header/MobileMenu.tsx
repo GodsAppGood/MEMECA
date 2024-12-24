@@ -5,6 +5,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { motion } from "framer-motion";
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -23,20 +24,29 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-[300px] sm:w-[400px]">
+      <SheetContent 
+        side="left" 
+        className="w-[300px] sm:w-[400px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+      >
         <SheetHeader>
-          <SheetTitle>Menu</SheetTitle>
+          <SheetTitle className="text-2xl font-serif">Menu</SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col gap-4 mt-8">
-          {menuItems.map((item) => (
-            <Link
+        <nav className="flex flex-col gap-2 mt-8">
+          {menuItems.map((item, index) => (
+            <motion.div
               key={item.path}
-              to={item.path}
-              onClick={onClose}
-              className="text-lg py-2 px-4 hover:bg-accent rounded-md transition-colors"
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
             >
-              {item.title}
-            </Link>
+              <Link
+                to={item.path}
+                onClick={onClose}
+                className="flex items-center px-4 py-3 text-lg hover:bg-accent rounded-md transition-colors duration-200 hover:text-accent-foreground"
+              >
+                {item.title}
+              </Link>
+            </motion.div>
           ))}
         </nav>
       </SheetContent>
