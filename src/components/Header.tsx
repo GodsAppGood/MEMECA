@@ -9,6 +9,7 @@ import { Menu } from "lucide-react";
 import { Button } from "./ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileMenu } from "./header/MobileMenu";
+import { Support } from "./Support";
 
 interface User {
   id: string;
@@ -144,7 +145,8 @@ export const Header = () => {
           )}
         </div>
 
-        <div className="flex-1 flex justify-end">
+        <div className="flex-1 flex justify-end items-center gap-2">
+          {isMobile && <Support />}
           <AuthSection
             user={user}
             isLoginOpen={isLoginOpen}

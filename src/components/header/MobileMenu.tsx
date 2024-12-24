@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +13,8 @@ interface MobileMenuProps {
 }
 
 export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
+  const navigate = useNavigate();
+  
   const menuItems = [
     { title: "Home", path: "/" },
     { title: "Top Memes", path: "/top-memes" },
@@ -21,6 +23,11 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     { title: "Watchlist", path: "/watchlist" },
     { title: "Tuzemoon", path: "/tuzemoon" },
   ];
+
+  const handleNavigation = (path: string) => {
+    onClose();
+    navigate(path);
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
@@ -39,13 +46,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               animate={{ x: 0, opacity: 1 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Link
-                to={item.path}
-                onClick={onClose}
-                className="flex items-center px-3 py-2.5 text-base hover:bg-accent rounded-md transition-colors duration-200 hover:text-accent-foreground"
+              <button
+                onClick={() => handleNavigation(item.path)}
+                className="w-full flex items-center px-3 py-2.5 text-base hover:bg-accent rounded-md transition-colors duration-200 hover:text-accent-foreground text-left"
               >
                 {item.title}
-              </Link>
+              </button>
             </motion.div>
           ))}
         </nav>
