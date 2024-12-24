@@ -9,7 +9,8 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     historyApiFallback: {
       disableDotRule: true
-    }
+    },
+    https: true // Enable HTTPS in development
   },
   plugins: [
     react(),
@@ -25,6 +26,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     host: true,
     strictPort: true,
+    https: true // Enable HTTPS in preview mode
   },
   build: {
     rollupOptions: {
