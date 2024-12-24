@@ -5,8 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { AuthSection } from "./header/AuthSection";
-import { Menu } from "lucide-react";
-import { Button } from "./ui/button";
+import { MenuToggleButton } from "./header/MenuToggleButton";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MobileMenu } from "./header/MobileMenu";
 import { Support } from "./Support";
@@ -135,19 +134,14 @@ export const Header = () => {
       <div className="container flex h-14 items-center px-4">
         {isMobile ? (
           <>
-            <Button
-              variant="ghost"
-              size="icon"
+            <MenuToggleButton
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-1"
-              aria-label="Toggle menu"
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+            />
             <div className="flex-1 flex justify-center">
               <Logo />
             </div>
-            <div className="w-8" /> {/* Spacer to balance the hamburger menu */}
+            <div className="w-8" />
           </>
         ) : (
           <>
@@ -170,10 +164,6 @@ export const Header = () => {
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
         user={user}
-        isLoginOpen={isLoginOpen}
-        setIsLoginOpen={setIsLoginOpen}
-        handleLoginSuccess={handleLoginSuccess}
-        handleLoginError={handleLoginError}
         handleLogout={handleLogout}
       />
     </header>
