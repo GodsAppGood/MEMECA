@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import Index from "./pages/Index";
 import SubmitMeme from "./pages/SubmitMeme";
@@ -20,7 +20,6 @@ import Tuzemoon from "./pages/Tuzemoon";
 
 const queryClient = new QueryClient();
 
-// Updated Google OAuth configuration to support new domains
 const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
 const AppContent = () => {
@@ -44,6 +43,7 @@ const AppContent = () => {
               <Route path="/my-memes" element={<MyMemes />} />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/tuzemoon" element={<Tuzemoon />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
