@@ -1,18 +1,44 @@
 import { Link } from "react-router-dom";
-import { navigationLinks } from "@/config/navigationConfig";
 
 export const Navigation = () => {
   return (
-    <nav className="mx-6 flex items-center space-x-4 lg:space-x-6">
-      {navigationLinks.map((link) => (
-        <Link
-          key={link.path}
-          to={link.path}
-          className="text-sm font-medium transition-colors hover:text-primary"
-        >
-          {link.label}
-        </Link>
-      ))}
+    <nav className="flex items-center space-x-6 text-sm font-medium">
+      <Link
+        to="/"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
+      >
+        Home
+      </Link>
+      <Link
+        to="/top-memes"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
+      >
+        Top Memes
+      </Link>
+      <Link
+        to="/my-story"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
+      >
+        My Story
+      </Link>
+      <Link
+        to="/my-memes"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
+      >
+        My Memes
+      </Link>
+      <Link
+        to="/watchlist"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
+      >
+        Watchlist
+      </Link>
+      <Link
+        to="/tuzemoon"
+        className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
+      >
+        Tuzemoon
+      </Link>
     </nav>
   );
 };

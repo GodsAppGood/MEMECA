@@ -1,36 +1,13 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "./ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Support = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSupportClick = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      toast({
-        title: "Not logged in",
-        description: "Please log in to access support",
-        variant: "destructive",
-      });
-      navigate("/");
-      return;
-    }
-    
-    setIsOpen(true);
-  };
 
   return (
     <>
       <button
-        onClick={handleSupportClick}
+        onClick={() => setIsOpen(true)}
         className="fixed bottom-4 right-4 w-16 h-16 z-50 transition-transform hover:scale-110"
       >
         <img

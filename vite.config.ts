@@ -9,10 +9,6 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     historyApiFallback: {
       disableDotRule: true
-    },
-    https: {
-      cert: undefined,
-      key: undefined,
     }
   },
   plugins: [
@@ -29,10 +25,6 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     host: true,
     strictPort: true,
-    https: {
-      cert: undefined,
-      key: undefined,
-    }
   },
   build: {
     rollupOptions: {

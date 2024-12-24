@@ -17,15 +17,7 @@
     @apply border-border;
   }
   body {
-    @apply text-foreground overflow-x-hidden min-h-screen w-full;
-    background-image: url('/lovable-uploads/4b131e56-9673-4ed3-8925-eef539fe26c3.png');
-    background-repeat: repeat;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    -webkit-background-size: cover;
-    -moz-background-size: cover;
-    -o-background-size: cover;
+    @apply bg-background text-foreground overflow-x-hidden;
   }
 }
 
@@ -37,14 +29,5 @@
   .hide-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
-  }
-
-  .scrollbar-hide {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
   }
 }
