@@ -45,6 +45,7 @@ export function MobileMenu({
     { title: "My Story", path: "/my-story" },
     { title: "My Memes", path: "/my-memes" },
     { title: "Watchlist", path: "/watchlist" },
+    { title: "Tuzemoon", path: "/tuzemoon" },
   ];
 
   const handleNavigation = (path: string) => {

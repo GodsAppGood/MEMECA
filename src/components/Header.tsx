@@ -125,9 +125,14 @@ export const Header = () => {
     navigate('/');
   };
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center justify-between px-4">
+      <div className="container flex h-14 items-center px-4">
         {isMobile ? (
           <>
             <Button
@@ -135,6 +140,7 @@ export const Header = () => {
               size="icon"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-1"
+              aria-label="Toggle menu"
             >
               <Menu className="h-5 w-5" />
             </Button>
