@@ -17,13 +17,15 @@
     @apply border-border;
   }
   body {
-    @apply text-foreground overflow-x-hidden;
+    @apply text-foreground overflow-x-hidden min-h-screen w-full;
     background-image: url('/lovable-uploads/4b131e56-9673-4ed3-8925-eef539fe26c3.png');
     background-repeat: repeat;
     background-size: cover;
+    background-position: center;
     background-attachment: fixed;
-    min-height: 100vh;
-    width: 100vw;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
   }
 }
 

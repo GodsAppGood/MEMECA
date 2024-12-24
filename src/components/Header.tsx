@@ -128,8 +128,8 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        <div className="flex items-center space-x-6">
+      <div className="container flex h-12 md:h-14 items-center px-4">
+        <div className="flex items-center space-x-4 md:space-x-6">
           <Logo />
           {!isMobile && <Navigation />}
           {isMobile && (
@@ -137,9 +137,9 @@ export const Header = () => {
               variant="ghost"
               size="icon"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="ml-2"
+              className="ml-0 p-1"
             >
-              <Menu className="h-6 w-6" />
+              <Menu className="h-5 w-5" />
             </Button>
           )}
         </div>

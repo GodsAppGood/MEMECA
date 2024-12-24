@@ -35,12 +35,12 @@ export const AuthSection = ({
 
   return (
     <>
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 md:space-x-4">
         {!isMobile && (
           <Link to="/submit">
             <Button
               variant="default"
-              className="bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:shadow-lg"
+              className="bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:shadow-lg text-sm"
             >
               Submit Meme
             </Button>
@@ -67,9 +67,9 @@ export const AuthSection = ({
           <Button
             variant="default"
             size="icon"
-            className="fixed bottom-4 right-4 z-50 bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-full w-14 h-14 shadow-lg animate-bounce-rotate"
+            className="fixed bottom-4 right-4 z-50 bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-full w-12 h-12 shadow-lg animate-bounce-rotate"
           >
-            <Plus className="h-6 w-6" />
+            <Plus className="h-5 w-5" />
           </Button>
         </Link>
       )}

@@ -26,12 +26,12 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent 
         side="left" 
-        className="w-[300px] sm:w-[400px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        className="w-[280px] sm:w-[320px] bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60"
       >
         <SheetHeader>
-          <SheetTitle className="text-2xl font-serif">Menu</SheetTitle>
+          <SheetTitle className="text-xl font-serif">Menu</SheetTitle>
         </SheetHeader>
-        <nav className="flex flex-col gap-2 mt-8">
+        <nav className="flex flex-col gap-1 mt-6">
           {menuItems.map((item, index) => (
             <motion.div
               key={item.path}
@@ -42,7 +42,7 @@ export function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
               <Link
                 to={item.path}
                 onClick={onClose}
-                className="flex items-center px-4 py-3 text-lg hover:bg-accent rounded-md transition-colors duration-200 hover:text-accent-foreground"
+                className="flex items-center px-3 py-2.5 text-base hover:bg-accent rounded-md transition-colors duration-200 hover:text-accent-foreground"
               >
                 {item.title}
               </Link>
