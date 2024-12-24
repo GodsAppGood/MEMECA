@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
@@ -22,7 +22,7 @@ export const Header = () => {
   } = useAuth();
 
   // Close mobile menu when route changes
-  useState(() => {
+  useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
