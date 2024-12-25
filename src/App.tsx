@@ -10,7 +10,6 @@ import SubmitMeme from "./pages/SubmitMeme";
 import { MemeDetailPage } from "./components/meme/detail/MemeDetailPage";
 import TopMemes from "./pages/TopMemes";
 import AdminDashboard from "./pages/AdminDashboard";
-import Terms from "./pages/Terms";
 import MyStory from "./pages/MyStory";
 import Dashboard from "./pages/Dashboard";
 import MyMemes from "./pages/MyMemes";
@@ -35,7 +34,6 @@ const AppContent = () => {
               <Route path="/meme/:id" element={<MemeDetailPage />} />
               <Route path="/top-memes" element={<TopMemes />} />
               <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/terms" element={<Terms />} />
               <Route path="/my-story" element={<MyStory />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/my-memes" element={<MyMemes />} />
