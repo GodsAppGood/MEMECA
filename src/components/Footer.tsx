@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Twitter, MessageCircle } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -9,7 +8,7 @@ export const Footer = () => {
           {/* Left: Privacy & Terms */}
           <div className="mb-4 md:mb-0">
             <Link
-              to="#"
+              to="/terms"
               className="text-white hover:text-[#F5A623] transition-colors duration-300"
             >
               Privacy & Terms
@@ -24,7 +23,11 @@ export const Footer = () => {
               rel="noopener noreferrer"
               className="text-white hover:text-[#F5A623] transition-colors duration-300"
             >
-              <Twitter size={24} />
+              <img 
+                src="/lovable-uploads/83f35217-1e3b-4120-a853-06e5228a9c3e.png" 
+                alt="X (formerly Twitter)" 
+                className="w-6 h-6 hover:opacity-80 transition-opacity"
+              />
             </a>
             <a
               href="#"
@@ -32,7 +35,11 @@ export const Footer = () => {
               rel="noopener noreferrer"
               className="text-white hover:text-[#F5A623] transition-colors duration-300"
             >
-              <MessageCircle size={24} />
+              <img 
+                src="/lovable-uploads/756a9b1e-5da9-4f66-b59b-6f9b312dfb45.png" 
+                alt="Telegram" 
+                className="w-6 h-6 hover:opacity-80 transition-opacity"
+              />
             </a>
           </div>
         </div>

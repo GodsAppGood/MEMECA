@@ -15,6 +15,7 @@ import Dashboard from "./pages/Dashboard";
 import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
+import Terms from "./pages/Terms";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const AppContent = () => {
               <Route path="/my-memes" element={<MyMemes />} />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/tuzemoon" element={<Tuzemoon />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </BrowserRouter>
