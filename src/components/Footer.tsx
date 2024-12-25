@@ -1,6 +1,5 @@
 import { Twitter, Send } from "lucide-react";
 import { Button } from "./ui/button";
-import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,14 +29,24 @@ export const Footer = () => {
           >
             <DropdownMenuGroup className="p-2 space-y-2">
               <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
-                <Link to="/privacy" className="w-full">
+                <a 
+                  href="https://docs.google.com/document/d/1vmumYCNRz4oVPqOf4mOp5oYMZAVKUoIb6g5MgLOq09M/edit?tab=t.0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
                   Privacy Policy
-                </Link>
+                </a>
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
-                <Link to="/terms" className="w-full">
+                <a 
+                  href="https://docs.google.com/document/d/1vmumYCNRz4oVPqOf4mOp5oYMZAVKUoIb6g5MgLOq09M/edit?tab=t.j0n045wzadc8"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full"
+                >
                   Terms of Service
-                </Link>
+                </a>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
