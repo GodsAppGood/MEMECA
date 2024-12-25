@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import NotFound from "./pages/404";
 import ServerError from "./pages/500";
-import Home from "./pages/Home"; // Example of an existing route
-import About from "./pages/About"; // Example of an existing route
-import Contact from "./pages/Contact"; // Example of an existing route
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 function App() {
   return (
