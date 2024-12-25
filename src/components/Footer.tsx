@@ -29,13 +29,13 @@ export const Footer = () => {
             align="start"
           >
             <DropdownMenuGroup>
-              <Link to="/privacy" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+              <Link to="/privacy">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300 w-full">
                   Privacy Policy
                 </DropdownMenuItem>
               </Link>
-              <Link to="/terms" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+              <Link to="/terms">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300 w-full">
                   Terms of Service
                 </DropdownMenuItem>
               </Link>
