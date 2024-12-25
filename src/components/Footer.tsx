@@ -29,16 +29,16 @@ export const Footer = () => {
             align="start"
           >
             <DropdownMenuGroup className="p-2 space-y-2">
-              <Link to="/privacy" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                <Link to="/privacy" className="w-full">
                   Privacy Policy
-                </DropdownMenuItem>
-              </Link>
-              <Link to="/terms" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                <Link to="/terms" className="w-full">
                   Terms of Service
-                </DropdownMenuItem>
-              </Link>
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
