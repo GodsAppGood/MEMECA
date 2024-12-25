@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Twitter, Telegram } from "lucide-react";
+import { Twitter, MessageCircle } from "lucide-react";
 
 export const Footer = () => {
   return (
@@ -32,7 +32,7 @@ export const Footer = () => {
               rel="noopener noreferrer"
               className="text-white hover:text-[#F5A623] transition-colors duration-300"
             >
-              <Telegram size={24} />
+              <MessageCircle size={24} />
             </a>
           </div>
         </div>
