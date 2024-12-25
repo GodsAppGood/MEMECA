@@ -1,9 +1,49 @@
 import { Twitter, Send } from "lucide-react";
 import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Footer = () => {
   return (
     <footer className="bg-black text-white py-4 w-full mt-auto relative">
+      {/* Privacy & Terms Button in bottom left */}
+      <div className="absolute left-0 bottom-0 p-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:text-[#F5A623] transition-colors duration-300"
+            >
+              Privacy & Terms
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="w-40 bg-black border border-gray-800"
+            side="top"
+            align="start"
+          >
+            <DropdownMenuGroup className="p-2 space-y-2">
+              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                <Link to="/privacy" className="w-full">
+                  Privacy Policy
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                <Link to="/terms" className="w-full">
+                  Terms of Service
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       {/* Center content */}
       <div className="container mx-auto px-4 flex flex-col items-center">
         {/* Social buttons */}
