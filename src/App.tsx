@@ -22,13 +22,16 @@ const queryClient = new QueryClient();
 const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
 const AppContent = () => {
+  // Get the base URL from the environment or default to '/'
+  const basename = import.meta.env.BASE_URL || '/';
+
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
+          <BrowserRouter basename={basename}>
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/submit" element={<SubmitMeme />} />
