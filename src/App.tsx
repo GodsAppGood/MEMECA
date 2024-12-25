@@ -43,6 +43,7 @@ const AppContent = () => {
               <Route path="/my-memes" element={<MyMemes />} />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/tuzemoon" element={<Tuzemoon />} />
+              {/* Catch all route should be last */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
