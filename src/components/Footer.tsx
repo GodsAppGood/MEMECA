@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export const Footer = () => {
   return (
@@ -41,11 +42,14 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Bottom Left: Privacy & Terms Text */}
+        {/* Bottom Left: Privacy & Terms Link */}
         <div className="absolute bottom-4 left-4">
-          <span className="text-white">
+          <Link 
+            to="/terms" 
+            className="text-white hover:text-[#F5A623] transition-all duration-300 hover:scale-110 inline-block"
+          >
             Privacy & Terms
-          </span>
+          </Link>
         </div>
       </div>
     </footer>
