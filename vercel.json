@@ -1,14 +1,24 @@
 {
+  /* Rewrites allow you to map request paths to different destinations */
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    /* This rule sends all requests to index.html for client-side routing */
+    { 
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ],
+
+  /* Routes define more specific routing rules with status codes and source/destination mapping */
   "routes": [
+    /* This ensures proper handling of client-side routes */
     {
       "src": "/[^.]+",
       "dest": "/",
       "status": 200
     }
   ],
+
+  /* Headers define HTTP headers for your responses */
   "headers": [
     {
       "source": "/(.*)",
@@ -16,8 +26,60 @@
         {
           "key": "Strict-Transport-Security",
           "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      /* Cache static assets for better performance */
+      "source": "/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
         }
       ]
     }
-  ]
+  ],
+
+  /* Build settings for your project */
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  },
+
+  /* Configure GitHub integration */
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "development": false
+    }
+  },
+
+  /* Define redirects for moved pages or legacy URLs */
+  "redirects": [
+    {
+      "source": "/old-page",
+      "destination": "/new-page",
+      "permanent": true
+    }
+  ],
+
+  /* Clean URLs configuration */
+  "cleanUrls": true,
+
+  /* Trailing slash configuration */
+  "trailingSlash": false
 }
