@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+import React from "react";
 
 export const Footer = () => {
   return (
-    <footer className="bg-black py-8 mt-auto border-t border-gray-800">
+    <footer className="bg-black py-8 mt-auto border-t border-gray-800 relative">
       <div className="container mx-auto px-4">
         <div className="flex flex-col items-center mb-6">
           {/* Center: Social Icons */}
@@ -34,16 +34,16 @@ export const Footer = () => {
           </div>
 
           {/* Copyright */}
-          <div className="text-center mb-4">
+          <div className="text-center">
             <p className="text-white text-sm">
               © {new Date().getFullYear()} MemeCatlandar.io
             </p>
           </div>
         </div>
 
-        {/* Bottom Left: Privacy & Terms */}
+        {/* Bottom Left: Privacy & Terms Text */}
         <div className="absolute bottom-4 left-4">
-          <span className="text-white hover:text-[#F5A623] transition-colors duration-300">
+          <span className="text-white">
             Privacy & Terms
           </span>
         </div>
