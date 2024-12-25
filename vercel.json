@@ -1,24 +1,17 @@
 {
-  /* Rewrites allow you to map request paths to different destinations */
   "rewrites": [
-    /* This rule sends all requests to index.html for client-side routing */
-    { 
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-
-  /* Routes define more specific routing rules with status codes and source/destination mapping */
   "routes": [
-    /* This ensures proper handling of client-side routes */
     {
       "src": "/[^.]+",
       "dest": "/",
       "status": 200
     }
   ],
-
-  /* Headers define HTTP headers for your responses */
   "headers": [
     {
       "source": "/(.*)",
@@ -42,7 +35,6 @@
       ]
     },
     {
-      /* Cache static assets for better performance */
       "source": "/static/(.*)",
       "headers": [
         {
@@ -52,34 +44,11 @@
       ]
     }
   ],
-
-  /* Build settings for your project */
   "build": {
     "env": {
       "NODE_ENV": "production"
     }
   },
-
-  /* Configure GitHub integration */
-  "git": {
-    "deploymentEnabled": {
-      "main": true,
-      "development": false
-    }
-  },
-
-  /* Define redirects for moved pages or legacy URLs */
-  "redirects": [
-    {
-      "source": "/old-page",
-      "destination": "/new-page",
-      "permanent": true
-    }
-  ],
-
-  /* Clean URLs configuration */
   "cleanUrls": true,
-
-  /* Trailing slash configuration */
   "trailingSlash": false
 }
