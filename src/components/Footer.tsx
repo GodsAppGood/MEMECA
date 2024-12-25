@@ -1,55 +1,72 @@
-import React from "react";
+import { Twitter, Send } from "lucide-react";
+import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Footer = () => {
   return (
-    <footer className="bg-black py-8 mt-auto border-t border-gray-800 relative">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col items-center mb-6">
-          {/* Center: Social Icons */}
-          <div className="flex items-center space-x-6 mb-4">
-            <a
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-all duration-300"
+    <footer className="bg-black text-white py-4 w-full mt-auto relative">
+      {/* Privacy & Terms Button in bottom left */}
+      <div className="absolute left-0 bottom-0 p-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              variant="ghost" 
+              className="text-white hover:text-[#F5A623] transition-colors duration-300"
             >
-              <img 
-                src="/lovable-uploads/83f35217-1e3b-4120-a853-06e5228a9c3e.png" 
-                alt="X (formerly Twitter)" 
-                className="w-6 h-6 hover:opacity-80 transition-opacity hover:filter hover:brightness-[2.5]"
-              />
-            </a>
-            <a
-              href="#"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-all duration-300"
-            >
-              <img 
-                src="/lovable-uploads/756a9b1e-5da9-4f66-b59b-6f9b312dfb45.png" 
-                alt="Telegram" 
-                className="w-6 h-6 hover:opacity-80 transition-opacity hover:filter hover:brightness-[2.5]"
-              />
-            </a>
-          </div>
+              Privacy & Terms
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            className="w-40 bg-black border border-gray-800"
+            side="top"
+            align="start"
+          >
+            <DropdownMenuGroup className="p-2 space-y-2">
+              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                <Link to="/privacy" className="w-full">
+                  Privacy Policy
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
+                <Link to="/terms" className="w-full">
+                  Terms of Service
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-          {/* Copyright */}
-          <div className="text-center">
-            <p className="text-white text-sm">
-              © {new Date().getFullYear()} MemeCatlandar.io
-            </p>
-          </div>
+      {/* Center content */}
+      <div className="container mx-auto px-4 flex flex-col items-center">
+        {/* Social buttons */}
+        <div className="flex justify-center gap-4 mb-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:text-[#F5A623] transition-colors duration-300 group"
+          >
+            <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:text-[#F5A623] transition-colors duration-300 group"
+          >
+            <Send className="w-6 h-6 group-hover:animate-bounce-rotate" />
+          </Button>
         </div>
 
-        {/* Bottom Left: Privacy & Terms Link */}
-        <div className="absolute bottom-4 left-4">
-          <Link 
-            to="/terms" 
-            className="text-white hover:text-[#F5A623] transition-all duration-300 hover:scale-110 inline-block"
-          >
-            Privacy & Terms
-          </Link>
+        {/* Copyright text */}
+        <div className="text-center font-serif text-sm text-white/60">
+          © 2024 MemeCatlandar.io
         </div>
       </div>
     </footer>
