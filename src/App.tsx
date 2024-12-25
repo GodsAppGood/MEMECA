@@ -19,7 +19,15 @@ import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
 import Terms from "./pages/Terms";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
