@@ -6,11 +6,17 @@ import { useNavigate } from "react-router-dom";
 interface MobileMenuProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  user: any | null;
+  setIsLoginOpen: (isOpen: boolean) => void;
+  handleLogout: () => void;
 }
 
 export const MobileMenu = ({
   isOpen,
   setIsOpen,
+  user,
+  setIsLoginOpen,
+  handleLogout,
 }: MobileMenuProps) => {
   const navigate = useNavigate();
 
@@ -65,6 +71,23 @@ export const MobileMenu = ({
           </Button>
         </nav>
         <div className="flex flex-col space-y-4 mt-auto pt-4 border-t">
+          {user ? (
+            <Button
+              variant="default"
+              className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          ) : (
+            <Button
+              variant="default"
+              className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
+              onClick={() => setIsLoginOpen(true)}
+            >
+              Login
+            </Button>
+          )}
           <Button
             variant="default"
             className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
