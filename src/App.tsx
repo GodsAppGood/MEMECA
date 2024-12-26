@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import Index from "./pages/Index";
 import SubmitMeme from "./pages/SubmitMeme";
 import { MemeDetailPage } from "./components/meme/detail/MemeDetailPage";
@@ -88,7 +89,9 @@ const AppContent = () => {
 const App = () => {
   return (
     <React.StrictMode>
-      <AppContent />
+      <GoogleOAuthProvider clientId="1072222916547-4jbf0rvb3i2qjvv0h8h8a8jd3hf9ckjb.apps.googleusercontent.com">
+        <AppContent />
+      </GoogleOAuthProvider>
     </React.StrictMode>
   );
 };
