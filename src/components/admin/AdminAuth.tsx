@@ -21,15 +21,22 @@ export const AdminAuth = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc('verify_admin_key' as any, {
+      console.log("Attempting to verify admin key...");
+      
+      const { data, error } = await supabase.rpc('verify_admin_key', {
         key_to_verify: adminKey
       });
 
-      if (error) throw error;
+      console.log("Verification response:", { data, error });
+
+      if (error) {
+        console.error('Verification error:', error);
+        throw error;
+      }
 
       if (data) {
-        localStorage.setItem('isAdmin', 'true');
         console.log('Admin access granted');
+        localStorage.setItem('isAdmin', 'true');
         toast.success("Admin access granted");
         navigate('/admin');
       } else {
