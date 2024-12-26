@@ -6,9 +6,6 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useMemeQuery } from "@/hooks/useMemeQuery";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { LoadingSpinner } from "./LoadingSpinner";
-import { Button } from "./ui/button";
-import { useNavigate } from "react-router-dom";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -30,23 +27,13 @@ export const MemeGrid = ({
   userOnly = false
 }: MemeGridProps) => {
   const [userId, setUserId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setUserId(session?.user?.id ?? null);
-      setIsAuthenticated(!!session);
     };
     getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserId(session?.user?.id ?? null);
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
@@ -79,26 +66,12 @@ export const MemeGrid = ({
     }
   );
 
-  if (userOnly && !isAuthenticated) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="flex flex-col gap-4">
-          <p>Please log in to view your memes.</p>
-          <Button 
-            onClick={() => navigate("/")}
-            variant="outline"
-            className="w-fit"
-          >
-            Go to Home
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   if (error) {
@@ -117,7 +90,7 @@ export const MemeGrid = ({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          {userOnly ? "You haven't created any memes yet." : "No memes found."}
+          You haven't created any memes yet.
         </AlertDescription>
       </Alert>
     );

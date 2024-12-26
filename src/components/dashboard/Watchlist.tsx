@@ -6,17 +6,10 @@ import { UnifiedMemeCard } from "../meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
 import { useWatchlistSubscription } from "@/hooks/useWatchlistSubscription";
 import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { LoadingSpinner } from "../LoadingSpinner";
-import { Button } from "../ui/button";
-import { useNavigate } from "react-router-dom";
 
 export function Watchlist() {
   const [userId, setUserId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const getSession = async () => {
@@ -24,7 +17,6 @@ export function Watchlist() {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
         setUserId(session?.user?.id ?? null);
-        setIsAuthenticated(!!session);
       } catch (error: any) {
         console.error("Session error:", error);
         toast({
@@ -35,13 +27,6 @@ export function Watchlist() {
       }
     };
     void getSession();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUserId(session?.user?.id ?? null);
-      setIsAuthenticated(!!session);
-    });
-
-    return () => subscription.unsubscribe();
   }, [toast]);
 
   const { userPoints, userLikes } = useUserData(userId);
@@ -62,8 +47,11 @@ export function Watchlist() {
           throw new Error("Failed to fetch watchlist");
         }
         
+        console.log("Watchlist data:", watchlistData); // Debug log
+        
         if (!watchlistData) return [];
         
+        // Transform the data to get the Memes objects
         const memes = watchlistData.map(item => item.Memes);
         return memes || [];
       } catch (error: any) {
@@ -71,7 +59,14 @@ export function Watchlist() {
         throw error;
       }
     },
-    enabled: !!userId
+    enabled: !!userId,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    staleTime: 1000 * 60,
+    refetchOnWindowFocus: true,
+    meta: {
+      errorMessage: "Failed to fetch watchlist"
+    }
   });
 
   useWatchlistSubscription(() => {
@@ -79,52 +74,36 @@ export function Watchlist() {
     void refetch();
   });
 
-  if (!isAuthenticated) {
-    return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="flex flex-col gap-4">
-          <p>Please log in to view your watchlist.</p>
-          <Button 
-            onClick={() => navigate("/")}
-            variant="outline"
-            className="w-fit"
-          >
-            Go to Home
-          </Button>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Failed to load watchlist. Please try again later.
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)]">
       <div className="flex-1 container mx-auto px-4 py-8">
         <h2 className="text-3xl font-serif font-bold mb-8">My Watchlist</h2>
         
-        {watchlistMemes.length === 0 ? (
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Your watchlist is empty. Add some memes!
-            </AlertDescription>
-          </Alert>
-        ) : (
+        {isLoading && (
+          <div className="flex justify-center items-center h-32">
+            <p>Loading...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="text-center p-4">
+            <p className="text-red-500">Failed to load watchlist</p>
+            <button 
+              onClick={() => void refetch()}
+              className="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
+
+        {!isLoading && !error && watchlistMemes.length === 0 && (
+          <div className="flex justify-center items-center h-32">
+            <p className="text-muted-foreground">Your watchlist is empty. Add some memes!</p>
+          </div>
+        )}
+
+        {watchlistMemes.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
             {watchlistMemes.map((meme: any) => (
               <UnifiedMemeCard
