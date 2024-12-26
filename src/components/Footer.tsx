@@ -1,5 +1,6 @@
 import { Twitter, Send } from "lucide-react";
 import { Button } from "./ui/button";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +18,7 @@ export const Footer = () => {
           <DropdownMenuTrigger asChild>
             <Button 
               variant="ghost" 
-              className="text-white hover:text-[#F5A623] transition-colors duration-300"
+              className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105"
             >
               Privacy & Terms
             </Button>
@@ -28,26 +29,16 @@ export const Footer = () => {
             align="start"
           >
             <DropdownMenuGroup className="p-2 space-y-2">
-              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
-                <a 
-                  href="https://docs.google.com/document/d/1vmumYCNRz4oVPqOf4mOp5oYMZAVKUoIb6g5MgLOq09M/edit?tab=t.0"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full"
-                >
+              <Link to="/privacy" className="block">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105">
                   Privacy Policy
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer text-white hover:text-[#F5A623] transition-colors duration-300">
-                <a 
-                  href="https://docs.google.com/document/d/1vmumYCNRz4oVPqOf4mOp5oYMZAVKUoIb6g5MgLOq09M/edit?tab=t.j0n045wzadc8"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full"
-                >
+                </DropdownMenuItem>
+              </Link>
+              <Link to="/terms" className="block">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105">
                   Terms of Service
-                </a>
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -60,14 +51,14 @@ export const Footer = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:text-[#F5A623] transition-colors duration-300 group"
+            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group"
           >
             <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:text-[#F5A623] transition-colors duration-300 group"
+            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group"
           >
             <Send className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
