@@ -9,16 +9,16 @@ import { MemePagination } from "@/components/MemePagination";
 import { Button } from "@/components/ui/button";
 import { Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { AdminAuth } from "@/components/admin/AdminAuth";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedBlockchain, setSelectedBlockchain] = useState<string>();
   const [appliedDate, setAppliedDate] = useState<Date>();
   const [appliedBlockchain, setAppliedBlockchain] = useState<string>();
   const [currentPage, setCurrentPage] = useState(1);
-  const [showAdminAuth, setShowAdminAuth] = useState(false);
 
   const handleSearch = () => {
     console.log("Applying filters:", { selectedDate, selectedBlockchain });
@@ -28,8 +28,13 @@ const Index = () => {
   };
 
   const handleAdminAccess = () => {
-    console.log("Attempting admin access");
-    setShowAdminAuth(true);
+    localStorage.setItem('isAdmin', 'true');
+    toast({
+      title: "Admin Access Granted",
+      description: "You now have temporary admin privileges for this session.",
+      duration: 3000,
+    });
+    navigate('/admin');
   };
 
   return (
@@ -69,15 +74,6 @@ const Index = () => {
       </main>
       <Support />
       <Footer />
-      <AdminAuth 
-        isOpen={showAdminAuth} 
-        onClose={() => {
-          setShowAdminAuth(false);
-          if (localStorage.getItem('isAdmin') === 'true') {
-            navigate('/admin');
-          }
-        }} 
-      />
     </div>
   );
 };
