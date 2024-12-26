@@ -9,6 +9,7 @@ import Tuzemoon from "./pages/Tuzemoon";
 import Watchlist from "./pages/Watchlist";
 import TopMemes from "./pages/TopMemes";
 import MyStory from "./pages/MyStory";
+import SubmitMeme from "./pages/SubmitMeme";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/watchlist" element={<Watchlist />} />
         <Route path="/top-memes" element={<TopMemes />} />
         <Route path="/my-story" element={<MyStory />} />
+        <Route path="/submit-meme" element={<SubmitMeme />} />
         <Route path="/500" element={<ServerError />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
