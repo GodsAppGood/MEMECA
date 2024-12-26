@@ -12,7 +12,7 @@ import {
 export const Footer = () => {
   return (
     <footer className="bg-black text-white py-4 w-full mt-auto relative">
-      {/* Legal Button in bottom left */}
+      {/* Privacy & Terms Button in bottom left */}
       <div className="absolute left-0 bottom-0 p-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -20,7 +20,7 @@ export const Footer = () => {
               variant="ghost" 
               className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105"
             >
-              Legal
+              Privacy & Terms
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent 
