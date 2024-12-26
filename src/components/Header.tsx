@@ -9,7 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { Menu } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
+import { NavigationLinks } from "./header/NavigationLinks";
 
 interface User {
   id: string;
@@ -150,41 +150,7 @@ export const Header = () => {
                 </SheetTrigger>
                 <SheetContent className="w-[300px] sm:w-[400px] flex flex-col">
                   <nav className="flex flex-col space-y-4 flex-grow">
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => handleNavigate('/top-memes')}
-                    >
-                      Top Memes
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => handleNavigate('/my-story')}
-                    >
-                      My Story
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => handleNavigate('/my-memes')}
-                    >
-                      My Memes
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => handleNavigate('/watchlist')}
-                    >
-                      Watchlist
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="justify-start"
-                      onClick={() => handleNavigate('/tuzemoon')}
-                    >
-                      Tuzemoon
-                    </Button>
+                    <NavigationLinks onClickMobile={() => setIsMenuOpen(false)} />
                   </nav>
                   <div className="flex flex-col space-y-4 mt-auto pt-4 border-t">
                     {user ? (
