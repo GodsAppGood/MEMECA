@@ -33,19 +33,16 @@ export const MemeDetailPage = () => {
   const { data: meme, isLoading, refetch } = useQuery({
     queryKey: ["meme", id],
     queryFn: async () => {
-      if (!id) throw new Error("No meme ID provided");
-      
       const { data, error } = await supabase
         .from("Memes")
         .select("*")
-        .eq("id", parseInt(id))
+        .eq("id", id)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) throw new Error("Meme not found");
       return data;
     },
-    enabled: !!id,
   });
 
   if (isLoading) {

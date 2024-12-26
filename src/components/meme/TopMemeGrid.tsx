@@ -41,8 +41,7 @@ export const TopMemeGrid = () => {
       
       if (error) throw error;
       return data?.map(item => item.meme_id.toString()) ?? [];
-    },
-    enabled: !!userId
+    }
   });
 
   const { data: userPoints = 100 } = useQuery({
@@ -94,24 +93,13 @@ export const TopMemeGrid = () => {
     image_url: placeholderImages[index % placeholderImages.length],
     likes: 0,
     created_at: new Date().toISOString(),
-    isPlaceholder: true,
-    created_by: null,
-    description: "",
-    blockchain: "",
-    trade_link: "",
-    twitter_link: "",
-    telegram_link: "",
-    time_until_listing: null
+    isPlaceholder: true
   }));
 
   const allCards = [...memes, ...placeholderCards];
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <div>Loading...</div>;
   }
 
   return (

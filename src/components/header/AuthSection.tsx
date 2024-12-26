@@ -2,8 +2,6 @@ import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { LoginButton } from "./LoginButton";
-import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
 
 interface User {
   id: string;
@@ -31,30 +29,16 @@ export const AuthSection = ({
   handleLogout,
   isDashboardRoute
 }: AuthSectionProps) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-
-  const handleSubmitClick = () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to submit memes.",
-        variant: "destructive"
-      });
-      return;
-    }
-    navigate("/submit-meme");
-  };
-
   return (
     <div className="flex items-center space-x-4">
-      <Button
-        variant="default"
-        className="bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:shadow-lg"
-        onClick={handleSubmitClick}
-      >
-        Submit Meme
-      </Button>
+      <Link to="/submit">
+        <Button
+          variant="default"
+          className="bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:shadow-lg"
+        >
+          Submit Meme
+        </Button>
+      </Link>
       {user ? (
         <ProfileDropdown
           user={user}

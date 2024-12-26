@@ -90,7 +90,7 @@ export const MemeGrid = ({
       <Alert>
         <AlertCircle className="h-4 w-4" />
         <AlertDescription>
-          You haven't created any memes yet.
+          No memes found. Try using different filters.
         </AlertDescription>
       </Alert>
     );

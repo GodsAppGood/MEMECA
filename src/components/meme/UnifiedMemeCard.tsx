@@ -15,11 +15,10 @@ interface UnifiedMemeCardProps {
     image_url: string;
     created_at: string;
     likes: number;
-    created_by?: string | null;
-    time_until_listing?: string | null;
+    created_by?: string;
+    time_until_listing?: string;
     is_featured?: boolean;
     tuzemoon_until?: string | null;
-    isPlaceholder?: boolean;
   };
   userLikes: string[];
   userPoints: number;
@@ -40,7 +39,7 @@ export const UnifiedMemeCard = ({
   const isTuzemoon = meme.is_featured && meme.tuzemoon_until && new Date(meme.tuzemoon_until) > new Date();
 
   const handleCardClick = () => {
-    if (meme.isPlaceholder) return;
+    if (!meme.id) return;
     navigate(`/meme/${meme.id}`);
   };
 
@@ -48,8 +47,7 @@ export const UnifiedMemeCard = ({
     <Card 
       className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative
         ${isFirst ? 'border-2 border-yellow-400' : ''}
-        ${isTuzemoon ? 'animate-pulse-border' : ''}
-        ${meme.isPlaceholder ? 'opacity-50 cursor-not-allowed' : ''}`}
+        ${isTuzemoon ? 'animate-pulse-border' : ''}`}
       onClick={handleCardClick}
     >
       <MemeCardImage
@@ -70,21 +68,19 @@ export const UnifiedMemeCard = ({
                 </Badge>
               )}
             </div>
-            {meme.time_until_listing && !meme.isPlaceholder && (
+            {meme.time_until_listing && (
               <CountdownTimer listingTime={meme.time_until_listing} />
             )}
           </div>
-          {!meme.isPlaceholder && (
-            <MemeCardActions
-              meme={meme}
-              userLikes={userLikes}
-              userPoints={userPoints}
-              userId={userId}
-              isFirst={isFirst}
-            />
-          )}
+          <MemeCardActions
+            meme={meme}
+            userLikes={userLikes}
+            userPoints={userPoints}
+            userId={userId}
+            isFirst={isFirst}
+          />
         </div>
-        {meme.description && !meme.isPlaceholder && (
+        {meme.description && (
           <p className="text-sm text-muted-foreground mb-4">
             {meme.description}
           </p>

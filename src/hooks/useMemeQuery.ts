@@ -37,11 +37,6 @@ export const useMemeQuery = ({
         userId
       });
 
-      // If we're in userOnly mode and there's no userId, return empty array
-      if (userOnly && !userId) {
-        return [];
-      }
-
       let query = supabase
         .from('Memes')
         .select('*');
@@ -88,7 +83,6 @@ export const useMemeQuery = ({
 
       console.log("Fetched memes:", data);
       return data || [];
-    },
-    enabled: !userOnly || (userOnly && !!userId) // Only enable the query for userOnly mode if we have a userId
+    }
   });
 };
