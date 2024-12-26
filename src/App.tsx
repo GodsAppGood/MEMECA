@@ -22,42 +22,39 @@ const queryClient = new QueryClient();
 
 const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
-const AppContent = () => {
+const AppRoutes = () => {
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/submit" element={<SubmitMeme />} />
-              <Route path="/meme/:id" element={<MemeDetailPage />} />
-              <Route path="/top-memes" element={<TopMemes />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/my-story" element={<MyStory />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/my-memes" element={<MyMemes />} />
-              <Route path="/watchlist" element={<Watchlist />} />
-              <Route path="/tuzemoon" element={<Tuzemoon />} />
-              {/* Catch all route should be last */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/submit" element={<SubmitMeme />} />
+      <Route path="/meme/:id" element={<MemeDetailPage />} />
+      <Route path="/top-memes" element={<TopMemes />} />
+      <Route path="/admin" element={<AdminDashboard />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/my-story" element={<MyStory />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/my-memes" element={<MyMemes />} />
+      <Route path="/watchlist" element={<Watchlist />} />
+      <Route path="/tuzemoon" element={<Tuzemoon />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 
 const App = () => {
   return (
-    <React.StrictMode>
-      <AppContent />
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </TooltipProvider>
+        </BrowserRouter>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
   );
 };
 
