@@ -5,20 +5,28 @@ import { Support } from "@/components/Support";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, LogOut } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [editingMeme, setEditingMeme] = useState<any>(null);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: memes = [] } = useQuery({
     queryKey: ["memes"],
     queryFn: () => JSON.parse(localStorage.getItem("memes") || "[]"),
   });
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAdmin');
+    toast.success("Logged out of admin panel");
+    navigate('/');
+  };
 
   const deleteMutation = useMutation({
     mutationFn: async (memeId: string) => {
@@ -53,7 +61,18 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="container mx-auto px-4 pt-24 pb-16">
-        <h1 className="text-3xl font-serif mb-8">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-serif">Admin Dashboard</h1>
+          <Button
+            variant="outline"
+            onClick={handleLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {memes.map((meme: any) => (
             <Card key={meme.id} className="overflow-hidden">
