@@ -5,7 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { AuthSection } from "./header/AuthSection";
-import { MobileHeader } from "./header/MobileHeader";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { Menu } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Button } from "./ui/button";
+import { cn } from "@/lib/utils";
 
 interface User {
   id: string;
@@ -21,6 +25,7 @@ export const Header = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -120,34 +125,116 @@ export const Header = () => {
     navigate('/');
   };
 
+  const handleNavigate = (path: string) => {
+    navigate(path);
+    setIsMenuOpen(false);
+  };
+
   const isMyMemesRoute = location.pathname === '/my-memes';
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
-        <MobileHeader
-          user={user}
-          isLoginOpen={isLoginOpen}
-          setIsLoginOpen={setIsLoginOpen}
-          handleLogout={handleLogout}
-          isMenuOpen={isMenuOpen}
-          setIsMenuOpen={setIsMenuOpen}
-        />
-        <div className="hidden md:flex items-center space-x-6 w-full">
-          <Logo />
-          <Navigation />
-          <div className="flex-1 flex justify-end">
-            <AuthSection
-              user={user}
-              isLoginOpen={isLoginOpen}
-              setIsLoginOpen={setIsLoginOpen}
-              handleLoginSuccess={handleLoginSuccess}
-              handleLoginError={handleLoginError}
-              handleLogout={handleLogout}
-              isDashboardRoute={isMyMemesRoute}
-            />
-          </div>
-        </div>
+        {isMobile ? (
+          <>
+            <div className="flex-1" />
+            <div className="flex items-center justify-center flex-1">
+              <Logo />
+            </div>
+            <div className="flex items-center justify-end flex-1">
+              <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Menu className="h-6 w-6" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="w-[300px] sm:w-[400px] flex flex-col">
+                  <nav className="flex flex-col space-y-4 flex-grow">
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => handleNavigate('/top-memes')}
+                    >
+                      Top Memes
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => handleNavigate('/my-story')}
+                    >
+                      My Story
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => handleNavigate('/my-memes')}
+                    >
+                      My Memes
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => handleNavigate('/watchlist')}
+                    >
+                      Watchlist
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="justify-start"
+                      onClick={() => handleNavigate('/tuzemoon')}
+                    >
+                      Tuzemoon
+                    </Button>
+                  </nav>
+                  <div className="flex flex-col space-y-4 mt-auto pt-4 border-t">
+                    {user ? (
+                      <Button
+                        variant="default"
+                        className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="default"
+                        className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
+                        onClick={() => setIsLoginOpen(true)}
+                      >
+                        Login
+                      </Button>
+                    )}
+                    <Button
+                      variant="default"
+                      className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
+                      onClick={() => handleNavigate('/submit')}
+                    >
+                      Submit Meme
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center space-x-6">
+              <Logo />
+              <Navigation />
+            </div>
+            <div className="flex-1 flex justify-end">
+              <AuthSection
+                user={user}
+                isLoginOpen={isLoginOpen}
+                setIsLoginOpen={setIsLoginOpen}
+                handleLoginSuccess={handleLoginSuccess}
+                handleLoginError={handleLoginError}
+                handleLogout={handleLogout}
+                isDashboardRoute={isMyMemesRoute}
+              />
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

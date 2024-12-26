@@ -7,10 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, LogOut, Shield } from "lucide-react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { LayoutDashboard, LogOut } from "lucide-react";
 
 interface ProfileDropdownProps {
   user: {
@@ -24,47 +21,6 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDropdownProps) => {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        const { data: { user: currentUser } } = await supabase.auth.getUser();
-        
-        if (!currentUser) {
-          console.log('No user found');
-          return;
-        }
-
-        const { data: userData, error } = await supabase
-          .from('Users')
-          .select('is_admin')
-          .eq('auth_id', currentUser.id)
-          .single();
-
-        if (error) {
-          console.error('Error checking admin status:', error);
-          return;
-        }
-
-        console.log('Admin check result:', userData);
-        setIsAdmin(userData?.is_admin || false);
-        
-        if (userData?.is_admin) {
-          console.log('Admin access granted for:', user.email);
-          localStorage.setItem('isAdmin', 'true');
-          toast.success("Admin access granted");
-        } else {
-          console.log('User is not an admin:', user.email);
-          localStorage.removeItem('isAdmin');
-        }
-      } catch (error) {
-        console.error('Error in admin check:', error);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user.email]);
 
   return (
     <DropdownMenu>
@@ -98,18 +54,6 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
           <LayoutDashboard className="mr-2 h-4 w-4" />
           <span>My Memes</span>
         </DropdownMenuItem>
-        {isAdmin && (
-          <DropdownMenuItem 
-            onClick={() => {
-              console.log('Navigating to admin dashboard');
-              navigate('/admin');
-            }} 
-            className="cursor-pointer flex items-center p-2 hover:bg-gray-100"
-          >
-            <Shield className="mr-2 h-4 w-4" />
-            <span>Admin Dashboard</span>
-          </DropdownMenuItem>
-        )}
         <DropdownMenuItem 
           onClick={onLogout} 
           className="cursor-pointer flex items-center p-2 hover:bg-gray-100 text-red-600"

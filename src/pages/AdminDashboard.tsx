@@ -4,62 +4,28 @@ import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Pencil, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { StatsCards } from "@/components/admin/StatsCards";
-import { MemeCard } from "@/components/admin/MemeCard";
-import { Meme } from "@/types/meme";
 
 const AdminDashboard = () => {
-  const [editingMeme, setEditingMeme] = useState<Meme | null>(null);
+  const [editingMeme, setEditingMeme] = useState<any>(null);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const { data: memes = [] } = useQuery({
     queryKey: ["memes"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Memes')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
+    queryFn: () => JSON.parse(localStorage.getItem("memes") || "[]"),
   });
-
-  const { data: users = [] } = useQuery({
-    queryKey: ["users"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('Users')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
-    toast.success("Logged out of admin panel");
-    navigate('/');
-  };
 
   const deleteMutation = useMutation({
-    mutationFn: async (memeId: number) => {
-      const { error } = await supabase
-        .from('Memes')
-        .delete()
-        .eq('id', memeId);
-      
-      if (error) throw error;
+    mutationFn: async (memeId: string) => {
+      const currentMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+      const updatedMemes = currentMemes.filter((meme: any) => meme.id !== memeId);
+      localStorage.setItem("memes", JSON.stringify(updatedMemes));
+      return updatedMemes;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
@@ -68,16 +34,13 @@ const AdminDashboard = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (updatedMeme: Meme) => {
-      // Create an update object without the id field
-      const { id, ...updateData } = updatedMeme;
-      
-      const { error } = await supabase
-        .from('Memes')
-        .update(updateData)
-        .eq('id', id);
-      
-      if (error) throw error;
+    mutationFn: async (updatedMeme: any) => {
+      const currentMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+      const updatedMemes = currentMemes.map((meme: any) => 
+        meme.id === updatedMeme.id ? updatedMeme : meme
+      );
+      localStorage.setItem("memes", JSON.stringify(updatedMemes));
+      return updatedMemes;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
@@ -86,67 +49,40 @@ const AdminDashboard = () => {
     },
   });
 
-  const toggleTuzemoonMutation = useMutation({
-    mutationFn: async ({ memeId, isFeatured }: { memeId: number, isFeatured: boolean }) => {
-      const tuzemoonUntil = !isFeatured 
-        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        : null;
-
-      const { error } = await supabase
-        .from('Memes')
-        .update({ 
-          is_featured: !isFeatured,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq('id', memeId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["memes"] });
-      toast.success("Tuzemoon status updated successfully");
-    },
-  });
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main className="container mx-auto px-4 pt-24 pb-16">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-serif">Admin Dashboard</h1>
-          <div className="flex gap-4">
-            <Button
-              variant="outline"
-              onClick={() => navigate('/submit')}
-              className="flex items-center gap-2"
-            >
-              Submit Meme
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-
-        <StatsCards userCount={users.length} memeCount={memes.length} />
-        
+        <h1 className="text-3xl font-serif mb-8">Admin Dashboard</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {memes.map((meme: Meme) => (
-            <MemeCard
-              key={meme.id}
-              meme={meme}
-              onEdit={setEditingMeme}
-              onDelete={(memeId) => deleteMutation.mutate(memeId)}
-              onTuzemoonToggle={(meme) => toggleTuzemoonMutation.mutate({ 
-                memeId: meme.id, 
-                isFeatured: meme.is_featured || false 
-              })}
-            />
+          {memes.map((meme: any) => (
+            <Card key={meme.id} className="overflow-hidden">
+              <CardContent className="p-4">
+                <img
+                  src={meme.imageUrl}
+                  alt={meme.title}
+                  className="w-full h-48 object-cover rounded-lg mb-4"
+                />
+                <h3 className="font-serif text-lg mb-2">{meme.title}</h3>
+                <p className="text-sm text-gray-600">{meme.description}</p>
+              </CardContent>
+              <CardFooter className="flex justify-end gap-2 p-4">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setEditingMeme(meme)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={() => deleteMutation.mutate(meme.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       </main>
@@ -168,29 +104,8 @@ const AdminDashboard = () => {
               <div>
                 <label className="text-sm font-medium mb-1 block">Description</label>
                 <Textarea
-                  value={editingMeme.description || ''}
+                  value={editingMeme.description}
                   onChange={(e) => setEditingMeme({ ...editingMeme, description: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Trade Link</label>
-                <Input
-                  value={editingMeme.trade_link || ''}
-                  onChange={(e) => setEditingMeme({ ...editingMeme, trade_link: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Twitter Link</label>
-                <Input
-                  value={editingMeme.twitter_link || ''}
-                  onChange={(e) => setEditingMeme({ ...editingMeme, twitter_link: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Telegram Link</label>
-                <Input
-                  value={editingMeme.telegram_link || ''}
-                  onChange={(e) => setEditingMeme({ ...editingMeme, telegram_link: e.target.value })}
                 />
               </div>
               <DialogFooter>
