@@ -41,5 +41,7 @@
     "env": {
       "NODE_ENV": "production"
     }
-  }
+  },
+  "cleanUrls": true,
+  "trailingSlash": false
 }
