@@ -29,9 +29,11 @@ export const AdminAuth = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
 
       if (data) {
         localStorage.setItem('isAdmin', 'true');
+        console.log('Admin access granted');
         toast.success("Admin access granted");
         navigate('/admin');
       } else {
+        console.log('Invalid admin key');
         toast.error("Invalid admin key");
       }
     } catch (error) {

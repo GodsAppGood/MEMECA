@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Pencil, Trash2, LogOut } from "lucide-react";
+import { Pencil, Trash2, LogOut, Users, BarChart3 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
   const [editingMeme, setEditingMeme] = useState<any>(null);
@@ -19,7 +20,28 @@ const AdminDashboard = () => {
 
   const { data: memes = [] } = useQuery({
     queryKey: ["memes"],
-    queryFn: () => JSON.parse(localStorage.getItem("memes") || "[]"),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Memes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
+  });
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('Users')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    }
   });
 
   const handleLogout = () => {
@@ -30,10 +52,12 @@ const AdminDashboard = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (memeId: string) => {
-      const currentMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-      const updatedMemes = currentMemes.filter((meme: any) => meme.id !== memeId);
-      localStorage.setItem("memes", JSON.stringify(updatedMemes));
-      return updatedMemes;
+      const { error } = await supabase
+        .from('Memes')
+        .delete()
+        .eq('id', memeId);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
@@ -43,12 +67,12 @@ const AdminDashboard = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (updatedMeme: any) => {
-      const currentMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-      const updatedMemes = currentMemes.map((meme: any) => 
-        meme.id === updatedMeme.id ? updatedMeme : meme
-      );
-      localStorage.setItem("memes", JSON.stringify(updatedMemes));
-      return updatedMemes;
+      const { error } = await supabase
+        .from('Memes')
+        .update(updatedMeme)
+        .eq('id', updatedMeme.id);
+      
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["memes"] });
@@ -72,13 +96,34 @@ const AdminDashboard = () => {
             Logout
           </Button>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <Users className="h-8 w-8" />
+              <div>
+                <h2 className="text-2xl font-bold">{users.length}</h2>
+                <p className="text-gray-600">Total Users</p>
+              </div>
+            </div>
+          </Card>
+          <Card className="p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <BarChart3 className="h-8 w-8" />
+              <div>
+                <h2 className="text-2xl font-bold">{memes.length}</h2>
+                <p className="text-gray-600">Total Memes</p>
+              </div>
+            </div>
+          </Card>
+        </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {memes.map((meme: any) => (
             <Card key={meme.id} className="overflow-hidden">
               <CardContent className="p-4">
                 <img
-                  src={meme.imageUrl}
+                  src={meme.image_url}
                   alt={meme.title}
                   className="w-full h-48 object-cover rounded-lg mb-4"
                 />
