@@ -21,7 +21,7 @@ export const AdminAuth = ({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.rpc('verify_admin_key', {
+      const { data, error } = await supabase.rpc('verify_admin_key' as any, {
         key_to_verify: adminKey
       });
 
