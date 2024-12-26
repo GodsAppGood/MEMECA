@@ -69,10 +69,13 @@ const AdminDashboard = () => {
 
   const updateMutation = useMutation({
     mutationFn: async (updatedMeme: Meme) => {
+      // Create an update object without the id field
+      const { id, ...updateData } = updatedMeme;
+      
       const { error } = await supabase
         .from('Memes')
-        .update(updatedMeme)
-        .eq('id', updatedMeme.id);
+        .update(updateData)
+        .eq('id', id);
       
       if (error) throw error;
     },
