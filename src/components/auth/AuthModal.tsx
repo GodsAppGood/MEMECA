@@ -4,39 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmailAuthForm } from "./EmailAuthForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { Link } from "react-router-dom";
-import { useMagicLink } from "@/hooks/auth/useMagicLink";
-import { useToast } from "@/components/ui/use-toast";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLoginSuccess: (response: any) => void;
-  onLoginError: () => void;
 }
 
-export const AuthModal = ({ isOpen, onClose, onLoginSuccess, onLoginError }: AuthModalProps) => {
+export const AuthModal = ({ isOpen, onClose }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
-  const { sendMagicLink, isLoading: isMagicLinkLoading } = useMagicLink();
-  const { toast } = useToast();
-
-  const handleMagicLinkSuccess = async (email: string) => {
-    try {
-      await sendMagicLink(email);
-      toast({
-        title: "Check your email",
-        description: "We've sent you a magic link to sign in.",
-      });
-      onClose();
-    } catch (error: any) {
-      console.error("Magic link error:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to send magic link",
-      });
-      onLoginError();
-    }
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -70,28 +45,18 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess, onLoginError }: Aut
               </TabsList>
               
               <TabsContent value="signin">
-                <EmailAuthForm 
-                  mode="signin" 
-                  onSuccess={handleMagicLinkSuccess}
-                  onError={onLoginError}
-                  isLoading={isMagicLinkLoading}
-                />
+                <EmailAuthForm mode="signin" />
               </TabsContent>
               
               <TabsContent value="signup">
-                <EmailAuthForm 
-                  mode="signup" 
-                  onSuccess={handleMagicLinkSuccess}
-                  onError={onLoginError}
-                  isLoading={isMagicLinkLoading}
-                />
+                <EmailAuthForm mode="signup" />
               </TabsContent>
             </Tabs>
           </TabsContent>
           
           <TabsContent value="google">
             <div className="flex justify-center p-4">
-              <GoogleAuthButton onSuccess={onLoginSuccess} onError={onLoginError} />
+              <GoogleAuthButton />
             </div>
           </TabsContent>
         </Tabs>

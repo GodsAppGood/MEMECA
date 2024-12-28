@@ -4,34 +4,37 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useEmailAuth } from "@/hooks/auth/useEmailAuth";
 
 const formSchema = z.object({
   email: z.string()
     .email("Please enter a valid email address")
     .min(1, "Email is required"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password is too long"),
 });
 
 interface EmailAuthFormProps {
   mode: "signin" | "signup";
-  onSuccess: (email: string) => void;
-  onError: () => void;
-  isLoading: boolean;
 }
 
-export const EmailAuthForm = ({ mode, onSuccess, onError, isLoading }: EmailAuthFormProps) => {
+export const EmailAuthForm = ({ mode }: EmailAuthFormProps) => {
+  const { signInWithEmail, signUpWithEmail, isLoading } = useEmailAuth();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
+      password: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      await onSuccess(values.email);
-    } catch (error: any) {
-      console.error("Auth error:", error);
-      onError();
+    if (mode === "signin") {
+      await signInWithEmail(values.email, values.password);
+    } else {
+      await signUpWithEmail(values.email, values.password);
     }
   };
 
@@ -57,8 +60,27 @@ export const EmailAuthForm = ({ mode, onSuccess, onError, isLoading }: EmailAuth
           )}
         />
 
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input 
+                  placeholder="Enter your password" 
+                  type="password"
+                  disabled={isLoading}
+                  {...field} 
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Sending..." : `Send Magic Link for ${mode === "signin" ? "Sign In" : "Sign Up"}`}
+          {isLoading ? "Processing..." : mode === "signin" ? "Sign In" : "Sign Up"}
         </Button>
       </form>
     </Form>
