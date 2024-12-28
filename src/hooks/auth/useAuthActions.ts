@@ -11,12 +11,13 @@ export const useAuthActions = () => {
   const handleLoginSuccess = async () => {
     try {
       // Log the redirect URI for debugging
-      console.log('Supabase redirect URI:', `${window.location.origin}/auth/v1/callback`);
+      console.log('Current origin:', window.location.origin);
+      console.log('Supabase project URL:', 'https://dpybiegurkiqwponvxac.supabase.co');
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}`,
+          redirectTo: 'https://dpybiegurkiqwponvxac.supabase.co/auth/v1/callback',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
