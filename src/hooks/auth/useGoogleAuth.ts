@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { AuthResponse } from "@supabase/supabase-js";
 
 export const useGoogleAuth = () => {
   const navigate = useNavigate();
@@ -29,16 +30,16 @@ export const useGoogleAuth = () => {
             prompt: 'consent',
           }
         }
-      });
+      }) as AuthResponse;
 
       if (error) throw error;
 
       // Check if user exists in Users table
-      if (data?.user) {
+      if (data.session?.user) {
         const { data: userData, error: userError } = await supabase
           .from('Users')
           .select('*')
-          .eq('auth_id', data.user.id)
+          .eq('auth_id', data.session.user.id)
           .single();
 
         if (userError && userError.code !== 'PGRST116') {
