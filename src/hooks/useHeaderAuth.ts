@@ -13,12 +13,14 @@ interface User {
 export const useHeaderAuth = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkSession = async () => {
       try {
+        setIsLoading(true);
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -46,6 +48,8 @@ export const useHeaderAuth = () => {
           title: "Authentication Error",
           description: "There was a problem with authentication. Please try again.",
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -97,6 +101,8 @@ export const useHeaderAuth = () => {
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         navigate('/');
+      } else if (event === 'TOKEN_REFRESHED') {
+        console.log('Session token refreshed');
       }
     });
 
@@ -184,6 +190,7 @@ export const useHeaderAuth = () => {
     setIsLoginOpen,
     handleLoginSuccess,
     handleLoginError,
-    handleLogout
+    handleLogout,
+    isLoading
   };
 };
