@@ -37,52 +37,60 @@ export const useMemeQuery = ({
         userId
       });
 
-      let query = supabase
-        .from('Memes')
-        .select('*');
+      try {
+        let query = supabase
+          .from('Memes')
+          .select('*');
 
-      // For user's own memes, show all their memes
-      if (userOnly && userId) {
-        query = query.eq('created_by', userId);
+        // For user's own memes, show all their memes
+        if (userOnly && userId) {
+          query = query.eq('created_by', userId);
+        }
+
+        // Apply date filter only if explicitly selected
+        if (selectedDate) {
+          const start = startOfDay(selectedDate);
+          const end = endOfDay(selectedDate);
+          query = query.gte('created_at', start.toISOString())
+                      .lte('created_at', end.toISOString());
+        }
+
+        // Apply blockchain filter only if explicitly selected
+        if (selectedBlockchain) {
+          query = query.eq('blockchain', selectedBlockchain);
+        }
+
+        // Apply 24-hour filter only if explicitly requested
+        if (showTodayOnly) {
+          const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+          query = query.gte('created_at', last24Hours);
+        }
+
+        // Apply sorting
+        if (showTopOnly) {
+          query = query.order('likes', { ascending: false });
+        } else {
+          query = query.order('created_at', { ascending: false });
+        }
+
+        // Apply pagination
+        const { data, error } = await query
+          .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+        
+        if (error) {
+          console.error("Error fetching memes:", error);
+          throw error;
+        }
+
+        console.log("Fetched memes:", data);
+        return data || [];
+      } catch (error: any) {
+        console.error("Error in useMemeQuery:", error);
+        throw new Error(error.message || "Failed to fetch memes");
       }
-
-      // Apply date filter only if explicitly selected
-      if (selectedDate) {
-        const start = startOfDay(selectedDate);
-        const end = endOfDay(selectedDate);
-        query = query.gte('created_at', start.toISOString())
-                    .lte('created_at', end.toISOString());
-      }
-
-      // Apply blockchain filter only if explicitly selected
-      if (selectedBlockchain) {
-        query = query.eq('blockchain', selectedBlockchain);
-      }
-
-      // Apply 24-hour filter only if explicitly requested
-      if (showTodayOnly) {
-        const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-        query = query.gte('created_at', last24Hours);
-      }
-
-      // Apply sorting
-      if (showTopOnly) {
-        query = query.order('likes', { ascending: false });
-      } else {
-        query = query.order('created_at', { ascending: false });
-      }
-
-      // Apply pagination
-      const { data, error } = await query
-        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
-      
-      if (error) {
-        console.error("Error fetching memes:", error);
-        throw error;
-      }
-
-      console.log("Fetched memes:", data);
-      return data || [];
-    }
+    },
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000,
   });
 };
