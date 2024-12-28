@@ -10,11 +10,12 @@ export const useAuthActions = () => {
 
   const handleLoginSuccess = async () => {
     try {
-      // Log the redirect URI for debugging
+      // Enhanced logging for debugging auth flow
+      console.log('Starting Google OAuth flow...');
       console.log('Current origin:', window.location.origin);
       console.log('Supabase project URL:', 'https://dpybiegurkiqwponvxac.supabase.co');
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: 'https://dpybiegurkiqwponvxac.supabase.co/auth/v1/callback',
@@ -26,12 +27,14 @@ export const useAuthActions = () => {
       });
 
       if (error) {
-        console.error('Login error:', error);
+        console.error('OAuth error:', error);
         toast({
           variant: "destructive",
           title: "Login failed",
           description: error.message,
         });
+      } else {
+        console.log('OAuth flow completed successfully:', data);
       }
     } catch (error: any) {
       console.error('Login error:', error);
@@ -46,7 +49,7 @@ export const useAuthActions = () => {
   };
 
   const handleLoginError = () => {
-    console.error('Login Failed');
+    console.error('Google OAuth Login Failed');
     toast({
       variant: "destructive",
       title: "Login failed",
@@ -57,6 +60,7 @@ export const useAuthActions = () => {
 
   const handleLogout = async () => {
     try {
+      console.log('Initiating logout...');
       const { error } = await supabase.auth.signOut();
       
       if (error) {
@@ -69,6 +73,7 @@ export const useAuthActions = () => {
         return;
       }
 
+      console.log('Logout successful');
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",

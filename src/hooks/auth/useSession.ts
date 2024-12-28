@@ -20,6 +20,7 @@ export const useSession = () => {
     const checkSession = async () => {
       try {
         setIsLoading(true);
+        console.log('Checking session status...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -33,12 +34,20 @@ export const useSession = () => {
         }
 
         if (session?.user) {
+          console.log('Active session found:', {
+            id: session.user.id,
+            email: session.user.email,
+            metadata: session.user.user_metadata
+          });
+          
           setUser({
             id: session.user.id,
             name: session.user.user_metadata.name || 'Anonymous User',
             email: session.user.email || '',
             picture: session.user.user_metadata.picture || ''
           });
+        } else {
+          console.log('No active session found');
         }
       } catch (error) {
         console.error('Session check error:', error);
@@ -58,17 +67,25 @@ export const useSession = () => {
       console.log("Auth state changed:", event, session);
       
       if (event === 'SIGNED_IN' && session) {
+        console.log('User signed in:', {
+          id: session.user.id,
+          email: session.user.email,
+          metadata: session.user.user_metadata
+        });
+        
         setUser({
           id: session.user.id,
           name: session.user.user_metadata.name || 'Anonymous User',
           email: session.user.email || '',
           picture: session.user.user_metadata.picture || ''
         });
+        
         toast({
           title: "Welcome back!",
           description: `Signed in as ${session.user.email}`,
         });
       } else if (event === 'SIGNED_OUT') {
+        console.log('User signed out');
         setUser(null);
         navigate('/');
         toast({
