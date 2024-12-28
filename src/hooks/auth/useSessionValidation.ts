@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { User } from "./types";
 
 export const useSessionValidation = () => {
-  const [isValidating, setIsValidating] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
   const { toast } = useToast();
 
   const validateSession = async () => {
@@ -16,45 +17,44 @@ export const useSessionValidation = () => {
         toast({
           variant: "destructive",
           title: "Authentication Error",
-          description: "There was an issue validating your session. Please try logging in again.",
+          description: "Failed to validate your session. Please try logging in again.",
         });
         return null;
       }
 
       if (!session) {
-        console.log('No active session found');
+        setIsLoading(false);
         return null;
       }
 
-      // Attempt to refresh the session if it exists
-      const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-      
-      if (refreshError) {
-        console.error('Session refresh error:', refreshError);
-        toast({
-          variant: "destructive",
-          title: "Session Error",
-          description: "Unable to refresh your session. Please log in again.",
-        });
+      const { data: userData, error: userError } = await supabase
+        .from('Users')
+        .select('*')
+        .eq('auth_id', session.user.id)
+        .single();
+
+      if (userError && userError.code !== 'PGRST116') {
+        console.error('Error fetching user data:', userError);
         return null;
       }
 
-      return refreshData.session;
+      return {
+        id: session.user.id,
+        auth_id: session.user.id,
+        name: session.user.user_metadata.name || session.user.email,
+        email: session.user.email || '',
+        picture: session.user.user_metadata.picture || '',
+        profile_image: userData?.profile_image || session.user.user_metadata.picture || '',
+        isAdmin: userData?.is_admin || false,
+        is_admin: userData?.is_admin || false,
+        email_confirmed: userData?.email_confirmed || false,
+        created_at: userData?.created_at
+      };
     } catch (error) {
-      console.error('Unexpected error during session validation:', error);
-      toast({
-        variant: "destructive",
-        title: "Unexpected Error",
-        description: "An unexpected error occurred. Please try again.",
-      });
+      console.error('Unexpected session validation error:', error);
       return null;
-    } finally {
-      setIsValidating(false);
     }
   };
 
-  return {
-    validateSession,
-    isValidating
-  };
+  return { validateSession, isLoading, setIsLoading, setUser };
 };
