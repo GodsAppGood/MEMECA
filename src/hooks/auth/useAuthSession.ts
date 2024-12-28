@@ -28,7 +28,8 @@ export const useAuthSession = () => {
         }
 
         setUser({
-          id: session.user.id,
+          id: userData?.id || session.user.id,
+          auth_id: session.user.id,
           name: userData?.name || session.user.user_metadata.name || session.user.email,
           email: userData?.email || session.user.email,
           picture: userData?.profile_image || session.user.user_metadata.picture,
