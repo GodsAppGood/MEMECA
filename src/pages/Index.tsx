@@ -7,7 +7,7 @@ import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 import { MemePagination } from "@/components/MemePagination";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { TestRunner } from "@/components/testing/TestRunner";
+import { TestRunnerComponent } from "@/utils/testing/TestRunner";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -29,7 +29,7 @@ const Index = () => {
       <ErrorBoundary>
         <Header />
         <main className="pt-16">
-          {isTestingMode && <TestRunner />}
+          {isTestingMode && <TestRunnerComponent />}
           <Hero />
           <Filters
             date={selectedDate}
