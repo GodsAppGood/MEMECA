@@ -1,80 +1,62 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { User } from "./types";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { User } from "./types";
+import { useSessionValidation } from "./useSessionValidation";
+import { useUserData } from "./useUserData";
 
 export const useSession = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { validateSession, isValidating } = useSessionValidation();
+  const { fetchUserData } = useUserData();
 
   useEffect(() => {
-    const checkSession = async () => {
+    const initializeSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const session = await validateSession();
         
-        if (error) {
-          console.error('Session check error:', error);
-          return;
-        }
-
         if (session?.user) {
-          const { data: userData, error: userError } = await supabase
-            .from('Users')
-            .select('*, is_admin')
-            .eq('auth_id', session.user.id)
-            .single();
-
-          if (userError && userError.code !== 'PGRST116') {
-            console.error('Error fetching user data:', userError);
-            return;
+          const userData = await fetchUserData(session.user.id);
+          if (userData) {
+            setUser(userData);
           }
-
-          setUser({
-            id: session.user.id,
-            name: session.user.user_metadata.name || session.user.email,
-            email: session.user.email || '',
-            picture: session.user.user_metadata.picture || '',
-            isAdmin: userData?.is_admin || false,
-            email_confirmed: true
-          });
         }
-        setIsLoading(false);
       } catch (error) {
-        console.error('Auth check error:', error);
+        console.error('Session initialization error:', error);
+      } finally {
         setIsLoading(false);
       }
     };
 
-    checkSession();
+    initializeSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event);
+      
       if (event === 'SIGNED_OUT') {
         setUser(null);
+        navigate('/');
       } else if (session?.user) {
-        const { data: userData } = await supabase
-          .from('Users')
-          .select('*, is_admin')
-          .eq('auth_id', session.user.id)
-          .single();
-
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata.name || session.user.email,
-          email: session.user.email || '',
-          picture: session.user.user_metadata.picture || '',
-          isAdmin: userData?.is_admin || false,
-          email_confirmed: true
-        });
+        const userData = await fetchUserData(session.user.id);
+        if (userData) {
+          setUser(userData);
+          toast({
+            title: "Welcome!",
+            description: `Successfully logged in as ${userData.name}!`,
+          });
+          navigate('/my-memes');
+        }
       }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, toast]);
 
   const handleLogout = async () => {
     try {
@@ -82,6 +64,7 @@ export const useSession = () => {
       
       if (error) throw error;
 
+      setUser(null);
       toast({
         title: "Logged out",
         description: "You have been successfully logged out.",
@@ -97,5 +80,9 @@ export const useSession = () => {
     }
   };
 
-  return { user, isLoading, handleLogout };
+  return { 
+    user, 
+    isLoading: isLoading || isValidating, 
+    handleLogout 
+  };
 };

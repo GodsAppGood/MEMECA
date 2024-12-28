@@ -1,10 +1,14 @@
 export interface User {
   id: string;
+  auth_id: string;
   name: string;
   email: string;
-  picture: string;
+  picture?: string;
+  profile_image?: string;
   isAdmin?: boolean;
+  is_admin?: boolean;
   email_confirmed?: boolean;
+  created_at?: string;
 }
 
 export interface AuthState {
