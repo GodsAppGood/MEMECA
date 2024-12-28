@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmailAuthForm } from "./EmailAuthForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { Link } from "react-router-dom";
+import { useMagicLink } from "@/hooks/auth/useMagicLink";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface AuthModalProps {
 
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess, onLoginError }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
+  const { sendMagicLink } = useMagicLink();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -47,11 +49,19 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess, onLoginError }: Aut
               </TabsList>
               
               <TabsContent value="signin">
-                <EmailAuthForm mode="signin" onSuccess={onLoginSuccess} onError={onLoginError} />
+                <EmailAuthForm 
+                  mode="signin" 
+                  onSuccess={(email) => sendMagicLink(email)} 
+                  onError={onLoginError} 
+                />
               </TabsContent>
               
               <TabsContent value="signup">
-                <EmailAuthForm mode="signup" onSuccess={onLoginSuccess} onError={onLoginError} />
+                <EmailAuthForm 
+                  mode="signup" 
+                  onSuccess={(email) => sendMagicLink(email)} 
+                  onError={onLoginError} 
+                />
               </TabsContent>
             </Tabs>
           </TabsContent>

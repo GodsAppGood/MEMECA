@@ -17,6 +17,7 @@ import Dashboard from "./pages/Dashboard";
 import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const AppContent = () => {
               <Route path="/my-memes" element={<MyMemes />} />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/tuzemoon" element={<Tuzemoon />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
