@@ -32,9 +32,9 @@ export const Header = () => {
       if (session?.user) {
         setUser({
           id: session.user.id,
-          name: session.user.user_metadata.name,
+          name: session.user.user_metadata.name || session.user.email,
           email: session.user.email || '',
-          picture: session.user.user_metadata.picture
+          picture: session.user.user_metadata.picture || ''
         });
       }
     };
@@ -45,14 +45,14 @@ export const Header = () => {
       if (event === 'SIGNED_IN' && session) {
         setUser({
           id: session.user.id,
-          name: session.user.user_metadata.name,
+          name: session.user.user_metadata.name || session.user.email,
           email: session.user.email || '',
-          picture: session.user.user_metadata.picture
+          picture: session.user.user_metadata.picture || ''
         });
 
         toast({
           title: "Successfully logged in",
-          description: `Welcome ${session.user.user_metadata.name}!`,
+          description: `Welcome ${session.user.user_metadata.name || session.user.email}!`,
         });
 
         navigate('/my-memes');
@@ -68,23 +68,27 @@ export const Header = () => {
   }, [navigate, toast]);
 
   const handleLoginSuccess = async (credentialResponse: any) => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
-
-    if (error) {
-      console.error('Login error:', error);
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: error.message,
+    if (credentialResponse.credential) {
+      // Google OAuth login
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
       });
+
+      if (error) {
+        console.error('Login error:', error);
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message,
+        });
+      }
+    } else {
+      // Email password login was successful, handled by the EmailAuthForm
+      setIsLoginOpen(false);
     }
-    
-    setIsLoginOpen(false);
   };
 
   const handleLoginError = () => {

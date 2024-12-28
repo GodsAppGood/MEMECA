@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { ProfileDropdown } from "./ProfileDropdown";
-import { LoginButton } from "./LoginButton";
+import { AuthModal } from "../auth/AuthModal";
 
 interface User {
   id: string;
@@ -46,12 +46,21 @@ export const AuthSection = ({
           isDashboardRoute={isDashboardRoute}
         />
       ) : (
-        <LoginButton
-          isLoginOpen={isLoginOpen}
-          setIsLoginOpen={setIsLoginOpen}
-          handleLoginSuccess={handleLoginSuccess}
-          handleLoginError={handleLoginError}
-        />
+        <>
+          <Button
+            variant="default"
+            className="bg-[#FFB74D] text-black hover:bg-[#EAA347] transition-all duration-300 hover:scale-105 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:shadow-lg"
+            onClick={() => setIsLoginOpen(true)}
+          >
+            Log in
+          </Button>
+          <AuthModal
+            isOpen={isLoginOpen}
+            onClose={() => setIsLoginOpen(false)}
+            onLoginSuccess={handleLoginSuccess}
+            onLoginError={handleLoginError}
+          />
+        </>
       )}
     </div>
   );
