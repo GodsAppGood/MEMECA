@@ -38,8 +38,12 @@ export const useMagicLink = () => {
 
   const handleMagicLinkCallback = async () => {
     try {
-      const { error } = await supabase.auth.getSessionFromUrl();
+      const { data: { session }, error } = await supabase.auth.getSession();
       if (error) throw error;
+
+      if (!session) {
+        throw new Error("No session found");
+      }
 
       toast({
         title: "Success!",
