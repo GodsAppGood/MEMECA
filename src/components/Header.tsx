@@ -22,19 +22,33 @@ export const Header = () => {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Session check error:', error);
-        return;
-      }
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session check error:', error);
+          toast({
+            variant: "destructive",
+            title: "Session Error",
+            description: "There was a problem checking your session. Please try logging in again.",
+          });
+          return;
+        }
 
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata.name,
-          email: session.user.email || '',
-          picture: session.user.user_metadata.picture
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            name: session.user.user_metadata.name || 'Anonymous User',
+            email: session.user.email || '',
+            picture: session.user.user_metadata.picture || ''
+          });
+        }
+      } catch (error) {
+        console.error('Session check error:', error);
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "There was a problem with authentication. Please try again.",
         });
       }
     };
@@ -42,20 +56,49 @@ export const Header = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session);
+      
       if (event === 'SIGNED_IN' && session) {
-        setUser({
-          id: session.user.id,
-          name: session.user.user_metadata.name,
-          email: session.user.email || '',
-          picture: session.user.user_metadata.picture
-        });
+        try {
+          setUser({
+            id: session.user.id,
+            name: session.user.user_metadata.name || 'Anonymous User',
+            email: session.user.email || '',
+            picture: session.user.user_metadata.picture || ''
+          });
 
-        toast({
-          title: "Successfully logged in",
-          description: `Welcome ${session.user.user_metadata.name}!`,
-        });
+          // Ensure user exists in Users table
+          const { error: upsertError } = await supabase
+            .from('Users')
+            .upsert({
+              auth_id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata.name,
+              profile_image: session.user.user_metadata.picture,
+              is_verified: true
+            }, {
+              onConflict: 'auth_id'
+            });
 
-        navigate('/my-memes');
+          if (upsertError) {
+            console.error('Error updating user data:', upsertError);
+            throw upsertError;
+          }
+
+          toast({
+            title: "Successfully logged in",
+            description: `Welcome ${session.user.user_metadata.name || 'back'}!`,
+          });
+
+          navigate('/my-memes');
+        } catch (error: any) {
+          console.error('Login error:', error);
+          toast({
+            variant: "destructive",
+            title: "Login Error",
+            description: error.message || "There was a problem logging you in.",
+          });
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         navigate('/');
@@ -67,20 +110,33 @@ export const Header = () => {
     };
   }, [navigate, toast]);
 
-  const handleLoginSuccess = async (credentialResponse: any) => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.origin
-      }
-    });
+  const handleLoginSuccess = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      });
 
-    if (error) {
+      if (error) {
+        console.error('Login error:', error);
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message,
+        });
+      }
+    } catch (error: any) {
       console.error('Login error:', error);
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
     }
     
@@ -98,24 +154,33 @@ export const Header = () => {
   };
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('Logout error:', error);
+        toast({
+          variant: "destructive",
+          title: "Logout failed",
+          description: error.message,
+        });
+        return;
+      }
+
+      setUser(null);
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/');
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast({
         variant: "destructive",
         title: "Logout failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
-      return;
     }
-
-    setUser(null);
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate('/');
   };
 
   const isMyMemesRoute = location.pathname === '/my-memes';
