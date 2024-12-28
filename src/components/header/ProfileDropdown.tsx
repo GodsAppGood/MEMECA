@@ -21,6 +21,7 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDropdownProps) => {
   const navigate = useNavigate();
+  const userInitial = user.name?.charAt(0) ?? "U";
 
   return (
     <DropdownMenu>
@@ -32,7 +33,7 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
         >
           <Avatar className="h-10 w-10">
             <AvatarImage src={user.picture} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            <AvatarFallback>{userInitial}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
