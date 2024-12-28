@@ -3,18 +3,14 @@ import { Button } from "../ui/button";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { AuthModal } from "../auth/AuthModal";
 import { useSession } from "@/hooks/auth/useSession";
+import { useState } from "react";
 
 interface AuthSectionProps {
-  isLoginOpen: boolean;
-  setIsLoginOpen: (isOpen: boolean) => void;
   isDashboardRoute: boolean;
 }
 
-export const AuthSection = ({
-  isLoginOpen,
-  setIsLoginOpen,
-  isDashboardRoute
-}: AuthSectionProps) => {
+export const AuthSection = ({ isDashboardRoute }: AuthSectionProps) => {
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const { user, handleLogout } = useSession();
 
   return (

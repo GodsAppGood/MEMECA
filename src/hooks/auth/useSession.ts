@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "./types";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/components/ui/use-toast";
 
 export const useSession = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -34,7 +38,7 @@ export const useSession = () => {
             email: session.user.email || '',
             picture: session.user.user_metadata.picture || '',
             isAdmin: userData?.is_admin || false,
-            email_confirmed: session.user.email_confirmed_at !== null
+            email_confirmed: true
           });
         }
         setIsLoading(false);
@@ -62,7 +66,7 @@ export const useSession = () => {
           email: session.user.email || '',
           picture: session.user.user_metadata.picture || '',
           isAdmin: userData?.is_admin || false,
-          email_confirmed: session.user.email_confirmed_at !== null
+          email_confirmed: true
         });
       }
     });
@@ -72,5 +76,26 @@ export const useSession = () => {
     };
   }, []);
 
-  return { user, isLoading };
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast({
+        variant: "destructive",
+        title: "Logout failed",
+        description: error.message || "Failed to log out",
+      });
+    }
+  };
+
+  return { user, isLoading, handleLogout };
 };

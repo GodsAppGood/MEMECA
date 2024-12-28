@@ -18,15 +18,6 @@ export const useEmailAuth = () => {
 
       if (error) throw error;
 
-      if (!data.user.email_confirmed_at) {
-        toast({
-          variant: "destructive",
-          title: "Email not verified",
-          description: "Please verify your email before logging in.",
-        });
-        return;
-      }
-
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -51,15 +42,17 @@ export const useEmailAuth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+          data: {
+            email_confirmed: true
+          }
+        }
       });
 
       if (error) throw error;
 
       toast({
-        title: "Check your email",
-        description: "We've sent you a verification link to complete your registration.",
+        title: "Registration successful",
+        description: "You can now log in with your email and password.",
       });
     } catch (error: any) {
       console.error("Registration error:", error);

@@ -2,17 +2,10 @@ import { useLocation } from "react-router-dom";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { AuthSection } from "./header/AuthSection";
-import { useAuthState } from "@/hooks/useAuthState";
+import { useSession } from "@/hooks/auth/useSession";
 
 export const Header = () => {
-  const {
-    isLoginOpen,
-    setIsLoginOpen,
-    user,
-    handleLoginSuccess,
-    handleLoginError,
-    handleLogout
-  } = useAuthState();
+  const { user } = useSession();
   const location = useLocation();
   const isMyMemesRoute = location.pathname === '/my-memes';
 
@@ -25,15 +18,7 @@ export const Header = () => {
         </div>
 
         <div className="flex-1 flex justify-end">
-          <AuthSection
-            user={user}
-            isLoginOpen={isLoginOpen}
-            setIsLoginOpen={setIsLoginOpen}
-            handleLoginSuccess={handleLoginSuccess}
-            handleLoginError={handleLoginError}
-            handleLogout={handleLogout}
-            isDashboardRoute={isMyMemesRoute}
-          />
+          <AuthSection isDashboardRoute={isMyMemesRoute} />
         </div>
       </div>
     </header>
