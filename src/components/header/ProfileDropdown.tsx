@@ -39,10 +39,10 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-56 bg-white shadow-lg border border-gray-200"
+        className="w-56 bg-white/95 backdrop-blur-sm shadow-lg border border-gray-200 z-50"
         style={{ transform: 'translateX(0)' }}
       >
-        <div className="flex items-center justify-start gap-2 p-2 border-b border-gray-200">
+        <div className="flex items-center justify-start gap-2 p-2 border-b border-gray-200 bg-white">
           <div className="flex flex-col space-y-1 leading-none">
             <p className="font-medium text-sm text-gray-900">{user.name}</p>
             <p className="text-xs text-muted-foreground">{user.email}</p>
