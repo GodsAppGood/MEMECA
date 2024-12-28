@@ -7,6 +7,7 @@ import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 import { MemePagination } from "@/components/MemePagination";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { TestRunner } from "@/components/testing/TestRunner";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -21,11 +22,14 @@ const Index = () => {
     setCurrentPage(1);
   };
 
+  const isTestingMode = new URLSearchParams(window.location.search).get('testing') === 'true';
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ErrorBoundary>
         <Header />
         <main className="pt-16">
+          {isTestingMode && <TestRunner />}
           <Hero />
           <Filters
             date={selectedDate}
