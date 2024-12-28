@@ -30,6 +30,40 @@ export const Header = () => {
       }
 
       if (session?.user) {
+        // Check if user exists in Users table
+        const { data: userData, error: userError } = await supabase
+          .from('Users')
+          .select('*')
+          .eq('auth_id', session.user.id)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          console.error('Error fetching user data:', userError);
+          return;
+        }
+
+        // If user doesn't exist in Users table, create them
+        if (!userData) {
+          const { error: insertError } = await supabase
+            .from('Users')
+            .insert([{
+              auth_id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata.name || session.user.email,
+              profile_image: session.user.user_metadata.picture || null
+            }]);
+
+          if (insertError) {
+            console.error('Error creating user:', insertError);
+            toast({
+              variant: "destructive",
+              title: "Error creating user profile",
+              description: "Please try logging in again.",
+            });
+            return;
+          }
+        }
+
         setUser({
           id: session.user.id,
           name: session.user.user_metadata.name || session.user.email,
@@ -42,7 +76,42 @@ export const Header = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session);
+      
       if (event === 'SIGNED_IN' && session) {
+        // Check/create user in Users table
+        const { data: userData, error: userError } = await supabase
+          .from('Users')
+          .select('*')
+          .eq('auth_id', session.user.id)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          console.error('Error fetching user data:', userError);
+          return;
+        }
+
+        if (!userData) {
+          const { error: insertError } = await supabase
+            .from('Users')
+            .insert([{
+              auth_id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata.name || session.user.email,
+              profile_image: session.user.user_metadata.picture || null
+            }]);
+
+          if (insertError) {
+            console.error('Error creating user:', insertError);
+            toast({
+              variant: "destructive",
+              title: "Error creating user profile",
+              description: "Please try logging in again.",
+            });
+            return;
+          }
+        }
+
         setUser({
           id: session.user.id,
           name: session.user.user_metadata.name || session.user.email,
@@ -69,7 +138,6 @@ export const Header = () => {
 
   const handleLoginSuccess = async (credentialResponse: any) => {
     if (credentialResponse.credential) {
-      // Google OAuth login
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -86,7 +154,6 @@ export const Header = () => {
         });
       }
     } else {
-      // Email password login was successful, handled by the EmailAuthForm
       setIsLoginOpen(false);
     }
   };
