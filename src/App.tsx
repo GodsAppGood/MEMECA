@@ -1,6 +1,6 @@
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -17,22 +17,16 @@ import Dashboard from "./pages/Dashboard";
 import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
-import AuthCallback from "./pages/AuthCallback";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const AppContent = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
+      <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -47,14 +41,11 @@ const AppContent = () => {
               <Route path="/my-memes" element={<MyMemes />} />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/tuzemoon" element={<Tuzemoon />} />
-              <Route path="/auth/callback" element={<AuthCallback />} />
             </Routes>
-            <Toaster />
-            <SonnerToaster />
           </BrowserRouter>
         </TooltipProvider>
-      </GoogleOAuthProvider>
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 };
 
