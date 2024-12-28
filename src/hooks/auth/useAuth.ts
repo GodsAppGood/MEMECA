@@ -35,10 +35,14 @@ export const useAuth = () => {
 
           setUser({
             id: session.user.id,
+            auth_id: session.user.id,
             name: session.user.user_metadata.name || session.user.email,
             email: session.user.email || '',
             picture: session.user.user_metadata.picture || '',
-            isAdmin: userData?.is_admin || false
+            profile_image: userData?.profile_image || session.user.user_metadata.picture || '',
+            isAdmin: userData?.is_admin || false,
+            is_admin: userData?.is_admin || false,
+            email_confirmed: userData?.email_confirmed || false
           });
         }
         setIsLoading(false);
@@ -63,10 +67,14 @@ export const useAuth = () => {
 
         setUser({
           id: session.user.id,
+          auth_id: session.user.id,
           name: session.user.user_metadata.name || session.user.email,
           email: session.user.email || '',
           picture: session.user.user_metadata.picture || '',
-          isAdmin: userData?.is_admin || false
+          profile_image: userData?.profile_image || session.user.user_metadata.picture || '',
+          isAdmin: userData?.is_admin || false,
+          is_admin: userData?.is_admin || false,
+          email_confirmed: userData?.email_confirmed || false
         });
 
         toast({

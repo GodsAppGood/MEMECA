@@ -8,13 +8,10 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { LayoutDashboard, LogOut } from "lucide-react";
+import { User } from "@/hooks/auth/types";
 
 interface ProfileDropdownProps {
-  user: {
-    name: string;
-    email: string;
-    picture: string;
-  };
+  user: User;
   onLogout: () => void;
   isDashboardRoute?: boolean;
 }
@@ -31,7 +28,7 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
           aria-label="Open user menu"
         >
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.picture} alt={user.name} />
+            <AvatarImage src={user.picture || user.profile_image} alt={user.name} />
             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
           </Avatar>
         </Button>

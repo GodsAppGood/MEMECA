@@ -18,7 +18,6 @@ export const useUserData = () => {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // No user found, create new user record
           return await createUserRecord(authId);
         }
         console.error('Error fetching user data:', error);
@@ -30,7 +29,18 @@ export const useUserData = () => {
         return null;
       }
 
-      return userData as User;
+      return {
+        id: String(userData.id),
+        auth_id: userData.auth_id,
+        name: userData.name,
+        email: userData.email,
+        picture: userData.profile_image,
+        profile_image: userData.profile_image,
+        isAdmin: userData.is_admin,
+        is_admin: userData.is_admin,
+        email_confirmed: userData.email_confirmed,
+        created_at: userData.created_at
+      };
     } catch (error) {
       console.error('Unexpected error fetching user data:', error);
       toast({
@@ -69,7 +79,18 @@ export const useUserData = () => {
         throw insertError;
       }
 
-      return newUser as User;
+      return {
+        id: String(newUser.id),
+        auth_id: newUser.auth_id,
+        name: newUser.name,
+        email: newUser.email,
+        picture: newUser.profile_image,
+        profile_image: newUser.profile_image,
+        isAdmin: newUser.is_admin,
+        is_admin: newUser.is_admin,
+        email_confirmed: newUser.email_confirmed,
+        created_at: newUser.created_at
+      };
     } catch (error) {
       console.error('Error creating user record:', error);
       toast({
