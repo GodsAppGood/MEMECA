@@ -52,7 +52,8 @@ export const Header = () => {
               email: session.user.email,
               name: session.user.user_metadata.name || session.user.email,
               profile_image: session.user.user_metadata.picture || null,
-              is_admin: false
+              is_admin: false,
+              email_confirmed: session.user.email_confirmed_at ? true : false
             }]);
 
           if (insertError) {
@@ -79,6 +80,8 @@ export const Header = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth event:", event);
+      
       if (event === 'SIGNED_IN' && session) {
         const { data: userData, error: userError } = await supabase
           .from('Users')
@@ -91,6 +94,36 @@ export const Header = () => {
           return;
         }
 
+        // For Google OAuth users, we consider their email as confirmed
+        const isOAuthUser = session.user.app_metadata.provider === 'google';
+        const emailConfirmed = isOAuthUser || session.user.email_confirmed_at !== null;
+
+        // Update or create user record
+        const userPayload = {
+          auth_id: session.user.id,
+          email: session.user.email,
+          name: session.user.user_metadata.name || session.user.email,
+          profile_image: session.user.user_metadata.picture || null,
+          is_admin: userData?.is_admin || false,
+          email_confirmed: emailConfirmed
+        };
+
+        if (!userData) {
+          const { error: insertError } = await supabase
+            .from('Users')
+            .insert([userPayload]);
+
+          if (insertError) {
+            console.error('Error creating user:', insertError);
+            toast({
+              variant: "destructive",
+              title: "Error creating user profile",
+              description: "Please try logging in again.",
+            });
+            return;
+          }
+        }
+
         setUser({
           id: session.user.id,
           name: session.user.user_metadata.name || session.user.email,
@@ -99,9 +132,13 @@ export const Header = () => {
           isAdmin: userData?.is_admin || false
         });
 
+        const message = isOAuthUser 
+          ? "Successfully logged in with Google"
+          : "Successfully logged in";
+
         toast({
-          title: "Successfully logged in",
-          description: `Welcome ${session.user.user_metadata.name || session.user.email}!`,
+          title: "Welcome!",
+          description: `${message}! Welcome ${session.user.user_metadata.name || session.user.email}!`,
         });
 
         navigate('/my-memes');
@@ -121,7 +158,11 @@ export const Header = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin
+          redirectTo: window.location.origin,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
         }
       });
 
