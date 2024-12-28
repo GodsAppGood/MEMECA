@@ -11,6 +11,7 @@ interface User {
   name: string;
   email: string;
   picture: string;
+  isAdmin?: boolean;
 }
 
 export const Header = () => {
@@ -33,7 +34,7 @@ export const Header = () => {
         // Check if user exists in Users table
         const { data: userData, error: userError } = await supabase
           .from('Users')
-          .select('*')
+          .select('*, is_admin')
           .eq('auth_id', session.user.id)
           .single();
 
@@ -50,7 +51,8 @@ export const Header = () => {
               auth_id: session.user.id,
               email: session.user.email,
               name: session.user.user_metadata.name || session.user.email,
-              profile_image: session.user.user_metadata.picture || null
+              profile_image: session.user.user_metadata.picture || null,
+              is_admin: false
             }]);
 
           if (insertError) {
@@ -68,7 +70,8 @@ export const Header = () => {
           id: session.user.id,
           name: session.user.user_metadata.name || session.user.email,
           email: session.user.email || '',
-          picture: session.user.user_metadata.picture || ''
+          picture: session.user.user_metadata.picture || '',
+          isAdmin: userData?.is_admin || false
         });
       }
     };
@@ -76,13 +79,10 @@ export const Header = () => {
     checkSession();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session);
-      
       if (event === 'SIGNED_IN' && session) {
-        // Check/create user in Users table
         const { data: userData, error: userError } = await supabase
           .from('Users')
-          .select('*')
+          .select('*, is_admin')
           .eq('auth_id', session.user.id)
           .single();
 
@@ -91,32 +91,12 @@ export const Header = () => {
           return;
         }
 
-        if (!userData) {
-          const { error: insertError } = await supabase
-            .from('Users')
-            .insert([{
-              auth_id: session.user.id,
-              email: session.user.email,
-              name: session.user.user_metadata.name || session.user.email,
-              profile_image: session.user.user_metadata.picture || null
-            }]);
-
-          if (insertError) {
-            console.error('Error creating user:', insertError);
-            toast({
-              variant: "destructive",
-              title: "Error creating user profile",
-              description: "Please try logging in again.",
-            });
-            return;
-          }
-        }
-
         setUser({
           id: session.user.id,
           name: session.user.user_metadata.name || session.user.email,
           email: session.user.email || '',
-          picture: session.user.user_metadata.picture || ''
+          picture: session.user.user_metadata.picture || '',
+          isAdmin: userData?.is_admin || false
         });
 
         toast({
@@ -196,7 +176,7 @@ export const Header = () => {
       <div className="container flex h-14 items-center">
         <div className="flex items-center space-x-6">
           <Logo />
-          <Navigation />
+          <Navigation isAdmin={user?.isAdmin} />
         </div>
 
         <div className="flex-1 flex justify-end">

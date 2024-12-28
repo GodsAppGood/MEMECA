@@ -1,6 +1,11 @@
 import { Link } from "react-router-dom";
+import { AdminNavItem } from "./AdminNavItem";
 
-export const Navigation = () => {
+interface NavigationProps {
+  isAdmin?: boolean;
+}
+
+export const Navigation = ({ isAdmin = false }: NavigationProps) => {
   return (
     <nav className="flex items-center space-x-6 text-sm font-medium">
       <Link
@@ -39,6 +44,7 @@ export const Navigation = () => {
       >
         Tuzemoon
       </Link>
+      <AdminNavItem isAdmin={isAdmin} />
     </nav>
   );
 };
