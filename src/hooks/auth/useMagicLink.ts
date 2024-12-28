@@ -20,17 +20,10 @@ export const useMagicLink = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Magic link sent!",
-        description: "Please check your email for the login link.",
-      });
+      return true;
     } catch (error: any) {
       console.error('Magic link error:', error);
-      toast({
-        variant: "destructive",
-        title: "Failed to send magic link",
-        description: error.message || "Please try again later",
-      });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -42,19 +35,6 @@ export const useMagicLink = () => {
       
       if (error) throw error;
       if (!session) throw new Error("No session found");
-
-      // Check if user exists in Users table
-      const { data: userData, error: userError } = await supabase
-        .from('Users')
-        .select('*')
-        .eq('auth_id', session.user.id)
-        .single();
-
-      if (userError && userError.code !== 'PGRST116') {
-        console.error('Error checking user:', userError);
-      }
-
-      // If user doesn't exist, they will be created by the trigger
 
       toast({
         title: "Success!",

@@ -1,11 +1,9 @@
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   email: z.string()
@@ -17,12 +15,10 @@ interface EmailAuthFormProps {
   mode: "signin" | "signup";
   onSuccess: (email: string) => void;
   onError: () => void;
+  isLoading: boolean;
 }
 
-export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
-  
+export const EmailAuthForm = ({ mode, onSuccess, onError, isLoading }: EmailAuthFormProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -31,19 +27,11 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
     try {
-      onSuccess(values.email);
+      await onSuccess(values.email);
     } catch (error: any) {
       console.error("Auth error:", error);
-      toast({
-        variant: "destructive",
-        title: "Authentication failed",
-        description: error.message || "Please try again later",
-      });
       onError();
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -60,6 +48,7 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
                 <Input 
                   placeholder="Enter your email address" 
                   type="email"
+                  disabled={isLoading}
                   {...field} 
                 />
               </FormControl>
@@ -69,7 +58,7 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
         />
 
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Sending..." : "Send Magic Link"}
+          {isLoading ? "Sending..." : `Send Magic Link for ${mode === "signin" ? "Sign In" : "Sign Up"}`}
         </Button>
       </form>
     </Form>

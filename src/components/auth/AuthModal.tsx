@@ -5,6 +5,7 @@ import { EmailAuthForm } from "./EmailAuthForm";
 import { GoogleAuthButton } from "./GoogleAuthButton";
 import { Link } from "react-router-dom";
 import { useMagicLink } from "@/hooks/auth/useMagicLink";
+import { useToast } from "@/components/ui/use-toast";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -15,7 +16,27 @@ interface AuthModalProps {
 
 export const AuthModal = ({ isOpen, onClose, onLoginSuccess, onLoginError }: AuthModalProps) => {
   const [activeTab, setActiveTab] = useState<"signin" | "signup">("signin");
-  const { sendMagicLink } = useMagicLink();
+  const { sendMagicLink, isLoading: isMagicLinkLoading } = useMagicLink();
+  const { toast } = useToast();
+
+  const handleMagicLinkSuccess = async (email: string) => {
+    try {
+      await sendMagicLink(email);
+      toast({
+        title: "Check your email",
+        description: "We've sent you a magic link to sign in.",
+      });
+      onClose();
+    } catch (error: any) {
+      console.error("Magic link error:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to send magic link",
+      });
+      onLoginError();
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -51,16 +72,18 @@ export const AuthModal = ({ isOpen, onClose, onLoginSuccess, onLoginError }: Aut
               <TabsContent value="signin">
                 <EmailAuthForm 
                   mode="signin" 
-                  onSuccess={(email) => sendMagicLink(email)} 
-                  onError={onLoginError} 
+                  onSuccess={handleMagicLinkSuccess}
+                  onError={onLoginError}
+                  isLoading={isMagicLinkLoading}
                 />
               </TabsContent>
               
               <TabsContent value="signup">
                 <EmailAuthForm 
                   mode="signup" 
-                  onSuccess={(email) => sendMagicLink(email)} 
-                  onError={onLoginError} 
+                  onSuccess={handleMagicLinkSuccess}
+                  onError={onLoginError}
+                  isLoading={isMagicLinkLoading}
                 />
               </TabsContent>
             </Tabs>
