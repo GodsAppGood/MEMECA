@@ -1,6 +1,5 @@
-import React from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
+import { Sonner } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -25,12 +24,11 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 30000,
+      useErrorBoundary: true,
     },
     mutations: {
       retry: 1,
-      onError: (error: any) => {
-        console.error('Mutation error:', error);
-      }
+      useErrorBoundary: true,
     }
   }
 });
@@ -68,9 +66,7 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <React.StrictMode>
-      <AppContent />
-    </React.StrictMode>
+    <AppContent />
   );
 };
 
