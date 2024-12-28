@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/toaster";
-import { Sonner } from "sonner";
+import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -24,11 +24,9 @@ const queryClient = new QueryClient({
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 30000,
-      useErrorBoundary: true,
     },
     mutations: {
       retry: 1,
-      useErrorBoundary: true,
     }
   }
 });
@@ -40,7 +38,7 @@ const AppContent = () => {
         <TooltipProvider>
           <ErrorBoundary>
             <Toaster />
-            <Sonner />
+            <SonnerToaster />
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
