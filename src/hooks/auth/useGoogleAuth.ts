@@ -43,7 +43,7 @@ export const useGoogleAuth = () => {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message,
+        description: error.message || "Failed to login with Google",
       });
     } finally {
       setIsLoading(false);
