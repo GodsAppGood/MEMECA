@@ -43,7 +43,8 @@ export const useEmailAuth = () => {
         password,
         options: {
           data: {
-            email_confirmed: true
+            email_confirmed: true,
+            is_verified: true
           }
         }
       });

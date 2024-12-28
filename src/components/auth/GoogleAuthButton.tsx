@@ -1,12 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 
 export const GoogleAuthButton = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleGoogleLogin = async () => {
+    setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -20,6 +23,11 @@ export const GoogleAuthButton = () => {
       });
 
       if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Redirecting to Google login...",
+      });
     } catch (error: any) {
       console.error('Google login error:', error);
       toast({
@@ -27,13 +35,16 @@ export const GoogleAuthButton = () => {
         title: "Login failed",
         description: error.message || "Failed to login with Google",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <button
       onClick={handleGoogleLogin}
-      className="flex items-center justify-center w-full px-4 py-2 space-x-2 text-gray-600 transition-colors duration-300 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+      disabled={isLoading}
+      className="flex items-center justify-center w-full px-4 py-2 space-x-2 text-gray-600 transition-colors duration-300 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">
         <path
@@ -53,7 +64,7 @@ export const GoogleAuthButton = () => {
           fill="#EA4335"
         />
       </svg>
-      <span>Continue with Google</span>
+      <span>{isLoading ? "Connecting..." : "Continue with Google"}</span>
     </button>
   );
 };
