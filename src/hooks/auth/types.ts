@@ -9,6 +9,7 @@ export interface User {
   is_admin?: boolean;
   email_confirmed?: boolean;
   created_at?: string;
+  is_verified?: boolean;
 }
 
 export interface AuthState {

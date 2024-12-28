@@ -97,6 +97,7 @@ export type Database = {
           email_confirmed: boolean | null
           id: number
           is_admin: boolean | null
+          is_verified: boolean | null
           name: string | null
           password_hash: string | null
           profile_image: string | null
@@ -108,6 +109,7 @@ export type Database = {
           email_confirmed?: boolean | null
           id?: number
           is_admin?: boolean | null
+          is_verified?: boolean | null
           name?: string | null
           password_hash?: string | null
           profile_image?: string | null
@@ -119,6 +121,7 @@ export type Database = {
           email_confirmed?: boolean | null
           id?: number
           is_admin?: boolean | null
+          is_verified?: boolean | null
           name?: string | null
           password_hash?: string | null
           profile_image?: string | null

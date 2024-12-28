@@ -2,23 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { OAuthResponse } from "@supabase/supabase-js";
 
 export const useGoogleAuth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleGoogleLogin = async (credentialResponse: any) => {
-    if (!credentialResponse.credential) {
-      toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: "No credentials provided",
-      });
-      return;
-    }
-
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -34,8 +24,6 @@ export const useGoogleAuth = () => {
 
       if (error) throw error;
 
-      // We'll handle the user data after the OAuth redirect
-      // The actual user session will be available in the onAuthStateChange event
       toast({
         title: "Success!",
         description: "Redirecting to Google login...",

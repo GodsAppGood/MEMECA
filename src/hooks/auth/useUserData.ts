@@ -39,6 +39,7 @@ export const useUserData = () => {
         isAdmin: userData.is_admin,
         is_admin: userData.is_admin,
         email_confirmed: userData.email_confirmed,
+        is_verified: userData.is_verified,
         created_at: userData.created_at
       };
     } catch (error) {
@@ -70,7 +71,8 @@ export const useUserData = () => {
           name: user.user_metadata.name || user.email,
           profile_image: user.user_metadata.picture || null,
           is_admin: false,
-          email_confirmed: true
+          email_confirmed: true,
+          is_verified: true
         }])
         .select()
         .single();
@@ -89,6 +91,7 @@ export const useUserData = () => {
         isAdmin: newUser.is_admin,
         is_admin: newUser.is_admin,
         email_confirmed: newUser.email_confirmed,
+        is_verified: newUser.is_verified,
         created_at: newUser.created_at
       };
     } catch (error) {

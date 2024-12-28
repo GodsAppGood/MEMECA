@@ -39,15 +39,16 @@ export const useSessionValidation = () => {
       }
 
       return {
-        id: session.user.id,
+        id: String(userData?.id || session.user.id),
         auth_id: session.user.id,
-        name: session.user.user_metadata.name || session.user.email,
-        email: session.user.email || '',
-        picture: session.user.user_metadata.picture || '',
-        profile_image: userData?.profile_image || session.user.user_metadata.picture || '',
+        name: userData?.name || session.user.user_metadata.name || session.user.email,
+        email: userData?.email || session.user.email,
+        picture: userData?.profile_image || session.user.user_metadata.picture,
+        profile_image: userData?.profile_image || session.user.user_metadata.picture,
         isAdmin: userData?.is_admin || false,
         is_admin: userData?.is_admin || false,
         email_confirmed: userData?.email_confirmed || false,
+        is_verified: userData?.is_verified || false,
         created_at: userData?.created_at
       };
     } catch (error) {
@@ -56,5 +57,5 @@ export const useSessionValidation = () => {
     }
   };
 
-  return { validateSession, isLoading, setIsLoading, setUser };
+  return { validateSession, isLoading, setIsLoading, user, setUser };
 };

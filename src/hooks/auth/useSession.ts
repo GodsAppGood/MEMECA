@@ -11,7 +11,7 @@ export const useSession = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { validateSession, isValidating } = useSessionValidation();
+  const { validateSession } = useSessionValidation();
   const { fetchUserData } = useUserData();
 
   useEffect(() => {
@@ -19,8 +19,8 @@ export const useSession = () => {
       try {
         const session = await validateSession();
         
-        if (session?.user) {
-          const userData = await fetchUserData(session.user.id);
+        if (session?.auth_id) {
+          const userData = await fetchUserData(session.auth_id);
           if (userData) {
             setUser(userData);
           }
@@ -82,7 +82,7 @@ export const useSession = () => {
 
   return { 
     user, 
-    isLoading: isLoading || isValidating, 
+    isLoading, 
     handleLogout 
   };
 };
