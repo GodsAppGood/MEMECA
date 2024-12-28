@@ -10,7 +10,6 @@ import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 interface EmailAuthFormProps {
@@ -27,45 +26,27 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({
-          email: values.email,
-          password: values.password,
-          options: {
-            emailRedirectTo: window.location.origin,
-          },
-        });
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email: values.email,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Check your email",
-          description: "We've sent you a confirmation link to complete your registration.",
-        });
-        
-        onSuccess(data);
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email: values.email,
-          password: values.password,
-        });
-
-        if (error) throw error;
-        
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully signed in.",
-        });
-        
-        onSuccess(data);
-      }
+      toast({
+        title: "Magic link sent!",
+        description: "Please check your email for the login link.",
+      });
+      
+      onSuccess(data);
     } catch (error: any) {
       console.error("Auth error:", error);
       toast({
@@ -95,23 +76,9 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
             </FormItem>
           )}
         />
-        
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" placeholder="Enter your password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Loading..." : mode === "signin" ? "Sign In" : "Sign Up"}
+          {isLoading ? "Sending..." : "Send Magic Link"}
         </Button>
       </form>
     </Form>
