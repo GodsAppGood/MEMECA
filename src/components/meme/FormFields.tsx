@@ -1,5 +1,9 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { validateMemeTitle, validateDescription, validateUrl } from "@/utils/validation";
+import { useState } from "react";
 
 interface FormFieldsProps {
   title: string;
@@ -28,10 +32,38 @@ export const FormFields = ({
   setTelegramLink,
   maxDescriptionLength,
 }: FormFieldsProps) => {
+  const [errors, setErrors] = useState<Record<string, string | null>>({});
+
+  const validateField = (field: string, value: string) => {
+    let error = null;
+    switch (field) {
+      case 'title':
+        error = validateMemeTitle(value);
+        break;
+      case 'description':
+        error = validateDescription(value);
+        break;
+      case 'tradeLink':
+      case 'twitterLink':
+      case 'telegramLink':
+        error = validateUrl(value);
+        break;
+    }
+    setErrors(prev => ({ ...prev, [field]: error }));
+    return error;
+  };
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setTitle(value);
+    validateField('title', value);
+  };
+
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     if (text.length <= maxDescriptionLength) {
       setDescription(text);
+      validateField('description', text);
     }
   };
 
@@ -41,10 +73,16 @@ export const FormFields = ({
         <label className="block text-sm font-serif mb-2">Meme Title</label>
         <Input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="font-serif"
+          onChange={handleTitleChange}
+          className={`font-serif ${errors.title ? 'border-red-500' : ''}`}
           placeholder="Enter meme title"
         />
+        {errors.title && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.title}</AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div>
@@ -52,13 +90,19 @@ export const FormFields = ({
         <Textarea
           value={description}
           onChange={handleDescriptionChange}
-          className="font-serif resize-none"
+          className={`font-serif resize-none ${errors.description ? 'border-red-500' : ''}`}
           placeholder="Enter description (max 200 characters)"
           maxLength={maxDescriptionLength}
         />
         <p className="text-sm text-gray-500 mt-1">
           {maxDescriptionLength - description.length} characters remaining
         </p>
+        {errors.description && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.description}</AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div>
@@ -66,10 +110,19 @@ export const FormFields = ({
         <Input
           type="url"
           value={tradeLink}
-          onChange={(e) => setTradeLink(e.target.value)}
-          className="font-serif"
+          onChange={(e) => {
+            setTradeLink(e.target.value);
+            validateField('tradeLink', e.target.value);
+          }}
+          className={`font-serif ${errors.tradeLink ? 'border-red-500' : ''}`}
           placeholder="https://..."
         />
+        {errors.tradeLink && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.tradeLink}</AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div>
@@ -77,10 +130,19 @@ export const FormFields = ({
         <Input
           type="url"
           value={twitterLink}
-          onChange={(e) => setTwitterLink(e.target.value)}
-          className="font-serif"
+          onChange={(e) => {
+            setTwitterLink(e.target.value);
+            validateField('twitterLink', e.target.value);
+          }}
+          className={`font-serif ${errors.twitterLink ? 'border-red-500' : ''}`}
           placeholder="https://twitter.com/..."
         />
+        {errors.twitterLink && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.twitterLink}</AlertDescription>
+          </Alert>
+        )}
       </div>
 
       <div>
@@ -88,10 +150,19 @@ export const FormFields = ({
         <Input
           type="url"
           value={telegramLink}
-          onChange={(e) => setTelegramLink(e.target.value)}
-          className="font-serif"
+          onChange={(e) => {
+            setTelegramLink(e.target.value);
+            validateField('telegramLink', e.target.value);
+          }}
+          className={`font-serif ${errors.telegramLink ? 'border-red-500' : ''}`}
           placeholder="https://t.me/..."
         />
+        {errors.telegramLink && (
+          <Alert variant="destructive" className="mt-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errors.telegramLink}</AlertDescription>
+          </Alert>
+        )}
       </div>
     </>
   );
