@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { AuthResponse } from "@supabase/supabase-js";
+import { OAuthResponse } from "@supabase/supabase-js";
 
 export const useGoogleAuth = () => {
   const navigate = useNavigate();
@@ -30,30 +30,16 @@ export const useGoogleAuth = () => {
             prompt: 'consent',
           }
         }
-      }) as AuthResponse;
+      });
 
       if (error) throw error;
 
-      // Check if user exists in Users table
-      if (data.session?.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('*')
-          .eq('auth_id', data.session.user.id)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('Error checking user:', userError);
-        }
-
-        // If user doesn't exist, they will be created by the trigger
-      }
-
+      // We'll handle the user data after the OAuth redirect
+      // The actual user session will be available in the onAuthStateChange event
       toast({
         title: "Success!",
-        description: "Successfully logged in with Google",
+        description: "Redirecting to Google login...",
       });
-      navigate('/my-memes');
     } catch (error: any) {
       console.error('Google login error:', error);
       toast({
