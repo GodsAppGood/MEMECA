@@ -3,18 +3,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useLikesSubscription } from "./useLikesSubscription";
 
-export const useLikeActions = (memeId: string, userId: string | null) => {
+export const useLikeActions = (memeId: string | number, userId: string | null) => {
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const { toast } = useToast();
 
   const fetchLikesCount = async () => {
     // Skip fetching for placeholder memes
-    if (memeId.startsWith('placeholder-')) {
+    const memeIdString = String(memeId);
+    if (memeIdString.startsWith('placeholder-')) {
       return;
     }
 
-    const id = parseInt(memeId);
+    const id = parseInt(memeIdString);
     if (isNaN(id)) {
       console.error("Invalid meme ID:", memeId);
       return;
@@ -46,8 +47,9 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
   });
 
   const handleLike = async () => {
+    const memeIdString = String(memeId);
     // Prevent liking placeholder memes
-    if (memeId.startsWith('placeholder-')) {
+    if (memeIdString.startsWith('placeholder-')) {
       return;
     }
 
@@ -60,7 +62,7 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
       return;
     }
 
-    const id = parseInt(memeId);
+    const id = parseInt(memeIdString);
     if (isNaN(id)) {
       console.error("Invalid meme ID:", memeId);
       toast({
