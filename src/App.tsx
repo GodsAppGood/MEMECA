@@ -19,16 +19,21 @@ import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
 import AuthCallback from "./pages/AuthCallback";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const AppContent = () => {
   return (
-    <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
         <TooltipProvider>
           <BrowserRouter>
-            <Toaster />
-            <Sonner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/submit" element={<SubmitMeme />} />
@@ -44,10 +49,12 @@ const AppContent = () => {
               <Route path="/tuzemoon" element={<Tuzemoon />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
             </Routes>
+            <Toaster />
+            <Sonner />
           </BrowserRouter>
         </TooltipProvider>
-      </QueryClientProvider>
-    </GoogleOAuthProvider>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
   );
 };
 
