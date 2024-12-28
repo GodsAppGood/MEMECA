@@ -118,7 +118,7 @@ export class TestRunner {
   }
 }
 
-export const TestRunner as React.FC = () => {
+export const TestRunnerComponent: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
 
