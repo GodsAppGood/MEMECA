@@ -28,7 +28,7 @@ export const useAuthSession = () => {
             return;
           }
 
-          setUser({
+          const user: User = {
             id: String(userData?.id || session.user.id),
             auth_id: session.user.id,
             name: userData?.name || session.user.user_metadata.name || session.user.email,
@@ -39,7 +39,9 @@ export const useAuthSession = () => {
             is_admin: userData?.is_admin || false,
             email_confirmed: userData?.email_confirmed || false,
             is_verified: userData?.is_verified || false
-          });
+          };
+
+          setUser(user);
         }
         setIsLoading(false);
       } catch (error) {
