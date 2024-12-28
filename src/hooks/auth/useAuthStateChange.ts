@@ -31,8 +31,8 @@ export const useAuthStateChange = ({ setUser }: UseAuthStateChangeProps) => {
           return;
         }
 
-        const user = {
-          id: userData?.id || session.user.id,
+        const user: User = {
+          id: String(userData?.id || session.user.id),
           auth_id: session.user.id,
           name: userData?.name || session.user.user_metadata.name || session.user.email,
           email: userData?.email || session.user.email,
