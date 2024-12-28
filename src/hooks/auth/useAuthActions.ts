@@ -10,10 +10,13 @@ export const useAuthActions = () => {
 
   const handleLoginSuccess = async () => {
     try {
+      // Log the redirect URI for debugging
+      console.log('Supabase redirect URI:', `${window.location.origin}/auth/v1/callback`);
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
