@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useGoogleAuth } from "./useGoogleAuth";
 import { useMagicLink } from "./useMagicLink";
@@ -30,23 +29,24 @@ export const useAuthState = () => {
   };
 
   const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      navigate('/');
+    } catch (error: any) {
       console.error('Logout error:', error);
       toast({
         variant: "destructive",
         title: "Logout failed",
-        description: error.message,
+        description: error.message || "Failed to log out",
       });
-      return;
     }
-
-    toast({
-      title: "Logged out",
-      description: "You have been successfully logged out.",
-    });
-    navigate('/');
   };
 
   return {

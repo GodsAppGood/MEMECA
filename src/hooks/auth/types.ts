@@ -4,6 +4,7 @@ export interface User {
   email: string;
   picture: string;
   isAdmin?: boolean;
+  email_confirmed?: boolean;
 }
 
 export interface AuthState {

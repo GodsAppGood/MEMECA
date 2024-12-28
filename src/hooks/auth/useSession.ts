@@ -33,7 +33,8 @@ export const useSession = () => {
             name: session.user.user_metadata.name || session.user.email,
             email: session.user.email || '',
             picture: session.user.user_metadata.picture || '',
-            isAdmin: userData?.is_admin || false
+            isAdmin: userData?.is_admin || false,
+            email_confirmed: session.user.email_confirmed_at !== null
           });
         }
         setIsLoading(false);
@@ -60,7 +61,8 @@ export const useSession = () => {
           name: session.user.user_metadata.name || session.user.email,
           email: session.user.email || '',
           picture: session.user.user_metadata.picture || '',
-          isAdmin: userData?.is_admin || false
+          isAdmin: userData?.is_admin || false,
+          email_confirmed: session.user.email_confirmed_at !== null
         });
       }
     });

@@ -20,7 +20,7 @@ export const useGoogleAuth = () => {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: window.location.origin,
@@ -32,6 +32,21 @@ export const useGoogleAuth = () => {
       });
 
       if (error) throw error;
+
+      // Check if user exists in Users table
+      if (data?.user) {
+        const { data: userData, error: userError } = await supabase
+          .from('Users')
+          .select('*')
+          .eq('auth_id', data.user.id)
+          .single();
+
+        if (userError && userError.code !== 'PGRST116') {
+          console.error('Error checking user:', userError);
+        }
+
+        // If user doesn't exist, they will be created by the trigger
+      }
 
       toast({
         title: "Success!",
