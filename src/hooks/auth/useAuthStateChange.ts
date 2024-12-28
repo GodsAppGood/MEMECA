@@ -20,36 +20,47 @@ export const useAuthStateChange = ({ setUser }: UseAuthStateChangeProps) => {
         setUser(null);
         navigate('/');
       } else if (session?.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('*, is_admin')
-          .eq('auth_id', session.user.id)
-          .single();
+        try {
+          const { data: userData, error: userError } = await supabase
+            .from('Users')
+            .select('*, is_admin')
+            .eq('auth_id', session.user.id)
+            .single();
 
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('Error fetching user data:', userError);
-          return;
+          if (userError && userError.code !== 'PGRST116') {
+            console.error('Error fetching user data:', userError);
+            return;
+          }
+
+          const user: User = {
+            id: String(userData?.id || session.user.id),
+            auth_id: session.user.id,
+            name: userData?.name || session.user.user_metadata.name || session.user.email,
+            email: userData?.email || session.user.email,
+            picture: userData?.profile_image || session.user.user_metadata.picture,
+            profile_image: userData?.profile_image || session.user.user_metadata.picture,
+            isAdmin: userData?.is_admin || false,
+            is_admin: userData?.is_admin || false,
+            email_confirmed: userData?.email_confirmed || false,
+            is_verified: userData?.is_verified || false
+          };
+
+          setUser(user);
+
+          toast({
+            title: "Welcome!",
+            description: `Successfully logged in as ${user.name}!`,
+          });
+          
+          navigate('/my-memes');
+        } catch (error) {
+          console.error('Error in auth state change:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load user data",
+            variant: "destructive"
+          });
         }
-
-        const user: User = {
-          id: String(userData?.id || session.user.id),
-          auth_id: session.user.id,
-          name: userData?.name || session.user.user_metadata.name || session.user.email,
-          email: userData?.email || session.user.email,
-          picture: userData?.profile_image || session.user.user_metadata.picture,
-          profile_image: userData?.profile_image || session.user.user_metadata.picture,
-          isAdmin: userData?.is_admin || false,
-          is_admin: userData?.is_admin || false,
-          email_confirmed: userData?.email_confirmed || false,
-          is_verified: userData?.is_verified || false
-        };
-
-        setUser(user);
-        toast({
-          title: "Welcome!",
-          description: `Successfully logged in as ${user.name}!`,
-        });
-        navigate('/my-memes');
       }
     });
 

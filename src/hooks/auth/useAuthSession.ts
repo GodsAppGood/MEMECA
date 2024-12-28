@@ -45,7 +45,7 @@ export const useAuthSession = () => {
         }
         setIsLoading(false);
       } catch (error) {
-        console.error('Unexpected session check error:', error);
+        console.error('Unexpected session validation error:', error);
         setIsLoading(false);
       }
     };
