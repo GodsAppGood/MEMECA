@@ -2,19 +2,20 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z.string()
+    .email("Please enter a valid email address")
+    .min(1, "Email is required"),
 });
 
 interface EmailAuthFormProps {
   mode: "signin" | "signup";
-  onSuccess: (response: any) => void;
+  onSuccess: (email: string) => void;
   onError: () => void;
 }
 
@@ -32,27 +33,13 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email: values.email,
-        options: {
-          emailRedirectTo: window.location.origin,
-        },
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Magic link sent!",
-        description: "Please check your email for the login link.",
-      });
-      
-      onSuccess(data);
+      onSuccess(values.email);
     } catch (error: any) {
       console.error("Auth error:", error);
       toast({
-        title: "Authentication failed",
-        description: error.message,
         variant: "destructive",
+        title: "Authentication failed",
+        description: error.message || "Please try again later",
       });
       onError();
     } finally {
@@ -70,7 +57,11 @@ export const EmailAuthForm = ({ mode, onSuccess, onError }: EmailAuthFormProps) 
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your email" {...field} />
+                <Input 
+                  placeholder="Enter your email address" 
+                  type="email"
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

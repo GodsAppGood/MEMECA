@@ -29,7 +29,7 @@ export const useMagicLink = () => {
       toast({
         variant: "destructive",
         title: "Failed to send magic link",
-        description: error.message,
+        description: error.message || "Please try again later",
       });
     } finally {
       setIsLoading(false);
@@ -55,7 +55,7 @@ export const useMagicLink = () => {
       toast({
         variant: "destructive",
         title: "Login failed",
-        description: error.message,
+        description: error.message || "Please try again later",
       });
       navigate('/');
     }
