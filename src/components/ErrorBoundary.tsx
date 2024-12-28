@@ -5,6 +5,7 @@ import { RefreshCcw } from "lucide-react";
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -28,10 +29,14 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <div className="flex items-center justify-center min-h-[400px] p-4">
-          <Alert variant="destructive" className="max-w-lg">
-            <AlertTitle>Something went wrong</AlertTitle>
+          <Alert variant="destructive" className="max-w-lg backdrop-blur-sm bg-white/95">
+            <AlertTitle className="text-lg font-semibold">Something went wrong</AlertTitle>
             <AlertDescription className="mt-2">
               {this.state.error?.message || 'An unexpected error occurred'}
             </AlertDescription>

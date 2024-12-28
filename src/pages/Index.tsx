@@ -16,7 +16,6 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const handleSearch = () => {
-    console.log("Applying filters:", { selectedDate, selectedBlockchain });
     setAppliedDate(selectedDate);
     setAppliedBlockchain(selectedBlockchain);
     setCurrentPage(1);
