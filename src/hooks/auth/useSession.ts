@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 interface User {
@@ -64,9 +64,17 @@ export const useSession = () => {
           email: session.user.email || '',
           picture: session.user.user_metadata.picture || ''
         });
+        toast({
+          title: "Welcome back!",
+          description: `Signed in as ${session.user.email}`,
+        });
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         navigate('/');
+        toast({
+          title: "Signed out",
+          description: "You have been successfully signed out.",
+        });
       } else if (event === 'TOKEN_REFRESHED') {
         console.log('Session token refreshed');
       }

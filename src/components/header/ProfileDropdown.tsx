@@ -39,7 +39,7 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-56 bg-white shadow-lg border border-gray-200 z-50"
+        className="w-56 bg-white/95 backdrop-blur-sm shadow-lg border border-gray-200 z-50"
       >
         <div className="flex items-center justify-start gap-2 p-2 border-b border-gray-200">
           <div className="flex flex-col space-y-1 leading-none">

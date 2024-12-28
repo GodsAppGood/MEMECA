@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import SubmitMeme from "./pages/SubmitMeme";
 import { MemeDetailPage } from "./components/meme/detail/MemeDetailPage";
@@ -18,31 +19,47 @@ import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 30000,
+    },
+    mutations: {
+      retry: 1,
+      onError: (error: any) => {
+        console.error('Mutation error:', error);
+      }
+    }
+  }
+});
 
 const AppContent = () => {
   return (
     <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/submit" element={<SubmitMeme />} />
-              <Route path="/meme/:id" element={<MemeDetailPage />} />
-              <Route path="/top-memes" element={<TopMemes />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<Terms />} />
-              <Route path="/my-story" element={<MyStory />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/my-memes" element={<MyMemes />} />
-              <Route path="/watchlist" element={<Watchlist />} />
-              <Route path="/tuzemoon" element={<Tuzemoon />} />
-            </Routes>
-          </BrowserRouter>
+          <ErrorBoundary>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/submit" element={<SubmitMeme />} />
+                <Route path="/meme/:id" element={<MemeDetailPage />} />
+                <Route path="/top-memes" element={<TopMemes />} />
+                <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/my-story" element={<MyStory />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/my-memes" element={<MyMemes />} />
+                <Route path="/watchlist" element={<Watchlist />} />
+                <Route path="/tuzemoon" element={<Tuzemoon />} />
+              </Routes>
+            </BrowserRouter>
+          </ErrorBoundary>
         </TooltipProvider>
       </QueryClientProvider>
     </GoogleOAuthProvider>
