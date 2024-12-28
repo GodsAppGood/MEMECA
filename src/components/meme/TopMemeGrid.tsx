@@ -35,13 +35,14 @@ export const TopMemeGrid = () => {
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
-        .from('Watchlist')
+        .from('Likes')
         .select('meme_id')
         .eq('user_id', userId);
       
       if (error) throw error;
       return data?.map(item => item.meme_id.toString()) ?? [];
-    }
+    },
+    enabled: !!userId
   });
 
   const { data: userPoints = 100 } = useQuery({
@@ -93,13 +94,22 @@ export const TopMemeGrid = () => {
     image_url: placeholderImages[index % placeholderImages.length],
     likes: 0,
     created_at: new Date().toISOString(),
-    isPlaceholder: true
+    isPlaceholder: true,
+    description: "This slot is waiting for your meme!",
+    blockchain: null,
+    trade_link: null,
+    twitter_link: null,
+    telegram_link: null
   }));
 
   const allCards = [...memes, ...placeholderCards];
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
 
   return (

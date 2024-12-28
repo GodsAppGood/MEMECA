@@ -14,6 +14,7 @@ interface MemeCardActionsProps {
     id: string;
     is_featured?: boolean;
     created_by?: string | null;
+    isPlaceholder?: boolean;
   };
   userLikes?: string[];
   userPoints?: number;
@@ -27,11 +28,15 @@ export const MemeCardActions = ({
   userId, 
   isFirst 
 }: MemeCardActionsProps) => {
+  // Don't show actions for placeholder memes
+  if (meme.isPlaceholder) {
+    return null;
+  }
+
   const { isLiked, likesCount, handleLike } = useLikeActions(meme.id, userId || null);
   const { handleFeatureToggle } = useFeatureToggle(meme.id, meme.is_featured || false);
   const { toast } = useToast();
 
-  // Check if user is admin
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {

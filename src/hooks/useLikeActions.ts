@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useLikesSubscription } from "./useLikesSubscription";
 
 export const useLikeActions = (memeId: string, userId: string | null) => {
@@ -9,23 +9,32 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
   const { toast } = useToast();
 
   const fetchLikesCount = async () => {
+    // Skip fetching for placeholder memes
+    if (memeId.startsWith('placeholder-')) {
+      return;
+    }
+
     const id = parseInt(memeId);
     if (isNaN(id)) {
       console.error("Invalid meme ID:", memeId);
       return;
     }
 
-    const { data, error } = await supabase
-      .from("Likes")
-      .select("id")
-      .eq("meme_id", id);
-    
-    if (error) {
-      console.error("Error fetching likes count:", error);
-      return;
+    try {
+      const { data, error } = await supabase
+        .from("Likes")
+        .select("id")
+        .eq("meme_id", id);
+      
+      if (error) {
+        console.error("Error fetching likes count:", error);
+        return;
+      }
+      
+      setLikesCount(data.length);
+    } catch (error) {
+      console.error("Error in fetchLikesCount:", error);
     }
-    
-    setLikesCount(data.length);
   };
 
   useEffect(() => {
@@ -37,6 +46,11 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
   });
 
   const handleLike = async () => {
+    // Prevent liking placeholder memes
+    if (memeId.startsWith('placeholder-')) {
+      return;
+    }
+
     if (!userId) {
       toast({
         title: "Authentication required",
@@ -80,6 +94,11 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
         
         setIsLiked(true);
         setLikesCount(prev => prev + 1);
+        
+        toast({
+          title: "Success",
+          description: "Meme liked successfully",
+        });
       } else {
         const { error: deleteError } = await supabase
           .from("Likes")
@@ -91,12 +110,17 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
         
         setIsLiked(false);
         setLikesCount(prev => Math.max(0, prev - 1));
+        
+        toast({
+          title: "Success",
+          description: "Like removed successfully",
+        });
       }
     } catch (error: any) {
       console.error("Error toggling like:", error);
       toast({
         title: "Error",
-        description: "Failed to update like status",
+        description: error.message || "Failed to update like status",
         variant: "destructive",
       });
     }
