@@ -45,13 +45,6 @@ export const useHeaderAuth = () => {
         console.log('Session token refreshed successfully');
       } else if (event === 'USER_UPDATED') {
         console.log('User profile updated successfully');
-      } else if (event === 'USER_DELETED') {
-        console.error('User account was deleted');
-        toast({
-          variant: "destructive",
-          title: "Account Deleted",
-          description: "Your account has been deleted. Please contact support if this was not intended.",
-        });
       }
     });
 
