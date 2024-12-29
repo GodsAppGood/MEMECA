@@ -27,18 +27,6 @@ export const LoginButton = ({
       origin: window.location.origin
     });
 
-    // Log performance metrics
-    const timing = performance.now();
-    console.log('Login Performance:', {
-      executionTime: `${timing}ms`,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight
-      }
-    });
-
     handleLoginSuccess(response);
   };
 

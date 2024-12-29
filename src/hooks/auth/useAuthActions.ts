@@ -10,15 +10,13 @@ export const useAuthActions = () => {
 
   const handleLoginSuccess = async () => {
     try {
-      // Enhanced logging for debugging auth flow
       console.log('Starting Google OAuth flow...');
       console.log('Current origin:', window.location.origin);
-      console.log('Supabase project URL:', 'https://dpybiegurkiqwponvxac.supabase.co');
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://dpybiegurkiqwponvxac.supabase.co/auth/v1/callback',
+          redirectTo: `${window.location.origin}/auth/v1/callback`,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent'
