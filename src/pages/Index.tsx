@@ -7,7 +7,7 @@ import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 import { MemePagination } from "@/components/MemePagination";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { TestRunnerComponent } from "@/utils/testing/TestRunner";
+import { TestRunnerComponent } from "@/components/testing/TestRunner";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
