@@ -28,7 +28,6 @@ const queryClient = new QueryClient({
       meta: {
         onError: (error: Error) => {
           console.error('Query error:', error);
-          // Log performance metrics in development
           if (process.env.NODE_ENV === 'development') {
             const timing = performance.now();
             console.log(`Query execution time: ${timing}ms`);
@@ -41,7 +40,6 @@ const queryClient = new QueryClient({
       meta: {
         onError: (error: Error) => {
           console.error('Mutation error:', error);
-          // Log performance metrics in development
           if (process.env.NODE_ENV === 'development') {
             const timing = performance.now();
             console.log(`Mutation execution time: ${timing}ms`);
@@ -52,23 +50,26 @@ const queryClient = new QueryClient({
   }
 });
 
-// Google OAuth client ID - using the production client ID
-const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
+// Google OAuth client ID with environment variable support
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
-// Enhanced AppContent with better error handling and performance monitoring
+// Enhanced AppContent with better error handling and OAuth configuration
 const AppContent = () => {
   return (
     <GoogleOAuthProvider 
       clientId={GOOGLE_CLIENT_ID}
       onScriptLoadError={() => {
         console.error('Google OAuth script failed to load');
-        // Log detailed error information in development
         if (process.env.NODE_ENV === 'development') {
           console.log('OAuth Configuration:', {
             clientId: GOOGLE_CLIENT_ID,
             origin: window.location.origin,
             environment: process.env.NODE_ENV,
-            redirectUri: `${window.location.origin}/auth/v1/callback`
+            redirectUri: `${window.location.origin}/auth/v1/callback`,
+            allowedDomains: [
+              'memecatlandar.io',
+              'www.memecatlandar.io'
+            ]
           });
         }
       }}
