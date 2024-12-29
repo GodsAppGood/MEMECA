@@ -3,6 +3,12 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
+const logDebug = (message: string, data?: any) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(message, data);
+  }
+};
+
 export const useAuthCheck = () => {
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,29 +22,32 @@ export const useAuthCheck = () => {
     "/privacy",
     "/terms",
     "/my-story",
-    "/top-memes"
+    "/top-memes",
+    "/tuzemoon",
+    "/watchlist",
+    "/my-memes"
   ];
 
   useEffect(() => {
-    console.log("Checking session status...");
-    
     const checkAuth = async () => {
       try {
+        logDebug("Checking session status...");
+        
         const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
         
-        console.log("Session check result:", { currentSession, sessionError });
+        logDebug("Session check result:", { currentSession, sessionError });
 
         if (sessionError) {
-          console.error("Session check error:", sessionError);
+          logDebug("Session check error:", sessionError);
           throw sessionError;
         }
 
         if (!currentSession) {
-          console.log("No active session found");
+          logDebug("No active session found");
           
           // Only show toast and redirect for protected routes
           if (!publicRoutes.includes(location.pathname)) {
-            console.log(`Protected route ${location.pathname} accessed without authentication`);
+            logDebug(`Protected route ${location.pathname} accessed without authentication`);
             toast({
               title: "Authentication Required",
               description: "Please log in to access this page.",
@@ -49,12 +58,12 @@ export const useAuthCheck = () => {
           return;
         }
 
-        console.log("Current session:", currentSession);
+        logDebug("Current session:", currentSession);
         setSession(currentSession);
 
         await ensureUserExists(currentSession);
       } catch (error: any) {
-        console.error('Auth check error:', error);
+        logDebug('Auth check error:', error);
         
         // Only show error toast and redirect for protected routes
         if (!publicRoutes.includes(location.pathname)) {
@@ -79,12 +88,12 @@ export const useAuthCheck = () => {
           .single();
 
         if (userError && userError.code !== 'PGRST116') {
-          console.error('User data fetch error:', userError);
+          logDebug('User data fetch error:', userError);
           throw userError;
         }
 
         if (!userData) {
-          console.log('Creating new user record...');
+          logDebug('Creating new user record...');
           const { error: insertError } = await supabase
             .from('Users')
             .insert([{
@@ -95,13 +104,13 @@ export const useAuthCheck = () => {
             }]);
 
           if (insertError) {
-            console.error('User creation error:', insertError);
+            logDebug('User creation error:', insertError);
             throw insertError;
           }
-          console.log('New user record created successfully');
+          logDebug('New user record created successfully');
         }
       } catch (error) {
-        console.error('Error in ensureUserExists:', error);
+        logDebug('Error in ensureUserExists:', error);
         throw error;
       }
     };
@@ -110,12 +119,12 @@ export const useAuthCheck = () => {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session);
+      logDebug("Auth state changed:", event, session);
       
       if (event === 'SIGNED_OUT') {
         // Only redirect on sign out if on a protected route
         if (!publicRoutes.includes(location.pathname)) {
-          console.log(`Redirecting from protected route ${location.pathname} after sign out`);
+          logDebug(`Redirecting from protected route ${location.pathname} after sign out`);
           navigate("/");
         }
       }
@@ -124,7 +133,7 @@ export const useAuthCheck = () => {
 
     // Cleanup subscription on unmount
     return () => {
-      console.log("Cleaning up auth subscription");
+      logDebug("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, [navigate, toast, location.pathname]);
