@@ -20,25 +20,38 @@ export const LoginButton = ({
   const { toast } = useToast();
 
   const onSuccess = (response: any) => {
-    console.log('Google OAuth login successful');
-    // Log performance metrics in development
-    if (process.env.NODE_ENV === 'development') {
-      const timing = performance.now();
-      console.log(`Login execution time: ${timing}ms`);
-    }
+    console.log('Google OAuth login successful', {
+      timestamp: new Date().toISOString(),
+      responseType: typeof response,
+      hasCredential: !!response?.credential,
+      origin: window.location.origin
+    });
+
+    // Log performance metrics
+    const timing = performance.now();
+    console.log('Login Performance:', {
+      executionTime: `${timing}ms`,
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      }
+    });
+
     handleLoginSuccess(response);
   };
 
   const onError = () => {
-    console.error('Google OAuth login failed');
-    // Log detailed error information in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Login Error Context:', {
-        origin: window.location.origin,
-        environment: process.env.NODE_ENV,
-        timestamp: new Date().toISOString()
-      });
-    }
+    console.error('Google OAuth login failed', {
+      timestamp: new Date().toISOString(),
+      location: window.location.href,
+      origin: window.location.origin,
+      environment: import.meta.env.MODE,
+      googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      redirectUri: `${window.location.origin}/auth/v1/callback`
+    });
+
     toast({
       variant: "destructive",
       title: "Login Failed",
