@@ -24,13 +24,20 @@ export const LoginButton = ({
 
   const onSuccess = (response: any) => {
     setIsLoading(true);
-    console.log('Google OAuth login successful', {
+    console.log('Google OAuth login attempt:', {
       timestamp: new Date().toISOString(),
       responseType: typeof response,
       hasCredential: !!response?.credential,
       origin: window.location.origin,
       environment: import.meta.env.MODE,
-      currentPath: window.location.pathname
+      currentPath: window.location.pathname,
+      redirectUri: `${window.location.origin}/auth/v1/callback`,
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+      allowedDomains: [
+        'memecatlandar.io',
+        'www.memecatlandar.io',
+        window.location.hostname
+      ]
     });
 
     handleLoginSuccess(response);
@@ -39,7 +46,7 @@ export const LoginButton = ({
 
   const onError = () => {
     setIsLoading(false);
-    console.error('Google OAuth login failed', {
+    console.error('Google OAuth login failed:', {
       timestamp: new Date().toISOString(),
       location: window.location.href,
       origin: window.location.origin,
@@ -58,8 +65,8 @@ export const LoginButton = ({
 
     toast({
       variant: "destructive",
-      title: "Login Failed",
-      description: "There was a problem signing in with Google. Please ensure pop-ups are enabled, cookies are allowed, and try again. If the problem persists, try clearing your browser cache.",
+      title: "Ошибка входа",
+      description: "Возникла проблема при входе через Google. Пожалуйста, убедитесь что разрешены всплывающие окна и куки, затем попробуйте снова. Если проблема сохраняется, попробуйте очистить кэш браузера.",
     });
     handleLoginError();
   };
@@ -75,25 +82,25 @@ export const LoginButton = ({
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Logging in...
+            Вход...
           </>
         ) : (
-          "Log in"
+          "Войти"
         )}
       </Button>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Login with Google</DialogTitle>
+            <DialogTitle>Вход через Google</DialogTitle>
             <DialogDescription>
-              We use Google's secure authentication to protect your data. By logging in, you agree to our{" "}
+              Мы используем безопасную аутентификацию Google для защиты ваших данных. Входя, вы соглашаетесь с нашей{" "}
               <Link to="/privacy" className="text-primary hover:underline">
-                Privacy Policy
+                Политикой конфиденциальности
               </Link>{" "}
-              and{" "}
+              и{" "}
               <Link to="/terms" className="text-primary hover:underline">
-                Terms of Service
+                Условиями использования
               </Link>
               .
             </DialogDescription>
@@ -102,7 +109,7 @@ export const LoginButton = ({
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span>Connecting to Google...</span>
+                <span>Подключение к Google...</span>
               </div>
             ) : (
               <GoogleLogin
@@ -113,7 +120,7 @@ export const LoginButton = ({
                 shape="pill"
                 size="large"
                 text="continue_with"
-                locale="en"
+                locale="ru"
                 context="signin"
               />
             )}
