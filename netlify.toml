@@ -4,9 +4,11 @@
   status = 200
   force = true
 
-[build]
-  command = "npm run build"
-  publish = "dist"
+[[redirects]]
+  from = "https://www.memecatlandar.io/*"
+  to = "https://memecatlandar.io/:splat"
+  status = 301
+  force = true
 
 [[headers]]
   for = "/*"
@@ -15,3 +17,6 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer-when-downgrade"
+    Link = '''
+    <https://memecatlandar.io>; rel="canonical"
+    '''
