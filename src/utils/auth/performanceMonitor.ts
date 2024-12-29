@@ -1,3 +1,11 @@
+interface ExtendedPerformance extends Performance {
+  memory?: {
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+  };
+}
+
 export const logAuthPerformance = (action: string, startTime: number) => {
   if (process.env.NODE_ENV === 'development') {
     const endTime = performance.now();
@@ -5,10 +13,11 @@ export const logAuthPerformance = (action: string, startTime: number) => {
     console.log(`Auth ${action} completed in ${duration.toFixed(2)}ms`);
     
     // Log memory usage in development
-    if (performance.memory) {
+    const extendedPerformance = performance as ExtendedPerformance;
+    if (extendedPerformance.memory) {
       console.log('Memory usage:', {
-        usedJSHeapSize: Math.round(performance.memory.usedJSHeapSize / 1048576) + 'MB',
-        totalJSHeapSize: Math.round(performance.memory.totalJSHeapSize / 1048576) + 'MB'
+        usedJSHeapSize: Math.round(extendedPerformance.memory.usedJSHeapSize / 1048576) + 'MB',
+        totalJSHeapSize: Math.round(extendedPerformance.memory.totalJSHeapSize / 1048576) + 'MB'
       });
     }
   }
