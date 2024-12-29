@@ -2,26 +2,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { MemeGrid } from "@/components/MemeGrid";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useMemeAuth } from "@/hooks/useMemeAuth";
 
 const MyMemes = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/');
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
+  useMemeAuth(); // This will handle authentication and navigation
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

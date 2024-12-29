@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { UnifiedMemeCard } from "./meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
@@ -6,8 +6,8 @@ import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useMemeQuery } from "@/hooks/useMemeQuery";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { EmptyMemeState } from "./meme/EmptyMemeState";
+import { useMemeAuth } from "@/hooks/useMemeAuth";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -28,17 +28,7 @@ export const MemeGrid = ({
   itemsPerPage = 100,
   userOnly = false
 }: MemeGridProps) => {
-  const [userId, setUserId] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id ?? null);
-    };
-    getSession();
-  }, []);
-
+  const { userId } = useMemeAuth();
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
   
   const { data: memes = [], isLoading, error, refetch } = useMemeQuery({
@@ -100,26 +90,7 @@ export const MemeGrid = ({
   }
 
   if (!memes || memes.length === 0) {
-    return (
-      <div className="space-y-4">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {userOnly 
-              ? "You have not created any memes yet. Add your first meme to see it here!"
-              : "No memes found. Try using different filters."}
-          </AlertDescription>
-        </Alert>
-        {userOnly && (
-          <Button 
-            onClick={() => navigate('/submit')}
-            className="bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 transition-all duration-300 hover:scale-105"
-          >
-            Create Your First Meme
-          </Button>
-        )}
-      </div>
-    );
+    return <EmptyMemeState isUserOnly={userOnly} />;
   }
 
   return (
