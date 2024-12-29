@@ -10,11 +10,8 @@ export const useAuthActions = () => {
 
   const handleLoginSuccess = async () => {
     try {
-      console.log('Starting Google OAuth flow...', {
-        timestamp: new Date().toISOString(),
-        origin: window.location.origin,
-        redirectUrl: `${window.location.origin}/auth/v1/callback`
-      });
+      console.log('Starting Google OAuth flow...');
+      console.log('Current origin:', window.location.origin);
       
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -34,14 +31,9 @@ export const useAuthActions = () => {
           title: "Login failed",
           description: error.message,
         });
-        return;
+      } else {
+        console.log('OAuth flow completed successfully:', data);
       }
-
-      console.log('OAuth flow completed successfully:', {
-        timestamp: new Date().toISOString(),
-        hasData: !!data,
-        provider: 'google'
-      });
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
@@ -55,12 +47,7 @@ export const useAuthActions = () => {
   };
 
   const handleLoginError = () => {
-    console.error('Google OAuth Login Failed', {
-      timestamp: new Date().toISOString(),
-      location: window.location.href,
-      origin: window.location.origin
-    });
-    
+    console.error('Google OAuth Login Failed');
     toast({
       variant: "destructive",
       title: "Login failed",
