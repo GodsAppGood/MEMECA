@@ -26,6 +26,16 @@ export const MemeGrid = ({
   itemsPerPage = 100,
   userOnly = false
 }: MemeGridProps) => {
+  console.log("Rendering MemeGrid with props:", {
+    selectedDate,
+    selectedBlockchain,
+    showTodayOnly,
+    showTopOnly,
+    currentPage,
+    itemsPerPage,
+    userOnly
+  });
+
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,7 +95,7 @@ export const MemeGrid = ({
     );
   }
 
-  if (memes.length === 0) {
+  if (!memes || memes.length === 0) {
     return (
       <Alert>
         <AlertCircle className="h-4 w-4" />
@@ -95,6 +105,8 @@ export const MemeGrid = ({
       </Alert>
     );
   }
+
+  console.log("Rendering memes grid with", memes.length, "memes");
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

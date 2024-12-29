@@ -23,30 +23,29 @@ export const useMemeQuery = ({
   userOnly,
   userId
 }: MemeQueryOptions) => {
-  return useQuery({
-    queryKey: ["memes", selectedDate, selectedBlockchain, showTodayOnly, showTopOnly, currentPage, userOnly, userId],
-    queryFn: async () => {
-      console.log("Fetching memes with params:", {
-        selectedDate,
-        selectedBlockchain,
-        showTodayOnly,
-        showTopOnly,
-        currentPage,
-        itemsPerPage,
-        userOnly,
-        userId
-      });
+  console.log("Initializing useMemeQuery with options:", {
+    selectedDate,
+    selectedBlockchain,
+    showTodayOnly,
+    showTopOnly,
+    currentPage,
+    itemsPerPage,
+    userOnly,
+    userId
+  });
 
+  return useQuery({
+    queryKey: ["memes", selectedDate?.toISOString(), selectedBlockchain, showTodayOnly, showTopOnly, currentPage, userOnly, userId],
+    queryFn: async () => {
+      console.log("Executing meme query function");
       let query = supabase
         .from('Memes')
         .select('*');
 
-      // For user's own memes, show all their memes
       if (userOnly && userId) {
         query = query.eq('created_by', userId);
       }
 
-      // Apply date filter only if explicitly selected
       if (selectedDate) {
         const start = startOfDay(selectedDate);
         const end = endOfDay(selectedDate);
@@ -54,25 +53,21 @@ export const useMemeQuery = ({
                     .lte('created_at', end.toISOString());
       }
 
-      // Apply blockchain filter only if explicitly selected
       if (selectedBlockchain) {
         query = query.eq('blockchain', selectedBlockchain);
       }
 
-      // Apply 24-hour filter only if explicitly requested
       if (showTodayOnly) {
         const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
         query = query.gte('created_at', last24Hours);
       }
 
-      // Apply sorting
       if (showTopOnly) {
         query = query.order('likes', { ascending: false });
       } else {
         query = query.order('created_at', { ascending: false });
       }
 
-      // Apply pagination
       const { data, error } = await query
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
       
@@ -83,6 +78,8 @@ export const useMemeQuery = ({
 
       console.log("Fetched memes:", data);
       return data || [];
-    }
+    },
+    staleTime: 30000,
+    enabled: true
   });
 };
