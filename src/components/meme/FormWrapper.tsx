@@ -5,13 +5,18 @@ import { BlockchainSelector } from "./BlockchainSelector";
 import { DateSelector } from "./DateSelector";
 import { SubmitButton } from "./SubmitButton";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
-export const FormWrapper = () => {
+interface FormWrapperProps {
+  onSubmitAttempt: () => void;
+  isAuthenticated: boolean;
+}
+
+export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [blockchain, setBlockchain] = useState("");
@@ -31,46 +36,8 @@ export const FormWrapper = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      
-      if (error) {
-        console.error('Auth check error:', error);
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: "Please try logging in again.",
-        });
-        navigate('/');
-        return;
-      }
-
-      if (!session) {
-        toast({
-          variant: "destructive",
-          title: "Authentication Required",
-          description: "Please log in to submit memes.",
-        });
-        navigate('/');
-        return;
-      }
-
-      setUser(session.user);
-
-      const editingMeme = localStorage.getItem("editingMeme");
-      if (editingMeme) {
-        const meme = JSON.parse(editingMeme);
-        setTitle(meme.title);
-        setDescription(meme.description || "");
-        setBlockchain(meme.blockchain || "");
-        setCreatedAt(meme.created_at ? new Date(meme.created_at) : undefined);
-        setTwitterLink(meme.twitter_link || "");
-        setTelegramLink(meme.telegram_link || "");
-        setTradeLink(meme.trade_link || "");
-        setImageUrl(meme.image_url);
-        setIsEditing(true);
-        setEditingId(meme.id);
-        localStorage.removeItem("editingMeme");
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
     };
 
     checkAuth();
@@ -84,25 +51,21 @@ export const FormWrapper = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isAuthenticated) {
+      onSubmitAttempt();
+      return;
+    }
+
     if (!imageUrl) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "Please upload an image.",
-      });
-      return;
-    }
-
-    if (!user) {
-      toast({
-        variant: "destructive",
-        title: "Authentication Required",
-        description: "Please log in to submit memes.",
       });
       return;
     }
@@ -118,7 +81,7 @@ export const FormWrapper = () => {
         telegram_link: telegramLink || null,
         trade_link: tradeLink || null,
         image_url: imageUrl,
-        created_by: user.id,
+        created_by: user?.id,
         created_at: createdAt?.toISOString() || new Date().toISOString(),
         time_until_listing: createdAt?.toISOString() || new Date().toISOString()
       };
@@ -138,7 +101,6 @@ export const FormWrapper = () => {
         if (insertError) throw insertError;
       }
 
-      // Invalidate and refetch queries to update the UI
       await queryClient.invalidateQueries({ queryKey: ["memes"] });
 
       toast({
@@ -146,7 +108,7 @@ export const FormWrapper = () => {
         description: isEditing ? "Meme updated successfully." : "Meme submitted successfully.",
       });
       
-      navigate("/");
+      navigate("/my-memes");
     } catch (error: any) {
       console.error('Error submitting meme:', error);
       toast({

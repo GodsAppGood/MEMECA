@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 interface ProfileDropdownProps {
   user: {
@@ -47,13 +47,6 @@ export const ProfileDropdown = ({ user, onLogout, isDashboardRoute }: ProfileDro
             <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
         </div>
-        <DropdownMenuItem 
-          onClick={() => navigate('/my-memes')} 
-          className="cursor-pointer flex items-center p-2 hover:bg-gray-100"
-        >
-          <LayoutDashboard className="mr-2 h-4 w-4" />
-          <span>My Memes</span>
-        </DropdownMenuItem>
         <DropdownMenuItem 
           onClick={onLogout} 
           className="cursor-pointer flex items-center p-2 hover:bg-gray-100 text-red-600"

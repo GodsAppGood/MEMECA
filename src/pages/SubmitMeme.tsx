@@ -6,79 +6,36 @@ import { Support } from "@/components/Support";
 import { MemeForm } from "@/components/meme/MemeForm";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const SubmitMeme = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  const checkAuth = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    } catch (error) {
+      console.error('Auth check error:', error);
+    }
+  };
+
+  const handleSubmitAttempt = () => {
+    if (!user) {
+      setIsLoginDialogOpen(true);
+      return;
+    }
+    // Handle submission for authenticated users
+  };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Auth error:', error);
-          throw error;
-        }
-
-        if (!session) {
-          toast({
-            title: "Authentication Required",
-            description: "Please log in to submit memes.",
-            variant: "destructive"
-          });
-          navigate("/");
-          return;
-        }
-
-        // Verify user exists in Users table
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('*')
-          .eq('auth_id', session.user.id)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          console.error('User data error:', userError);
-          throw userError;
-        }
-
-        // If user doesn't exist in Users table, create them
-        if (!userData) {
-          const { error: insertError } = await supabase
-            .from('Users')
-            .insert([
-              {
-                auth_id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata.name,
-                profile_image: session.user.user_metadata.picture
-              }
-            ]);
-
-          if (insertError) {
-            console.error('User creation error:', insertError);
-            throw insertError;
-          }
-        }
-
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Auth check error:', error);
-        toast({
-          title: "Error",
-          description: "There was a problem verifying your authentication. Please try logging in again.",
-          variant: "destructive"
-        });
-        navigate("/");
-      }
-    };
-
     checkAuth();
 
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
         navigate("/");
       }
@@ -87,19 +44,7 @@ const SubmitMeme = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, toast]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
-        <Header />
-        <main className="flex-grow pt-16 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -108,10 +53,38 @@ const SubmitMeme = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
             <h2 className="text-3xl font-serif text-center mb-8">Submit Your Meme</h2>
-            <MemeForm />
+            <MemeForm onSubmitAttempt={handleSubmitAttempt} isAuthenticated={!!user} />
           </div>
         </div>
       </main>
+
+      <Dialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Authentication Required</DialogTitle>
+            <DialogDescription>
+              You need to log in to add memes. Please log in or sign up.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => setIsLoginDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                setIsLoginDialogOpen(false);
+                navigate('/');
+              }}
+            >
+              Log in
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Support />
       <Footer />
     </div>
