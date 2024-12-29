@@ -2,10 +2,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "./config/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import SubmitMeme from "./pages/SubmitMeme";
 import { MemeDetailPage } from "./components/meme/detail/MemeDetailPage";
@@ -21,10 +24,46 @@ import Tuzemoon from "./pages/Tuzemoon";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
+const SessionHandler = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', {
+        event,
+        timestamp: new Date().toISOString(),
+        sessionExists: !!session,
+        userId: session?.user?.id,
+        origin: window.location.origin,
+        environment: import.meta.env.MODE,
+        currentPath: window.location.pathname
+      });
+
+      if (event === 'TOKEN_REFRESHED') {
+        console.log('Session token refreshed successfully');
+      } else if (event === 'SIGNED_OUT') {
+        toast({
+          title: "Session Ended",
+          description: "Your session has ended. Please log in again to continue.",
+          variant: "destructive"
+        });
+        navigate('/');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate, toast]);
+
+  return null;
+};
+
 const AppContent = () => {
   const handleOAuthError = () => {
-    console.error('Google OAuth script failed to load');
-    console.log('OAuth Configuration:', {
+    console.error('Google OAuth script failed to load', {
+      timestamp: new Date().toISOString(),
       clientId: GOOGLE_CLIENT_ID,
       origin: window.location.origin,
       environment: import.meta.env.MODE,
@@ -48,6 +87,7 @@ const AppContent = () => {
             <Toaster />
             <SonnerToaster />
             <BrowserRouter>
+              <SessionHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/submit" element={<SubmitMeme />} />

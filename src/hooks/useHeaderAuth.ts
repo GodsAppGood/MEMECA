@@ -19,13 +19,15 @@ export const useHeaderAuth = () => {
     console.log('Setting up auth state listener, initial loading state:', isLoading);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, 'Session:', session ? 'exists' : 'null', {
+      console.log('Auth state changed:', {
         timestamp: new Date().toISOString(),
         event,
         sessionExists: !!session,
         userId: session?.user?.id,
         origin: window.location.origin,
-        environment: import.meta.env.MODE
+        environment: import.meta.env.MODE,
+        currentPath: window.location.pathname,
+        sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null
       });
       
       if (event === 'SIGNED_IN') {
@@ -43,12 +45,44 @@ export const useHeaderAuth = () => {
         console.log('Session token refreshed successfully');
       } else if (event === 'USER_UPDATED') {
         console.log('User profile updated successfully');
+      } else if (event === 'USER_DELETED') {
+        console.error('User account was deleted');
+        toast({
+          variant: "destructive",
+          title: "Account Deleted",
+          description: "Your account has been deleted. Please contact support if this was not intended.",
+        });
       }
     });
 
+    // Set up session expiry check
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error('Session check error:', error);
+        return;
+      }
+      
+      if (session?.expires_at) {
+        const expiryTime = new Date(session.expires_at * 1000);
+        const timeUntilExpiry = expiryTime.getTime() - Date.now();
+        
+        if (timeUntilExpiry < 300000) { // 5 minutes
+          toast({
+            title: "Session Expiring Soon",
+            description: "Your session will expire soon. Please save your work and log in again.",
+            variant: "destructive"
+          });
+        }
+      }
+    };
+
+    const sessionCheckInterval = setInterval(checkSession, 60000); // Check every minute
+
     return () => {
-      console.log('Cleaning up auth subscription');
+      console.log('Cleaning up auth subscription and interval');
       subscription.unsubscribe();
+      clearInterval(sessionCheckInterval);
     };
   }, [toast, isLoading]);
 

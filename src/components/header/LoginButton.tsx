@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 interface LoginButtonProps {
   isLoginOpen: boolean;
@@ -18,20 +20,25 @@ export const LoginButton = ({
   handleLoginError,
 }: LoginButtonProps) => {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSuccess = (response: any) => {
+    setIsLoading(true);
     console.log('Google OAuth login successful', {
       timestamp: new Date().toISOString(),
       responseType: typeof response,
       hasCredential: !!response?.credential,
       origin: window.location.origin,
-      environment: import.meta.env.MODE
+      environment: import.meta.env.MODE,
+      currentPath: window.location.pathname
     });
 
     handleLoginSuccess(response);
+    setIsLoading(false);
   };
 
   const onError = () => {
+    setIsLoading(false);
     console.error('Google OAuth login failed', {
       timestamp: new Date().toISOString(),
       location: window.location.href,
@@ -43,13 +50,16 @@ export const LoginButton = ({
         'memecatlandar.io',
         'www.memecatlandar.io',
         window.location.hostname
-      ]
+      ],
+      userAgent: navigator.userAgent,
+      cookiesEnabled: navigator.cookieEnabled,
+      hasLocalStorage: !!window.localStorage
     });
 
     toast({
       variant: "destructive",
       title: "Login Failed",
-      description: "There was a problem signing in with Google. Please ensure pop-ups are enabled and try again.",
+      description: "There was a problem signing in with Google. Please ensure pop-ups are enabled, cookies are allowed, and try again. If the problem persists, try clearing your browser cache.",
     });
     handleLoginError();
   };
@@ -60,8 +70,16 @@ export const LoginButton = ({
         variant="default"
         className="bg-[#FFB74D] text-black hover:bg-[#EAA347] transition-all duration-300 hover:scale-105 rounded-md shadow-[0_2px_5px_rgba(0,0,0,0.2)] hover:shadow-lg"
         onClick={() => setIsLoginOpen(true)}
+        disabled={isLoading}
       >
-        Log in
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Logging in...
+          </>
+        ) : (
+          "Log in"
+        )}
       </Button>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
@@ -81,17 +99,24 @@ export const LoginButton = ({
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col items-center justify-center space-y-4 p-4">
-            <GoogleLogin
-              onSuccess={onSuccess}
-              onError={onError}
-              useOneTap
-              theme="filled_black"
-              shape="pill"
-              size="large"
-              text="continue_with"
-              locale="en"
-              context="signin"
-            />
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span>Connecting to Google...</span>
+              </div>
+            ) : (
+              <GoogleLogin
+                onSuccess={onSuccess}
+                onError={onError}
+                useOneTap
+                theme="filled_black"
+                shape="pill"
+                size="large"
+                text="continue_with"
+                locale="en"
+                context="signin"
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
