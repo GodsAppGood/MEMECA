@@ -25,7 +25,8 @@ export const useHeaderAuth = () => {
           title: "Welcome!",
           description: "You have successfully signed in.",
         });
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' && !isLoading) {
+        // Only show toast if it's not the initial load
         toast({
           title: "Signed out",
           description: "You have been successfully signed out.",
@@ -38,7 +39,7 @@ export const useHeaderAuth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, isLoading]);
 
   return {
     user,
