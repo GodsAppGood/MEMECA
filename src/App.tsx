@@ -11,8 +11,8 @@ import { AppRoutes } from "./config/routes";
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
 const AppContent = () => {
-  const handleOAuthError = (error: Error) => {
-    console.error('Google OAuth script failed to load:', error);
+  const handleOAuthError = () => {
+    console.error('Google OAuth script failed to load');
     console.log('OAuth Configuration:', {
       clientId: GOOGLE_CLIENT_ID,
       origin: window.location.origin,
