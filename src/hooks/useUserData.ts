@@ -2,13 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 export const useUserData = (userId: string | null) => {
-  const { data: userPoints = 100 } = useQuery({
-    queryKey: ["user-points", userId],
-    queryFn: async () => {
-      return 100; // Default points since referral system is removed
-    }
-  });
-
   const { data: userLikes = [], refetch: refetchLikes } = useQuery({
     queryKey: ["user-likes", userId],
     queryFn: async () => {
@@ -24,7 +17,6 @@ export const useUserData = (userId: string | null) => {
   });
 
   return {
-    userPoints,
     userLikes,
     refetchLikes
   };
