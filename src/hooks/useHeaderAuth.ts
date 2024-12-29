@@ -17,8 +17,10 @@ export const useHeaderAuth = () => {
 
   // Monitor auth state changes
   useEffect(() => {
+    console.log('Setting up auth state listener, initial loading state:', isLoading);
+    
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event);
+      console.log('Auth state changed:', event, 'Session:', session ? 'exists' : 'null');
       
       if (event === 'SIGNED_IN') {
         toast({
@@ -26,7 +28,8 @@ export const useHeaderAuth = () => {
           description: "You have successfully signed in.",
         });
       } else if (event === 'SIGNED_OUT' && !isLoading) {
-        // Only show toast if it's not the initial load
+        // Only show toast if it's not the initial load and there was an actual sign-out
+        console.log('Sign out event detected, not initial load');
         toast({
           title: "Signed out",
           description: "You have been successfully signed out.",
@@ -36,7 +39,9 @@ export const useHeaderAuth = () => {
       }
     });
 
+    // Cleanup subscription on unmount
     return () => {
+      console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
     };
   }, [toast, isLoading]);
