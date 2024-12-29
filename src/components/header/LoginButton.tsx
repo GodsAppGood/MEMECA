@@ -21,11 +21,24 @@ export const LoginButton = ({
 
   const onSuccess = (response: any) => {
     console.log('Google OAuth login successful');
+    // Log performance metrics in development
+    if (process.env.NODE_ENV === 'development') {
+      const timing = performance.now();
+      console.log(`Login execution time: ${timing}ms`);
+    }
     handleLoginSuccess(response);
   };
 
   const onError = () => {
     console.error('Google OAuth login failed');
+    // Log detailed error information in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Login Error Context:', {
+        origin: window.location.origin,
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+      });
+    }
     toast({
       variant: "destructive",
       title: "Login Failed",
