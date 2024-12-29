@@ -9,6 +9,8 @@ import { EmptyMemeState } from "./meme/EmptyMemeState";
 import { useMemeAuth } from "@/hooks/useMemeAuth";
 import { MemeGridLoader } from "./meme/grid/MemeGridLoader";
 import { MemeGridError } from "./meme/grid/MemeGridError";
+import { Button } from "./ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -29,6 +31,7 @@ export const MemeGrid = ({
   itemsPerPage = 100,
   userOnly = false
 }: MemeGridProps) => {
+  const navigate = useNavigate();
   const { userId } = useMemeAuth();
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
   
@@ -62,12 +65,21 @@ export const MemeGrid = ({
 
   if (userOnly && !userId) {
     return (
-      <Alert>
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          You need to log in to view your memes.
-        </AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            You need to log in to view your memes.
+          </AlertDescription>
+        </Alert>
+        <Button 
+          onClick={() => navigate('/')} 
+          variant="default"
+          className="bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90"
+        >
+          Go to Home Page
+        </Button>
+      </div>
     );
   }
 

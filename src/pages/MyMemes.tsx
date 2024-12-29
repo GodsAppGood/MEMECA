@@ -2,11 +2,8 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { MemeGrid } from "@/components/MemeGrid";
-import { useMemeAuth } from "@/hooks/useMemeAuth";
 
 const MyMemes = () => {
-  useMemeAuth(); // This will handle authentication and navigation
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Header />
