@@ -2,11 +2,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { UserMemes } from "@/components/dashboard/UserMemes";
 import { Watchlist } from "@/components/dashboard/Watchlist";
-import { ReferralProgram } from "@/components/dashboard/ReferralProgram";
 import { useState } from "react";
 
 const Dashboard = () => {
-  const [activeSection, setActiveSection] = useState<'memes' | 'watchlist' | 'referral'>('memes');
+  const [activeSection, setActiveSection] = useState<'memes' | 'watchlist'>('memes');
 
   return (
     <div className="min-h-screen bg-background">
@@ -15,7 +14,6 @@ const Dashboard = () => {
         <main className="w-full">
           {activeSection === 'memes' && <UserMemes />}
           {activeSection === 'watchlist' && <Watchlist />}
-          {activeSection === 'referral' && <ReferralProgram />}
         </main>
       </div>
       <Footer />
