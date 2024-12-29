@@ -8,7 +8,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { queryClient } from "./config/queryClient";
 import { AppRoutes } from "./config/routes";
 
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
 const AppContent = () => {
   const handleOAuthError = () => {
@@ -16,7 +16,7 @@ const AppContent = () => {
     console.log('OAuth Configuration:', {
       clientId: GOOGLE_CLIENT_ID,
       origin: window.location.origin,
-      environment: process.env.NODE_ENV,
+      environment: import.meta.env.MODE,
       redirectUri: `${window.location.origin}/auth/v1/callback`,
       allowedDomains: [
         'memecatlandar.io',
