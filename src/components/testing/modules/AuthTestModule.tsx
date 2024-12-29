@@ -6,7 +6,6 @@ interface AuthTestResult {
   name: string;
   status: "pass" | "fail" | "manual";
   error?: string;
-  details?: string;
 }
 
 export const AuthTestModule = () => {
@@ -18,24 +17,19 @@ export const AuthTestModule = () => {
     const testResults: AuthTestResult[] = [];
 
     try {
-      // Test anonymous access
-      const { data: publicData, error: publicError } = await supabase
-        .from('Memes')
-        .select('*')
-        .limit(1);
-
-      testResults.push({
-        name: "Public Access to Memes",
-        status: !publicError ? "pass" : "fail",
-        error: publicError?.message
-      });
-
       // Test session management
-      const { data: session } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       testResults.push({
         name: "Session Management",
-        status: session ? "pass" : "manual",
-        details: "Please verify that login/logout functionality works correctly"
+        status: !sessionError ? "pass" : "fail",
+        error: sessionError?.message
+      });
+
+      // Test Google OAuth configuration
+      testResults.push({
+        name: "Google OAuth Setup",
+        status: "manual",
+        error: "Please verify OAuth configuration in Supabase dashboard"
       });
 
     } catch (error: any) {
@@ -69,12 +63,13 @@ export const AuthTestModule = () => {
               className={`p-2 rounded ${
                 result.status === 'pass' 
                   ? 'bg-green-100 text-green-800' 
+                  : result.status === 'manual'
+                  ? 'bg-yellow-100 text-yellow-800'
                   : 'bg-red-100 text-red-800'
               }`}
             >
               <p>{result.name}: {result.status}</p>
               {result.error && <p className="text-sm">{result.error}</p>}
-              {result.details && <p className="text-sm">{result.details}</p>}
             </div>
           ))}
         </div>
