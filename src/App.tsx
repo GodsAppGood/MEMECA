@@ -18,7 +18,7 @@ import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
 
-// Enhanced QueryClient with better error handling and performance monitoring
+// Enhanced QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -50,28 +50,26 @@ const queryClient = new QueryClient({
   }
 });
 
-// Google OAuth client ID with environment variable support
+// Google OAuth client ID configuration with enhanced error handling
 const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
-// Enhanced AppContent with better error handling and OAuth configuration
 const AppContent = () => {
   return (
     <GoogleOAuthProvider 
       clientId={GOOGLE_CLIENT_ID}
-      onScriptLoadError={() => {
-        console.error('Google OAuth script failed to load');
-        if (process.env.NODE_ENV === 'development') {
-          console.log('OAuth Configuration:', {
-            clientId: GOOGLE_CLIENT_ID,
-            origin: window.location.origin,
-            environment: process.env.NODE_ENV,
-            redirectUri: `${window.location.origin}/auth/v1/callback`,
-            allowedDomains: [
-              'memecatlandar.io',
-              'www.memecatlandar.io'
-            ]
-          });
-        }
+      onScriptLoadError={(error) => {
+        console.error('Google OAuth script failed to load:', error);
+        console.log('OAuth Configuration:', {
+          clientId: GOOGLE_CLIENT_ID,
+          origin: window.location.origin,
+          environment: process.env.NODE_ENV,
+          redirectUri: `${window.location.origin}/auth/v1/callback`,
+          allowedDomains: [
+            'memecatlandar.io',
+            'www.memecatlandar.io',
+            window.location.hostname // Include current hostname for local development
+          ]
+        });
       }}
     >
       <QueryClientProvider client={queryClient}>
