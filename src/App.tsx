@@ -52,8 +52,8 @@ const queryClient = new QueryClient({
   }
 });
 
-// Google OAuth client ID from environment variable with fallback
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
+// Google OAuth client ID - using the production client ID
+const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
 // Enhanced AppContent with better error handling and performance monitoring
 const AppContent = () => {
@@ -67,7 +67,8 @@ const AppContent = () => {
           console.log('OAuth Configuration:', {
             clientId: GOOGLE_CLIENT_ID,
             origin: window.location.origin,
-            environment: process.env.NODE_ENV
+            environment: process.env.NODE_ENV,
+            redirectUri: `${window.location.origin}/auth/v1/callback`
           });
         }
       }}
