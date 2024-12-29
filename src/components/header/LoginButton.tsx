@@ -24,7 +24,8 @@ export const LoginButton = ({
       timestamp: new Date().toISOString(),
       responseType: typeof response,
       hasCredential: !!response?.credential,
-      origin: window.location.origin
+      origin: window.location.origin,
+      environment: import.meta.env.MODE
     });
 
     handleLoginSuccess(response);
@@ -37,13 +38,18 @@ export const LoginButton = ({
       origin: window.location.origin,
       environment: import.meta.env.MODE,
       googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      redirectUri: `${window.location.origin}/auth/v1/callback`
+      redirectUri: `${window.location.origin}/auth/v1/callback`,
+      allowedDomains: [
+        'memecatlandar.io',
+        'www.memecatlandar.io',
+        window.location.hostname
+      ]
     });
 
     toast({
       variant: "destructive",
       title: "Login Failed",
-      description: "There was a problem signing in with Google. Please try again.",
+      description: "There was a problem signing in with Google. Please ensure pop-ups are enabled and try again.",
     });
     handleLoginError();
   };

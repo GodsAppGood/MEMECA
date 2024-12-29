@@ -15,12 +15,18 @@ export const useHeaderAuth = () => {
     handleLogout,
   } = useAuthActions();
 
-  // Monitor auth state changes
   useEffect(() => {
     console.log('Setting up auth state listener, initial loading state:', isLoading);
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, 'Session:', session ? 'exists' : 'null');
+      console.log('Auth state changed:', event, 'Session:', session ? 'exists' : 'null', {
+        timestamp: new Date().toISOString(),
+        event,
+        sessionExists: !!session,
+        userId: session?.user?.id,
+        origin: window.location.origin,
+        environment: import.meta.env.MODE
+      });
       
       if (event === 'SIGNED_IN') {
         toast({
@@ -28,18 +34,18 @@ export const useHeaderAuth = () => {
           description: "You have successfully signed in.",
         });
       } else if (event === 'SIGNED_OUT' && !isLoading) {
-        // Only show toast if it's not the initial load and there was an actual sign-out
         console.log('Sign out event detected, not initial load');
         toast({
           title: "Signed out",
           description: "You have been successfully signed out.",
         });
       } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Session token refreshed');
+        console.log('Session token refreshed successfully');
+      } else if (event === 'USER_UPDATED') {
+        console.log('User profile updated successfully');
       }
     });
 
-    // Cleanup subscription on unmount
     return () => {
       console.log('Cleaning up auth subscription');
       subscription.unsubscribe();
