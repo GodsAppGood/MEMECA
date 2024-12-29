@@ -3,9 +3,9 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const logDebug = (message: string, data?: any) => {
+const logDebug = (message: string, ...data: any[]) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(message, data);
+    console.log(message, ...data);
   }
 };
 
@@ -35,7 +35,7 @@ export const useAuthCheck = () => {
         
         const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
         
-        logDebug("Session check result", { currentSession, sessionError });
+        logDebug("Session check result", currentSession, sessionError);
 
         if (sessionError) {
           logDebug("Session check error", sessionError);
@@ -119,7 +119,7 @@ export const useAuthCheck = () => {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      logDebug("Auth state changed", { event, session });
+      logDebug("Auth state changed", event, session);
       
       if (event === 'SIGNED_OUT') {
         // Only redirect on sign out if on a protected route
