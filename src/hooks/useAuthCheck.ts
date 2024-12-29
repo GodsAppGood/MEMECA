@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const logDebug = (message: string, data?: any) => {
@@ -35,10 +35,10 @@ export const useAuthCheck = () => {
         
         const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
         
-        logDebug("Session check result:", { currentSession, sessionError });
+        logDebug("Session check result", { currentSession, sessionError });
 
         if (sessionError) {
-          logDebug("Session check error:", sessionError);
+          logDebug("Session check error", sessionError);
           throw sessionError;
         }
 
@@ -47,7 +47,7 @@ export const useAuthCheck = () => {
           
           // Only show toast and redirect for protected routes
           if (!publicRoutes.includes(location.pathname)) {
-            logDebug(`Protected route ${location.pathname} accessed without authentication`);
+            logDebug("Protected route accessed without authentication", location.pathname);
             toast({
               title: "Authentication Required",
               description: "Please log in to access this page.",
@@ -58,12 +58,12 @@ export const useAuthCheck = () => {
           return;
         }
 
-        logDebug("Current session:", currentSession);
+        logDebug("Current session", currentSession);
         setSession(currentSession);
 
         await ensureUserExists(currentSession);
       } catch (error: any) {
-        logDebug('Auth check error:', error);
+        logDebug("Auth check error", error);
         
         // Only show error toast and redirect for protected routes
         if (!publicRoutes.includes(location.pathname)) {
@@ -88,12 +88,12 @@ export const useAuthCheck = () => {
           .single();
 
         if (userError && userError.code !== 'PGRST116') {
-          logDebug('User data fetch error:', userError);
+          logDebug("User data fetch error", userError);
           throw userError;
         }
 
         if (!userData) {
-          logDebug('Creating new user record...');
+          logDebug("Creating new user record");
           const { error: insertError } = await supabase
             .from('Users')
             .insert([{
@@ -104,13 +104,13 @@ export const useAuthCheck = () => {
             }]);
 
           if (insertError) {
-            logDebug('User creation error:', insertError);
+            logDebug("User creation error", insertError);
             throw insertError;
           }
-          logDebug('New user record created successfully');
+          logDebug("New user record created successfully");
         }
       } catch (error) {
-        logDebug('Error in ensureUserExists:', error);
+        logDebug("Error in ensureUserExists", error);
         throw error;
       }
     };
@@ -119,12 +119,12 @@ export const useAuthCheck = () => {
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      logDebug("Auth state changed:", event, session);
+      logDebug("Auth state changed", { event, session });
       
       if (event === 'SIGNED_OUT') {
         // Only redirect on sign out if on a protected route
         if (!publicRoutes.includes(location.pathname)) {
-          logDebug(`Redirecting from protected route ${location.pathname} after sign out`);
+          logDebug("Redirecting from protected route after sign out", location.pathname);
           navigate("/");
         }
       }
