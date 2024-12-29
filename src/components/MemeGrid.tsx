@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { UnifiedMemeCard } from "./meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
@@ -8,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { EmptyMemeState } from "./meme/EmptyMemeState";
 import { useMemeAuth } from "@/hooks/useMemeAuth";
+import { MemeGridLoader } from "./meme/grid/MemeGridLoader";
+import { MemeGridError } from "./meme/grid/MemeGridError";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -71,22 +72,11 @@ export const MemeGrid = ({
   }
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-      </div>
-    );
+    return <MemeGridLoader />;
   }
 
   if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          Error loading memes. Please try again later.
-        </AlertDescription>
-      </Alert>
-    );
+    return <MemeGridError error={error} />;
   }
 
   if (!memes || memes.length === 0) {
