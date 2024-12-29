@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { GameModal } from "./game/GameModal";
 
 export const Hero = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isGameOpen, setIsGameOpen] = useState(false);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -34,10 +36,16 @@ export const Hero = () => {
           <img
             src="/lovable-uploads/4b2ce54e-e40a-4877-b49a-fb1d71a232f3.png"
             alt="Main Cat"
-            className="w-[600px] h-[600px] object-contain animate-float"
+            className="w-[600px] h-[600px] object-contain animate-float cursor-pointer hover:scale-105 transition-transform"
+            onClick={() => setIsGameOpen(true)}
           />
         </div>
       </div>
+      
+      <GameModal 
+        isOpen={isGameOpen}
+        onClose={() => setIsGameOpen(false)}
+      />
     </div>
   );
 };
