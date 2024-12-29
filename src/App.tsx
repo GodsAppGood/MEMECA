@@ -18,22 +18,37 @@ import MyMemes from "./pages/MyMemes";
 import Watchlist from "./pages/Watchlist";
 import Tuzemoon from "./pages/Tuzemoon";
 
+// Initialize QueryClient with enhanced error handling
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
       staleTime: 30000,
+      onError: (error) => {
+        console.error('Query error:', error);
+      }
     },
     mutations: {
       retry: 1,
+      onError: (error) => {
+        console.error('Mutation error:', error);
+      }
     }
   }
 });
 
+// Google OAuth client ID - this should be moved to environment variables in production
+const GOOGLE_CLIENT_ID = "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
+
 const AppContent = () => {
   return (
-    <GoogleOAuthProvider clientId="815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com">
+    <GoogleOAuthProvider 
+      clientId={GOOGLE_CLIENT_ID}
+      onScriptLoadError={() => {
+        console.error('Google OAuth script failed to load');
+      }}
+    >
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <ErrorBoundary>

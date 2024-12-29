@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginButtonProps {
   isLoginOpen: boolean;
@@ -16,6 +17,23 @@ export const LoginButton = ({
   handleLoginSuccess,
   handleLoginError,
 }: LoginButtonProps) => {
+  const { toast } = useToast();
+
+  const onSuccess = (response: any) => {
+    console.log('Google OAuth login successful');
+    handleLoginSuccess(response);
+  };
+
+  const onError = () => {
+    console.error('Google OAuth login failed');
+    toast({
+      variant: "destructive",
+      title: "Login Failed",
+      description: "There was a problem signing in with Google. Please try again.",
+    });
+    handleLoginError();
+  };
+
   return (
     <>
       <Button
@@ -44,14 +62,15 @@ export const LoginButton = ({
           </DialogHeader>
           <div className="flex flex-col items-center justify-center space-y-4 p-4">
             <GoogleLogin
-              onSuccess={handleLoginSuccess}
-              onError={handleLoginError}
+              onSuccess={onSuccess}
+              onError={onError}
               useOneTap
               theme="filled_black"
               shape="pill"
               size="large"
               text="continue_with"
               locale="en"
+              context="signin"
             />
           </div>
         </DialogContent>
