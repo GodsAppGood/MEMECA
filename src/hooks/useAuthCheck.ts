@@ -31,6 +31,7 @@ export const useAuthCheck = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const startTime = performance.now();
         logDebug("Checking session status...");
         
         const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
@@ -61,7 +62,9 @@ export const useAuthCheck = () => {
         logDebug("Current session", currentSession);
         setSession(currentSession);
 
-        await ensureUserExists(currentSession);
+        const endTime = performance.now();
+        logDebug("Auth check completed in", `${endTime - startTime}ms`);
+
       } catch (error: any) {
         logDebug("Auth check error", error);
         
@@ -76,42 +79,6 @@ export const useAuthCheck = () => {
         }
       } finally {
         setIsLoading(false);
-      }
-    };
-
-    const ensureUserExists = async (currentSession: any) => {
-      try {
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('*')
-          .eq('auth_id', currentSession.user.id)
-          .single();
-
-        if (userError && userError.code !== 'PGRST116') {
-          logDebug("User data fetch error", userError);
-          throw userError;
-        }
-
-        if (!userData) {
-          logDebug("Creating new user record");
-          const { error: insertError } = await supabase
-            .from('Users')
-            .insert([{
-              auth_id: currentSession.user.id,
-              email: currentSession.user.email,
-              name: currentSession.user.user_metadata?.name,
-              profile_image: currentSession.user.user_metadata?.picture
-            }]);
-
-          if (insertError) {
-            logDebug("User creation error", insertError);
-            throw insertError;
-          }
-          logDebug("New user record created successfully");
-        }
-      } catch (error) {
-        logDebug("Error in ensureUserExists", error);
-        throw error;
       }
     };
 
