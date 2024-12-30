@@ -1,1 +1,13 @@
 /* /index.html 200
+
+/top-memes    /index.html   200
+/my-story     /index.html   200
+/my-memes     /index.html   200
+/watchlist    /index.html   200
+/tuzemoon     /index.html   200
+/submit       /index.html   200
+/privacy      /index.html   200
+/terms        /index.html   200
+
+# Handle www to non-www redirect
+https://www.memecatlandar.io/*  https://memecatlandar.io/:splat  301!
