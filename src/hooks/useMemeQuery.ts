@@ -43,6 +43,7 @@ export const useMemeQuery = ({
         .select('*');
 
       if (userOnly && userId) {
+        console.log("Filtering by user ID:", userId);
         query = query.eq('created_by', userId);
       }
 
@@ -76,7 +77,7 @@ export const useMemeQuery = ({
         throw error;
       }
 
-      console.log("Fetched memes:", data);
+      console.log("Fetched memes:", data?.length ?? 0, "memes");
       return data || [];
     },
     staleTime: 30000,

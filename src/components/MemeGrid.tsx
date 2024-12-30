@@ -58,6 +58,7 @@ export const MemeGrid = ({
       { name: 'Watchlist' }
     ],
     () => {
+      console.log("Realtime update received, refetching data...");
       void refetch();
       void refetchLikes();
     }
@@ -88,6 +89,7 @@ export const MemeGrid = ({
   }
 
   if (error) {
+    console.error("MemeGrid error:", error);
     return <MemeGridError error={error} />;
   }
 

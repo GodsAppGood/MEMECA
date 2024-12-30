@@ -37,15 +37,18 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log("Current session:", session);
       setUser(session?.user || null);
     };
 
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === 'SIGNED_OUT') {
         navigate('/');
       }
+      setUser(session?.user || null);
     });
 
     return () => {
@@ -56,7 +59,8 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !user) {
+      console.log("User not authenticated");
       onSubmitAttempt();
       return;
     }
@@ -73,6 +77,7 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
     setIsSubmitting(true);
 
     try {
+      console.log("Submitting meme with user ID:", user.id);
       const memeData = {
         title,
         description,
@@ -81,10 +86,12 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
         telegram_link: telegramLink || null,
         trade_link: tradeLink || null,
         image_url: imageUrl,
-        created_by: user?.id,
+        created_by: user.id,
         created_at: createdAt?.toISOString() || new Date().toISOString(),
         time_until_listing: createdAt?.toISOString() || new Date().toISOString()
       };
+
+      console.log("Meme data to submit:", memeData);
 
       if (isEditing && editingId) {
         const { error: updateError } = await supabase
@@ -92,13 +99,19 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
           .update(memeData)
           .eq('id', editingId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error("Update error:", updateError);
+          throw updateError;
+        }
       } else {
         const { error: insertError } = await supabase
           .from('Memes')
           .insert([memeData]);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error("Insert error:", insertError);
+          throw insertError;
+        }
       }
 
       await queryClient.invalidateQueries({ queryKey: ["memes"] });
@@ -114,7 +127,7 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Unable to submit the meme. Please try again later.",
+        description: error.message || "Unable to submit the meme. Please try again later.",
       });
     } finally {
       setIsSubmitting(false);
