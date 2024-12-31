@@ -9,6 +9,7 @@ import { queryClient } from "./config/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminRoute } from "@/components/AdminRoute";
 
 // Page imports
 import Index from "./pages/Index";
@@ -96,7 +97,14 @@ const AppContent = () => {
                 <Route path="/submit" element={<SubmitMeme />} />
                 <Route path="/meme/:id" element={<MemeDetailPage />} />
                 <Route path="/top-memes" element={<TopMemes />} />
-                <Route path="/admin" element={<AdminDashboard />} />
+                <Route 
+                  path="/admin" 
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  } 
+                />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/my-story" element={<MyStory />} />
