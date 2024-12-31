@@ -37,14 +37,16 @@ const AdminDashboard = () => {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from("Sessions")
-        .select("user_id", { count: 'exact', head: true })
-        .gte('created_at', yesterday.toISOString())
-        .unique();
+        .select('user_id')
+        .gte('created_at', yesterday.toISOString());
       
       if (error) throw error;
-      return count || 0;
+      
+      // Get unique user_ids using Set
+      const uniqueUserIds = new Set(data.map(session => session.user_id));
+      return uniqueUserIds.size;
     }
   });
 
