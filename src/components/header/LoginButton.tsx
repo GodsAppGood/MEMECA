@@ -65,8 +65,8 @@ export const LoginButton = ({
 
     toast({
       variant: "destructive",
-      title: "Ошибка входа",
-      description: "Возникла проблема при входе через Google. Пожалуйста, убедитесь что разрешены всплывающие окна и куки, затем попробуйте снова. Если проблема сохраняется, попробуйте очистить кэш браузера.",
+      title: "Login Error",
+      description: "There was a problem logging in with Google. Please make sure pop-ups and cookies are enabled, then try again. If the problem persists, try clearing your browser cache.",
     });
     handleLoginError();
   };
@@ -82,25 +82,25 @@ export const LoginButton = ({
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Вход...
+            Logging in...
           </>
         ) : (
-          "Войти"
+          "Login"
         )}
       </Button>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Вход через Google</DialogTitle>
+            <DialogTitle>Login with Google</DialogTitle>
             <DialogDescription>
-              Мы используем безопасную аутентификацию Google для защиты ваших данных. Входя, вы соглашаетесь с нашей{" "}
+              We use secure Google authentication to protect your data. By logging in, you agree to our{" "}
               <Link to="/privacy" className="text-primary hover:underline">
-                Политикой конфиденциальности
+                Privacy Policy
               </Link>{" "}
-              и{" "}
+              and{" "}
               <Link to="/terms" className="text-primary hover:underline">
-                Условиями использования
+                Terms of Use
               </Link>
               .
             </DialogDescription>
@@ -109,7 +109,7 @@ export const LoginButton = ({
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span>Подключение к Google...</span>
+                <span>Connecting to Google...</span>
               </div>
             ) : (
               <GoogleLogin
@@ -120,7 +120,7 @@ export const LoginButton = ({
                 shape="pill"
                 size="large"
                 text="continue_with"
-                locale="ru"
+                locale="en"
                 context="signin"
               />
             )}

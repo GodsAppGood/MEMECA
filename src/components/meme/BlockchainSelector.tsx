@@ -33,7 +33,7 @@ export const BlockchainSelector = ({ blockchain, setBlockchain }: BlockchainSele
         <SelectTrigger className={`w-full font-serif ${error ? 'border-red-500' : ''}`}>
           <SelectValue placeholder="Select blockchain" />
         </SelectTrigger>
-        <SelectContent className="max-h-[300px]">
+        <SelectContent className="bg-white max-h-[300px] overflow-y-auto">
           {blockchains.map((chain) => (
             <SelectItem 
               key={chain.toLowerCase()} 
