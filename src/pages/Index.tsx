@@ -6,6 +6,7 @@ import { MemePagination } from "@/components/MemePagination";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { TestRunnerComponent } from "@/components/testing/TestRunner";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { AdminButton } from "@/components/admin/AdminButton";
 
 const Index = () => {
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -47,6 +48,7 @@ const Index = () => {
           />
         </ErrorBoundary>
       </div>
+      <AdminButton />
     </MainLayout>
   );
 };
