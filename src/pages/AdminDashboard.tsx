@@ -1,19 +1,78 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Pencil, Trash2 } from "lucide-react";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Pencil, Trash2, Users, UserPlus, Clock, ChartBar } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminDashboard = () => {
   const [editingMeme, setEditingMeme] = useState<any>(null);
+  const [activeUsers, setActiveUsers] = useState(0);
   const queryClient = useQueryClient();
+
+  // Query for total users
+  const { data: totalUsers = 0 } = useQuery({
+    queryKey: ["total-users"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("Users")
+        .select("*", { count: 'exact', head: true });
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
+  // Query for users today
+  const { data: usersToday = 0 } = useQuery({
+    queryKey: ["users-today"],
+    queryFn: async () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      const { count, error } = await supabase
+        .from("Sessions")
+        .select("user_id", { count: 'exact', head: true })
+        .gte('created_at', yesterday.toISOString())
+        .unique();
+      
+      if (error) throw error;
+      return count || 0;
+    }
+  });
+
+  // Set up realtime subscription for active users
+  useEffect(() => {
+    const channel = supabase.channel('active-users')
+      .on('presence', { event: 'sync' }, () => {
+        const presenceState = channel.presenceState();
+        const uniqueUsers = new Set(
+          Object.values(presenceState)
+            .flat()
+            .map((presence: any) => presence.user_id)
+        );
+        setActiveUsers(uniqueUsers.size);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({
+            user_id: (await supabase.auth.getUser()).data.user?.id,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const { data: memes = [] } = useQuery({
     queryKey: ["memes"],
@@ -54,6 +113,41 @@ const AdminDashboard = () => {
       <Header />
       <main className="container mx-auto px-4 pt-24 pb-16">
         <h1 className="text-3xl font-serif mb-8">Admin Dashboard</h1>
+        
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Users Now</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{activeUsers}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Users Today</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{usersToday}</div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+              <ChartBar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalUsers}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Existing Memes Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {memes.map((meme: any) => (
             <Card key={meme.id} className="overflow-hidden">

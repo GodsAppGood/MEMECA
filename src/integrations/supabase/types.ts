@@ -89,6 +89,30 @@ export type Database = {
         }
         Relationships: []
       }
+      Sessions: {
+        Row: {
+          created_at: string
+          id: number
+          is_active: boolean | null
+          last_seen_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          is_active?: boolean | null
+          last_seen_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          is_active?: boolean | null
+          last_seen_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       Users: {
         Row: {
           auth_id: string | null
