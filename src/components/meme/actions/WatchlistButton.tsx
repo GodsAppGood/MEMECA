@@ -49,7 +49,8 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
         title: isInWatchlist(memeId) ? "Removed from Watchlist" : "Added to Watchlist",
         description: isInWatchlist(memeId) 
           ? "The meme has been removed from your watchlist" 
-          : "The meme has been added to your watchlist"
+          : "The meme has been added to your watchlist",
+        variant: isInWatchlist(memeId) ? "default" : "default"
       });
     } catch (error) {
       console.error("Error toggling watchlist:", error);
@@ -69,6 +70,8 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       size="icon"
       onClick={handleWatchlist}
       className={`
+        group
+        relative
         text-yellow-500 
         transition-all 
         duration-300 
@@ -90,6 +93,11 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
           ${isAnimating ? 'animate-[spin_0.3s_ease-in-out]' : ''}
         `} 
       />
+      {!userId && (
+        <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          Login to add to watchlist
+        </span>
+      )}
     </Button>
   );
 };
