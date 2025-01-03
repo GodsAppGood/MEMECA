@@ -180,6 +180,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_if_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
+      }
       check_tuzemoon_expiry: {
         Args: Record<PropertyKey, never>
         Returns: undefined

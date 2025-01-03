@@ -9,6 +9,7 @@ export const AdminButton = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Don't render anything while loading or if user is not admin
   if (isLoading || !isAdmin) return null;
 
   const handleAdminAccess = () => {
