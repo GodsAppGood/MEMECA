@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export const Navigation = () => {
   return (
-    <nav className="flex items-center space-x-6 text-sm font-medium">
+    <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
       <Link
         to="/"
         className="transition-all duration-300 hover:bg-[#FFB74D] hover:text-black px-3 py-2 rounded-md hover:scale-105"
