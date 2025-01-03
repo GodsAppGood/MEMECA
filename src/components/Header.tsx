@@ -25,14 +25,15 @@ export const Header = () => {
         {/* Mobile Menu Button */}
         <Button
           variant="ghost"
-          className="md:hidden mr-2"
+          className="md:hidden"
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle menu"
         >
           <Menu className="h-6 w-6" />
         </Button>
 
         {/* Logo - centered on mobile */}
-        <div className="flex-1 flex justify-center md:justify-start">
+        <div className="flex-1 flex justify-center">
           <Logo />
         </div>
 
