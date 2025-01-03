@@ -62,10 +62,14 @@ export const TopMemeGrid = () => {
         .limit(200);
       
       if (error) throw error;
-      return data?.map(meme => ({
+      
+      // Sort memes by likes in descending order to ensure correct ranking
+      const sortedMemes = (data || []).sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      
+      return sortedMemes.map(meme => ({
         ...meme,
         id: meme.id.toString()
-      })) || [];
+      }));
     }
   });
 
