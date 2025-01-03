@@ -9,7 +9,7 @@ const NotFound = () => {
       <div className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-4xl font-bold mb-4">Welcome on MeMeCa Planet</h1>
         <p className="text-lg mb-8">
-          The page you're looking for doesn't exist or has been moved.
+          Looks like you've stumbled upon a black hole in the meme galaxy. Let's get you back on track!
         </p>
         <Link to="/">
           <Button variant="default">
