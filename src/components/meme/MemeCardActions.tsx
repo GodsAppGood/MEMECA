@@ -5,9 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { WatchlistButton } from "./actions/WatchlistButton";
 import { EditButton } from "./actions/EditButton";
 import { DeleteButton } from "./actions/DeleteButton";
-import { useLikeActions } from "@/hooks/useLikeActions";
 import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 import { useToast } from "@/hooks/use-toast";
+import { useLikeActions } from "@/hooks/useLikeActions";
 
 interface MemeCardActionsProps {
   meme: {
@@ -24,7 +24,6 @@ interface MemeCardActionsProps {
 
 export const MemeCardActions = ({ 
   meme, 
-  userLikes = [], 
   userId, 
   isFirst 
 }: MemeCardActionsProps) => {
@@ -96,10 +95,16 @@ export const MemeCardActions = ({
         variant="ghost"
         size="icon"
         onClick={handleLike}
-        className={isLiked ? "text-red-500" : ""}
+        className={`group relative ${isLiked ? "text-red-500" : ""}`}
+        disabled={!userId}
       >
         <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
         <span className="ml-1">{likesCount}</span>
+        {!userId && (
+          <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Login to like memes
+          </span>
+        )}
       </Button>
 
       <WatchlistButton memeId={meme.id} userId={userId || null} />

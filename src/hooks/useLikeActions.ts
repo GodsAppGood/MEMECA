@@ -22,6 +22,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
     }
 
     try {
+      // Fetch likes count for the meme
       const { data, error } = await supabase
         .from("Likes")
         .select("id")
@@ -33,6 +34,20 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       }
       
       setLikesCount(data.length);
+
+      // Only check if the current user has liked if they're logged in
+      if (userId) {
+        const { data: userLike, error: userLikeError } = await supabase
+          .from("Likes")
+          .select("id")
+          .eq("meme_id", id)
+          .eq("user_id", userId)
+          .single();
+
+        if (!userLikeError) {
+          setIsLiked(!!userLike);
+        }
+      }
     } catch (error) {
       console.error("Error in fetchLikesCount:", error);
     }
@@ -40,7 +55,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
 
   useEffect(() => {
     void fetchLikesCount();
-  }, [memeId]);
+  }, [memeId, userId]);
 
   useLikesSubscription(() => {
     void fetchLikesCount();
