@@ -211,12 +211,6 @@ export type Database = {
         }
         Returns: Json
       }
-      verify_admin_key: {
-        Args: {
-          key_to_verify: string
-        }
-        Returns: boolean
-      }
     }
     Enums: {
       [_ in never]: never
