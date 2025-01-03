@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,7 +15,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface DeleteButtonProps {
   meme: {
@@ -29,14 +29,33 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
+  const { data: isAdmin } = useQuery({
+    queryKey: ["isAdmin", userId],
+    queryFn: async () => {
+      if (!userId) return false;
+      const { data, error } = await supabase
+        .from("Users")
+        .select("is_admin")
+        .eq("auth_id", userId)
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error checking admin status:", error);
+        return false;
+      }
+      return data?.is_admin || false;
+    },
+    enabled: !!userId
+  });
+
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (userId !== meme.created_by) {
+    if (!userId || (!isAdmin && userId !== meme.created_by)) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "You can only delete your own memes",
+        description: "You don't have permission to delete this meme",
       });
       return;
     }
@@ -69,7 +88,8 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  if (userId !== meme.created_by) return null;
+  // Only show delete button for admin users or the meme creator
+  if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
     <AlertDialog>
@@ -87,7 +107,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete your meme.
+            This action cannot be undone. This will permanently delete this meme.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
