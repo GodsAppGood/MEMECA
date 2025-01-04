@@ -83,9 +83,18 @@ const MyStory = () => {
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
-              <p>My site combines simplicity and honesty. If people like your memes, they automatically appear in the "Top Memes" section. This is a space for those who don't want to spend much time searching—it's easy to find what most people already enjoy. This category will also feature memes promoted on a paid basis (such memes will be specially marked to distinguish them from organically liked ones).</p>
-              <p>I plan to integrate AI technologies so that your personal AI assistant is always there. This assistant will grow smarter and evolve alongside the project, quickly adapting to your needs and questions. All memes uploaded to the site are automatically duplicated to my Telegram channel, where they can also be discussed and shared in a chat.</p>
-              <p>Thus, the "Meme Calendar" project is not just a platform for posting memes. It's a community, an opportunity for memes to become favorites, for ideas to find their resonance, and for you to gain support and access to bright, creative stories. Let's dive into the world of memes together!</p>
+              <p>Welcome to the Meme Calendar, a place where creativity, humor, and community come together. Our platform is designed to be simple, honest, and engaging. Here's what makes it special:</p>
+              <h3 className="text-xl font-semibold mt-4 mb-2">Top 200 Memes</h3>
+              <p>The Top 200 is where the best memes shine. It's a dynamic leaderboard showcasing the most-liked memes, selected purely by community votes. This ensures fairness—if people love your meme, it earns its spot in the rankings. Additionally, for those looking to promote their content, we offer a transparent paid feature to highlight sponsored memes, clearly marked to distinguish them from organically popular ones.</p>
+              <h3 className="text-xl font-semibold mt-4 mb-2">Watchlist</h3>
+              <p>The Watchlist is your personal hub for favorite memes. Save the ones you love, revisit them whenever you want, and never lose track of what inspires you. It's a simple tool designed to make your experience smoother and more enjoyable.</p>
+              <h3 className="text-xl font-semibold mt-4 mb-2">Tuzemoon</h3>
+              <p>For those who want to stand out, Tuzemoon is the premium space to showcase exclusive content. Think of it as a VIP stage for memes that deserve a little extra spotlight. Creators who opt for this section can ensure their work reaches an even broader audience.</p>
+              <h3 className="text-xl font-semibold mt-4 mb-2">AI-Powered Features (in progress)</h3>
+              <p>We're bringing AI into the mix to make your experience even better. Your personal AI assistant will be available to answer questions, provide recommendations, and grow smarter as the platform evolves. This assistant is here to support you and ensure you get the most out of the Meme Calendar.</p>
+              <h3 className="text-xl font-semibold mt-4 mb-2">Telegram Integration</h3>
+              <p>Every meme uploaded to the site is automatically shared in our Telegram channel, making it easy for the community to discuss, share, and connect. It's another way to bring memes to life and extend their reach.</p>
+              <p className="mt-4">The Meme Calendar isn't just a site—it's a thriving community where creativity resonates, laughter spreads, and ideas find their audience. Whether you're here to share your creations, discover fresh content, or simply enjoy a good laugh, this is the place for you.</p>
             </div>
           </div>
         </section>
