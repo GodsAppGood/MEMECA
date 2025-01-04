@@ -75,7 +75,7 @@ const MyStory = () => {
           <div className="flex flex-col lg:flex-row gap-8 items-center">
             <div className="lg:w-1/2">
               <img
-                src="/lovable-uploads/64675aff-6e69-4c08-ada3-33ce2e7497e7.png"
+                src="/lovable-uploads/ecac5159-067f-44d4-aa6a-72be8b1048bf.png"
                 alt="Project Features"
                 className="w-full max-w-[500px] mx-auto rounded-lg shadow-lg"
               />
