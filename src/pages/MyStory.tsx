@@ -91,9 +91,9 @@ const MyStory = () => {
         <section className="mb-20">
           <div className="w-full">
             <img
-              src="/banner_memeca.jpg"
+              src="/lovable-uploads/7debb387-0e04-4871-9395-44b1a2502a40.png"
               alt="Memeca Banner"
-              className="w-full max-w-[1200px] mx-auto"
+              className="w-full"
             />
           </div>
         </section>
