@@ -108,6 +108,43 @@ const MyStory = () => {
             />
           </div>
         </section>
+
+        <section className="mb-20">
+          <h2 className="text-3xl font-bold font-serif mb-12 text-center">Tuzemoon Roadmap</h2>
+          <div className="prose prose-lg max-w-4xl mx-auto">
+            <ol className="list-decimal space-y-6">
+              <li className="font-semibold">
+                Listing on Dexscreener
+                <p className="font-normal mt-2">
+                  Immediately after launch, the token will be listed on Dexscreener with liquidity pool support, allowing investors to easily track its price and trading volumes.
+                </p>
+              </li>
+              <li className="font-semibold">
+                Regular Platform Updates
+                <p className="font-normal mt-2">
+                  The platform will be regularly updated to improve functionality and design. Our goal is to make the website user-friendly and valuable for all users.
+                </p>
+              </li>
+              <li className="font-semibold">
+                Integration of an AI Assistant
+                <p className="font-normal mt-2">
+                  We plan to integrate our own AI assistant, which will:
+                </p>
+                <ul className="list-disc ml-6 mt-2">
+                  <li>Analyze tokens, providing detailed insights into their potential.</li>
+                  <li>Evaluate new blockchain-based projects.</li>
+                  <li>Offer trading recommendations and guidance on adding tokens to portfolios.</li>
+                </ul>
+              </li>
+              <li className="font-semibold">
+                Fully Automated Platform
+                <p className="font-normal mt-2">
+                  In the future, we aim to make the platform completely automated for seamless user experience and efficiency.
+                </p>
+              </li>
+            </ol>
+          </div>
+        </section>
       </main>
       <Support />
       <Footer />
