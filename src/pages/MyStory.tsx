@@ -93,7 +93,7 @@ const MyStory = () => {
             <img
               src="/lovable-uploads/3ec32a90-fb7d-4290-abd6-a722002f5813.png"
               alt="Memeca Banner"
-              className="w-full max-w-[1200px] mx-auto rounded-lg shadow-lg"
+              className="w-full max-w-[1200px] mx-auto"
             />
           </div>
         </section>
