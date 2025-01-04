@@ -73,6 +73,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       size="icon"
       onClick={handleWatchlist}
       className={`
+        watchlist-toggle
         group
         relative
         transition-all 
@@ -85,6 +86,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       `}
       disabled={isLoading}
       title={isWatchlisted ? "Remove from Watchlist" : "Add to Watchlist"}
+      data-meme-id={memeId}
     >
       <Star 
         className={`

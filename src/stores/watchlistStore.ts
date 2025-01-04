@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 interface WatchlistState {
   watchlist: Set<string>;
@@ -55,6 +54,7 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
       set({ watchlist: currentWatchlist });
     } catch (error) {
       console.error("Error toggling watchlist:", error);
+      throw error;
     } finally {
       set({ isLoading: false });
     }
