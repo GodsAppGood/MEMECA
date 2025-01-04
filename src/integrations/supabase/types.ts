@@ -190,33 +190,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
-      http_get:
-        | {
-            Args: {
-              url: string
-              headers?: Json
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              url: string
-              params?: Json
-              headers?: Json
-              timeout_ms?: number
-            }
-            Returns: Json
-          }
-      http_post: {
-        Args: {
-          url: string
-          body?: Json
-          params?: Json
-          headers?: Json
-          timeout_ms?: number
-        }
-        Returns: Json
-      }
       verify_admin_key: {
         Args: {
           input_key: string
