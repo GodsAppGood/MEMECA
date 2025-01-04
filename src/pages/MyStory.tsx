@@ -61,11 +61,13 @@ const MyStory = () => {
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
-              <p>My name is Ann Ostrovsky, and I am thrilled to welcome you here. Today, I want to share something special with you—my project that was created with immense love and enthusiasm. It is a meme calendar, and I have poured my heart into it.</p>
-              <p>Memes have become an integral part of our digital lives, but with each passing day, their volume grows so much that it's hard to keep up with them before they fade away. I noticed this issue and decided to offer a solution: a space where anyone planning to launch their meme can share it, gain support, and build their first audience.</p>
-              <p>My project is an opportunity for new ideas to be heard, for memes to become true stories, and for people to become part of something greater. Here, everyone can explore memes, show their support, and help them rise. You will find simplicity, structure, and openness here, which are so needed in today's chaotic information world.</p>
-              <p>When I conceptualized this calendar idea, I began imagining how I would like to see such an application. And now, this dream has become a reality and is available to all of you! I am incredibly grateful to everyone who chooses to use this platform. I'm confident it will bring immense value to both the crypto community and those who follow meme trends. People will better understand new projects, and projects will have the chance to share their story and become popular.</p>
-              <p>Thank you for being here. Let's create meme history together!</p>
+              <p>Hi, my name is Ann Ostrovsky, and I am absolutely delighted to have you here! Let me share the story behind this project—a labor of love, creativity, and community.</p>
+              <p>In today's fast-paced digital world, memes are everywhere, but they fade as quickly as they rise. Finding the right space to share a meme, grow a community, and leave a lasting impact can feel like an impossible mission. That's where MemeCatLandar comes in—a unique platform where memes are given the spotlight they deserve, and creators can build their legacy.</p>
+              <p>Guided by Memeca, our fearless, toilet-riding space adventurer, this platform travels across the infinite galaxy of memes, bringing together creators and audiences. Here, everyone has the opportunity to craft their own meme card, launch their ideas, and connect with the world.</p>
+              <p>What makes MemeCatLandar special? It's not just a platform—it's a launchpad for creativity, a calendar for stories waiting to be told, and a community that champions new ideas. Whether you're here to explore, support, or create, you're part of something bigger.</p>
+              <p>When I first dreamed of this project, I envisioned a space that was simple yet powerful, structured yet open. Now that dream has come to life, and it's all for you. I'm truly grateful for each and every person who joins this journey. Together, we can make memes more than fleeting jokes; we can turn them into stories, trends, and cultural milestones.</p>
+              <p>Thank you for being here. Let's create, connect, and make meme history—one card at a time.</p>
+              <p>With love, Ann Ostrovsky</p>
             </div>
           </div>
         </section>
