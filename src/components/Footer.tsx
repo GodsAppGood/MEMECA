@@ -30,12 +30,12 @@ export const Footer = () => {
           >
             <DropdownMenuGroup className="p-2 space-y-2">
               <Link to="/privacy" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105 active:text-[#FFB74D] touch-action-manipulation">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105">
                   Privacy Policy
                 </DropdownMenuItem>
               </Link>
               <Link to="/terms" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105 active:text-[#FFB74D] touch-action-manipulation">
+                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105">
                   Terms of Service
                 </DropdownMenuItem>
               </Link>
@@ -51,14 +51,14 @@ export const Footer = () => {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group active:text-[#FFB74D] touch-action-manipulation"
+            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group"
           >
             <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group active:text-[#FFB74D] touch-action-manipulation"
+            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group"
           >
             <Send className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
