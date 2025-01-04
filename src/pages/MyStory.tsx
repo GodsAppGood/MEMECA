@@ -57,7 +57,7 @@ const MyStory = () => {
               <img
                 src="/lovable-uploads/687016b8-6c47-4357-9f3f-b4af5d2da3a7.png"
                 alt="Project Illustration"
-                className="w-full max-w-[500px] mx-auto rounded-lg shadow-lg"
+                className="w-full max-w-[500px] mx-auto"
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
@@ -77,7 +77,7 @@ const MyStory = () => {
               <img
                 src="/lovable-uploads/ecac5159-067f-44d4-aa6a-72be8b1048bf.png"
                 alt="Project Features"
-                className="w-full max-w-[500px] mx-auto rounded-lg shadow-lg"
+                className="w-full max-w-[500px] mx-auto"
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
