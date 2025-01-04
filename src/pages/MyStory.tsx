@@ -3,7 +3,6 @@ import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
-import { RocketAnimation } from "@/components/RocketAnimation";
 
 const MyStory = () => {
   const { toast } = useToast();
@@ -48,24 +47,9 @@ const MyStory = () => {
   }
 
   return (
-    <div className="min-h-screen relative bg-[#0a0a2a] bg-opacity-95 overflow-hidden">
-      {/* Starry background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0" 
-          style={{
-            backgroundImage: `radial-gradient(circle at center, #ffffff 1px, transparent 1px)`,
-            backgroundSize: '50px 50px',
-            opacity: 0.5,
-          }}
-        />
-      </div>
-      
-      {/* Rocket animation */}
-      <RocketAnimation />
-
-      {/* Existing content with adjusted colors for dark theme */}
+    <div className="min-h-screen bg-background">
       <Header />
-      <main className="container relative mx-auto px-4 py-16 text-white z-20">
+      <main className="container mx-auto px-4 py-16">
         <section className="mb-20">
           <h1 className="text-4xl font-bold font-serif mb-12 text-center">My Story</h1>
           <div className="flex flex-col lg:flex-row gap-8 items-center">
