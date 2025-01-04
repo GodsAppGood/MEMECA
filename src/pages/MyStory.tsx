@@ -88,28 +88,15 @@ const MyStory = () => {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20">
-          <section>
-            <h2 className="text-3xl font-bold font-serif mb-8">TuzeMoon RoadMap</h2>
-            <ul className="list-disc pl-6 space-y-4">
-              <li>Launching own token on the PumpFun platform (Initial investment: 10 Solana)</li>
-              <li>Application development: updates, design, and improvements</li>
-              <li>Integration of AI technologies</li>
-              <li>Full autonomy of the application</li>
-            </ul>
-          </section>
-
-          <section>
-            <h2 className="text-3xl font-bold font-serif mb-8">Targets</h2>
-            <ul className="list-disc pl-6 space-y-4">
-              <li>Value to the crypto community</li>
-              <li>Building a dedicated community</li>
-              <li>Trading launch on DEX</li>
-              <li>$1 million capitalization</li>
-              <li>$10 million capitalization</li>
-            </ul>
-          </section>
-        </div>
+        <section className="mb-20">
+          <div className="w-full">
+            <img
+              src="/lovable-uploads/3ec32a90-fb7d-4290-abd6-a722002f5813.png"
+              alt="Memeca Banner"
+              className="w-full max-w-[1200px] mx-auto rounded-lg shadow-lg"
+            />
+          </div>
+        </section>
       </main>
       <Support />
       <Footer />
