@@ -77,16 +77,16 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
       set({ watchlist: watchlistIds });
     } catch (error) {
       console.error("Error initializing watchlist:", error);
+      throw error;
     }
   },
 }));
 
-// Subscribe to realtime changes
 export const subscribeToWatchlistChanges = (userId: string) => {
   console.log("Setting up watchlist subscription for user:", userId);
   
   const channel = supabase
-    .channel("watchlist_changes")
+    .channel(`watchlist_changes_${userId}`)
     .on(
       "postgres_changes",
       {
@@ -97,8 +97,11 @@ export const subscribeToWatchlistChanges = (userId: string) => {
       },
       async (payload) => {
         console.log("Watchlist change detected:", payload);
-        // Refresh the entire watchlist state
-        await useWatchlistStore.getState().initializeWatchlist(userId);
+        try {
+          await useWatchlistStore.getState().initializeWatchlist(userId);
+        } catch (error) {
+          console.error("Error handling watchlist change:", error);
+        }
       }
     )
     .subscribe();

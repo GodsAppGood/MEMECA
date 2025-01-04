@@ -10,22 +10,32 @@ interface WatchlistButtonProps {
 }
 
 export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
-  const { isInWatchlist, toggleWatchlist, isLoading } = useWatchlistStore();
+  const { isInWatchlist, toggleWatchlist, isLoading, initializeWatchlist } = useWatchlistStore();
   const [isAnimating, setIsAnimating] = useState(false);
   const { toast } = useToast();
+  const [connectionError, setConnectionError] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
     
-    // Initialize watchlist for this user
-    void useWatchlistStore.getState().initializeWatchlist(userId);
-    
-    // Set up realtime subscription for cross-page synchronization
-    const cleanup = subscribeToWatchlistChanges(userId);
-    return () => {
-      cleanup();
+    let cleanup: (() => void) | undefined;
+
+    const initWatchlist = async () => {
+      try {
+        await initializeWatchlist(userId);
+        cleanup = subscribeToWatchlistChanges(userId);
+      } catch (error) {
+        console.error('Error initializing watchlist:', error);
+        setConnectionError(true);
+      }
     };
-  }, [userId]);
+
+    void initWatchlist();
+    
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [userId, initializeWatchlist]);
 
   const handleWatchlist = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -39,7 +49,7 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       return;
     }
     
-    if (isLoading) return;
+    if (isLoading || connectionError) return;
 
     try {
       setIsAnimating(true);
@@ -55,9 +65,10 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       });
     } catch (error) {
       console.error("Error toggling watchlist:", error);
+      setConnectionError(true);
       toast({
-        title: "Error",
-        description: "Failed to update watchlist. Please try again.",
+        title: "Connection Error",
+        description: "Failed to update watchlist. Please try again later.",
         variant: "destructive"
       });
     } finally {
@@ -83,8 +94,9 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
         hover:scale-105
         disabled:opacity-50
         disabled:cursor-not-allowed
+        ${connectionError ? 'opacity-50' : ''}
       `}
-      disabled={isLoading}
+      disabled={isLoading || connectionError}
       title={isWatchlisted ? "Remove from Watchlist" : "Add to Watchlist"}
       data-meme-id={memeId}
     >
@@ -101,6 +113,11 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
       {!userId && (
         <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
           Login to add to watchlist
+        </span>
+      )}
+      {connectionError && (
+        <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-red-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+          Connection error. Try refreshing.
         </span>
       )}
     </Button>
