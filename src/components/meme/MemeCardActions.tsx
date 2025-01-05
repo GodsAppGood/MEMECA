@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { EditButton } from "./actions/EditButton";
 import { DeleteButton } from "./actions/DeleteButton";
 import { LikeButton } from "./actions/LikeButton";
@@ -14,8 +13,8 @@ interface MemeCardActionsProps {
   userLikes?: string[];
   userPoints?: number;
   userId?: string | null;
-  isAuthenticated: boolean;
-  onAuthRequired: () => void;
+  isFirst?: boolean;
+  className?: string;
 }
 
 export const MemeCardActions = ({
@@ -23,15 +22,23 @@ export const MemeCardActions = ({
   userLikes = [],
   userPoints = 0,
   userId,
-  isAuthenticated,
-  onAuthRequired,
+  isFirst,
+  className = ""
 }: MemeCardActionsProps) => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [isLiking, setIsLiking] = useState(false);
   const { handleLike, handleUnlike } = useLikeActions();
 
   const isLiked = userLikes?.includes(meme.id.toString());
+  const [isAuthenticated, setIsAuthenticated] = useState(!!userId);
+
+  const onAuthRequired = () => {
+    toast({
+      title: "Authentication Required",
+      description: "Please log in to perform this action",
+      variant: "destructive"
+    });
+  };
 
   const handleLikeClick = async () => {
     if (!isAuthenticated) {
@@ -78,24 +85,25 @@ export const MemeCardActions = ({
   };
 
   return (
-    <div className="flex items-center justify-between px-4 py-2">
+    <div className={`flex items-center justify-between px-4 py-2 ${className}`}>
       <div className="flex items-center space-x-2">
         <LikeButton
           isLiked={isLiked}
           onClick={handleLikeClick}
           disabled={isLiking}
+          likesCount={meme.likes}
         />
         <span className="text-sm font-medium">
           {formatNumber(meme.likes || 0)}
         </span>
         <WatchlistButton
           memeId={meme.id.toString()}
-          isAuthenticated={isAuthenticated}
+          userId={userId}
           onAuthRequired={onAuthRequired}
         />
       </div>
-      <EditButton meme={meme} userId={userId || null} />
-      <DeleteButton meme={meme} userId={userId || null} />
+      <EditButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
+      <DeleteButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
     </div>
   );
 };

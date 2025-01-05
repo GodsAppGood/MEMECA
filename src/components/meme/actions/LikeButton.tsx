@@ -1,56 +1,23 @@
 import { Button } from "@/components/ui/button";
 import { Heart } from "lucide-react";
-import { useLikeMutation } from "@/hooks/useLikeMutation";
 
 interface LikeButtonProps {
-  meme: {
-    id: string;
-    likes: number;
-  };
-  userLikes: string[];
-  userPoints: number;
-  userId: string | null;
-  isFirst?: boolean;
+  isLiked: boolean;
+  onClick: () => void;
+  disabled: boolean;
+  likesCount: number;
 }
 
-export const LikeButton = ({ 
-  meme, 
-  userLikes, 
-  userPoints, 
-  userId,
-  isFirst 
-}: LikeButtonProps) => {
-  const hasLiked = userLikes.includes(meme.id);
-
-  const { mutate: handleLike, isPending } = useLikeMutation({
-    memeId: meme.id,
-    currentLikes: meme.likes,
-    userId,
-    userLikes,
-    userPoints
-  });
-
-  if (isFirst) return null;
-
+export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButtonProps) => {
   return (
     <Button
       variant="ghost"
       size="icon"
-      onClick={(e) => {
-        e.stopPropagation();
-        if (!isPending) {
-          handleLike();
-        }
-      }}
-      className="hover:text-red-500"
-      disabled={userPoints <= 0 && !hasLiked}
+      onClick={onClick}
+      disabled={disabled}
+      className={`hover:text-red-500 ${isLiked ? 'text-red-500' : ''}`}
     >
-      <Heart 
-        className={`h-4 w-4 ${
-          hasLiked ? 'fill-red-500 text-red-500' : ''
-        }`} 
-      />
-      <span className="ml-1">{meme.likes || 0}</span>
+      <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
     </Button>
   );
 };
