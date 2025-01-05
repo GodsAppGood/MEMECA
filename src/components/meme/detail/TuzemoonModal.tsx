@@ -8,17 +8,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { Buffer } from 'buffer';
-
-// Ensure Buffer is available globally
-if (typeof window !== 'undefined') {
-  window.Buffer = window.Buffer || Buffer;
-}
-
-// Configure Solana RPC endpoint with fallback
-const SOLANA_RPC_ENDPOINT = import.meta.env.VITE_SOLANA_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com";
-console.log("Using Solana RPC endpoint:", SOLANA_RPC_ENDPOINT);
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -31,111 +20,27 @@ export const TuzemoonModal = ({
   onClose,
   onSuccess,
 }: TuzemoonModalProps) => {
-  const [walletConnected, setWalletConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const RECIPIENT_WALLET = new PublicKey("E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu");
-  const AMOUNT_SOL = 0.1;
 
   useEffect(() => {
     if (!isOpen) {
-      setWalletConnected(false);
       setError(null);
     }
   }, [isOpen]);
-
-  const verifyRpcConnection = async (connection: Connection): Promise<boolean> => {
-    try {
-      const blockHeight = await connection.getBlockHeight();
-      console.log("RPC connection verified, current block height:", blockHeight);
-      return true;
-    } catch (err) {
-      console.error("RPC connection failed:", err);
-      setError("Unable to connect to Solana network. Please try again later.");
-      return false;
-    }
-  };
-
-  const connectWallet = async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      if (!(window as any).solana || !(window as any).solana.isPhantom) {
-        setError("Please install Phantom Wallet to proceed.");
-        return;
-      }
-
-      const response = await (window as any).solana.connect();
-      console.log("Wallet connected:", response.publicKey.toString());
-      setWalletConnected(true);
-    } catch (err) {
-      console.error("Error connecting wallet:", err);
-      setError("Failed to connect wallet. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handlePayment = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const provider = (window as any).solana;
-      if (!provider) {
-        throw new Error("Phantom Wallet not found");
-      }
-
-      const connection = new Connection(SOLANA_RPC_ENDPOINT);
-      
-      // Verify RPC connection before proceeding
-      const isRpcAvailable = await verifyRpcConnection(connection);
-      if (!isRpcAvailable) {
-        throw new Error("Solana network is currently unavailable. Please try again later.");
-      }
-
-      const fromPubkey = provider.publicKey;
-      
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey,
-          toPubkey: RECIPIENT_WALLET,
-          lamports: AMOUNT_SOL * LAMPORTS_PER_SOL,
-        })
-      );
-
-      const { blockhash } = await connection.getLatestBlockhash().catch(err => {
-        console.error("Error getting blockhash:", err);
-        throw new Error("Failed to prepare transaction. Please try again.");
-      });
-      
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = fromPubkey;
-
-      const signedTransaction = await provider.signTransaction(transaction);
-      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-      
-      console.log("Transaction sent:", signature);
-      
-      // Wait for transaction confirmation with timeout
-      const confirmation = await Promise.race([
-        connection.confirmTransaction(signature),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Transaction confirmation timeout")), 30000)
-        )
-      ]);
-      
-      if ((confirmation as any).value?.err) {
-        throw new Error("Transaction failed to confirm");
-      }
-
-      console.log("Transaction confirmed:", signature);
+      // Temporary placeholder for payment logic
+      await new Promise(resolve => setTimeout(resolve, 1000));
       await onSuccess();
       onClose();
     } catch (err: any) {
-      console.error("Transaction failed:", err);
-      setError(err.message || "Transaction failed. Please try again.");
+      console.error("Payment failed:", err);
+      setError(err.message || "Payment failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -146,25 +51,14 @@ export const TuzemoonModal = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-serif">
-            {walletConnected 
-              ? "Confirm Tuzemoon Activation" 
-              : "Activate Tuzemoon for Your Meme"}
+            Confirm Tuzemoon Activation
           </DialogTitle>
           <DialogDescription className="space-y-4 pt-4">
-            {walletConnected ? (
-              <>
-                <p className="text-lg font-medium">You are entering a premium feature.</p>
-                <div className="space-y-2 text-muted-foreground">
-                  <p>Cost: {AMOUNT_SOL} SOL</p>
-                  <p>Your meme will receive special privileges for 24 hours.</p>
-                  <p>This feature supports the platform's sustainability.</p>
-                </div>
-              </>
-            ) : (
-              <p className="text-lg">
-                Connect your Phantom Wallet to enable Tuzemoon privileges for your meme.
-              </p>
-            )}
+            <p className="text-lg font-medium">You are entering a premium feature.</p>
+            <div className="space-y-2 text-muted-foreground">
+              <p>Your meme will receive special privileges for 24 hours.</p>
+              <p>This feature supports the platform's sustainability.</p>
+            </div>
             {error && (
               <p className="text-red-500 font-medium">{error}</p>
             )}
@@ -172,19 +66,17 @@ export const TuzemoonModal = ({
         </DialogHeader>
         <div className="flex flex-col gap-4 pt-4">
           <Button
-            onClick={walletConnected ? handlePayment : connectWallet}
+            onClick={handlePayment}
             className="w-full"
             size="lg"
             disabled={isLoading}
           >
             {isLoading ? (
               "Processing..."
-            ) : walletConnected ? (
-              "Confirm Payment"
             ) : (
               <>
                 <Wallet className="mr-2 h-5 w-5" />
-                Connect Wallet
+                Confirm Payment
               </>
             )}
           </Button>
