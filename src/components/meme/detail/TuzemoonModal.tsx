@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export const TuzemoonModal = ({
   const [walletConnected, setWalletConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const RECIPIENT_WALLET = new PublicKey("E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu");
+  const AMOUNT_SOL = 0.1;
 
   useEffect(() => {
     if (!isOpen) {
@@ -57,18 +60,44 @@ export const TuzemoonModal = ({
     setError(null);
 
     try {
-      // Here we would normally construct and send the Solana transaction
-      // This is a placeholder for demonstration
-      console.log("Processing payment of 0.1 SOL");
+      const provider = (window as any).solana;
+      if (!provider) {
+        throw new Error("Phantom Wallet not found");
+      }
+
+      const connection = new Connection("https://api.mainnet-beta.solana.com");
+      const fromPubkey = provider.publicKey;
       
-      // Simulate transaction delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey,
+          toPubkey: RECIPIENT_WALLET,
+          lamports: AMOUNT_SOL * LAMPORTS_PER_SOL,
+        })
+      );
+
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = fromPubkey;
+
+      const signedTransaction = await provider.signTransaction(transaction);
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
+      console.log("Transaction sent:", signature);
+      
+      // Wait for transaction confirmation
+      const confirmation = await connection.confirmTransaction(signature);
+      
+      if (confirmation.value.err) {
+        throw new Error("Transaction failed to confirm");
+      }
+
+      console.log("Transaction confirmed:", signature);
       await onSuccess();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Transaction failed:", err);
-      setError("Transaction failed. Please try again.");
+      setError(err.message || "Transaction failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +117,7 @@ export const TuzemoonModal = ({
               <>
                 <p className="text-lg font-medium">You are entering a premium feature.</p>
                 <div className="space-y-2 text-muted-foreground">
-                  <p>Cost: 0.1 SOL</p>
+                  <p>Cost: {AMOUNT_SOL} SOL</p>
                   <p>Your meme will receive special privileges for 24 hours.</p>
                   <p>This feature supports the platform's sustainability.</p>
                 </div>
