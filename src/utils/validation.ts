@@ -19,11 +19,19 @@ export const validateDescription = (description: string): string | null => {
 };
 
 export const validateUrl = (url: string): string | null => {
+  if (!url) return null; // URLs are optional
   const urlPattern = new RegExp(
     "^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[\\w\\- .\\/\\?%&=]*)?$"
   );
-  if (url && !urlPattern.test(url)) {
+  if (!urlPattern.test(url)) {
     return "Invalid URL format";
+  }
+  return null;
+};
+
+export const validateBlockchain = (blockchain: string): string | null => {
+  if (!blockchain) {
+    return "Blockchain selection is required";
   }
   return null;
 };
