@@ -6,8 +6,6 @@ import { CountdownTimer } from "./CountdownTimer";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Flame } from "lucide-react";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface UnifiedMemeCardProps {
   meme: {
@@ -38,32 +36,7 @@ export const UnifiedMemeCard = ({
   isFirst 
 }: UnifiedMemeCardProps) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const isTuzemoon = meme.is_featured && meme.tuzemoon_until && new Date(meme.tuzemoon_until) > new Date();
-
-  useRealtimeSubscription(
-    [
-      { 
-        name: 'Memes',
-        filter: `id=eq.${meme.id}`
-      },
-      { 
-        name: 'Likes',
-        filter: `meme_id=eq.${meme.id}`
-      },
-      { 
-        name: 'Watchlist',
-        filter: `meme_id=eq.${meme.id}`
-      }
-    ],
-    () => {
-      queryClient.invalidateQueries({ queryKey: ['memes'] });
-      queryClient.invalidateQueries({ queryKey: ['watchlist-memes'] });
-      queryClient.invalidateQueries({ queryKey: ['user-memes'] });
-      queryClient.invalidateQueries({ queryKey: ['user-likes'] });
-      queryClient.invalidateQueries({ queryKey: ['featured-memes'] });
-    }
-  );
 
   const handleCardClick = () => {
     if (!meme.id) return;

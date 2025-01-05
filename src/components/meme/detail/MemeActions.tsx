@@ -1,85 +1,63 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Meme } from "@/types/meme";
-import { QueryObserverResult, RefetchOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { WatchlistButton } from "./actions/WatchlistButton";
-import { TuzemoonButton } from "./actions/TuzemoonButton";
-import { SolanaPaymentDialog } from "./actions/SolanaPaymentDialog";
+import { Meme } from "@/types/meme";
+import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 
 interface MemeActionsProps {
   meme: Meme;
-  userId: string | null;
+  isAdmin: boolean;
   onUpdate: (options?: RefetchOptions | undefined) => Promise<QueryObserverResult<any, Error>>;
 }
 
-export const MemeActions = ({ meme, userId, onUpdate }: MemeActionsProps) => {
+export const MemeActions = ({ meme, isAdmin, onUpdate }: MemeActionsProps) => {
   const { toast } = useToast();
-  const [showTuzemoonDialog, setShowTuzemoonDialog] = useState(false);
 
-  const { data: isAdmin } = useQuery({
-    queryKey: ["isAdmin", userId],
-    queryFn: async () => {
-      if (!userId) return false;
-      const { data, error } = await supabase
-        .from("Users")
-        .select("is_admin")
-        .eq("auth_id", userId)
-        .single();
-      
-      if (error) return false;
-      return data?.is_admin || false;
-    },
-    enabled: !!userId
-  });
-
-  const handlePaymentSuccess = async () => {
+  const handleTuzemoonToggle = async () => {
     try {
-      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      const tuzemoonUntil = meme.is_featured 
+        ? null 
+        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
       const { error } = await supabase
         .from("Memes")
         .update({ 
-          is_featured: true,
+          is_featured: !meme.is_featured,
           tuzemoon_until: tuzemoonUntil
         })
         .eq("id", meme.id);
 
       if (error) throw error;
+
       void onUpdate();
       
       toast({
-        title: "Success",
-        description: "Your meme has been added to Tuzemoon!",
+        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
+        description: meme.is_featured 
+          ? "The meme has been removed from Tuzemoon" 
+          : "The meme has been added to Tuzemoon for 24 hours",
       });
     } catch (error) {
-      console.error("Error adding to Tuzemoon:", error);
+      console.error("Error toggling Tuzemoon status:", error);
       toast({
         title: "Error",
-        description: "Failed to add meme to Tuzemoon",
+        description: "Failed to update Tuzemoon status",
         variant: "destructive",
       });
     }
   };
 
-  const handlePaymentError = (error: Error) => {
-    toast({
-      title: "Payment Failed",
-      description: error.message || "Failed to process payment. Please try again.",
-      variant: "destructive"
-    });
-  };
+  if (!isAdmin) return null;
 
   return (
-    <div className="flex gap-2">
-      <WatchlistButton meme={meme} userId={userId} />
-      <TuzemoonButton meme={meme} isAdmin={!!isAdmin} onUpdate={onUpdate} />
-      
-      <SolanaPaymentDialog
-        open={showTuzemoonDialog}
-        onOpenChange={setShowTuzemoonDialog}
-        onSuccess={handlePaymentSuccess}
-        onError={handlePaymentError}
-      />
-    </div>
+    <Button
+      variant="outline"
+      onClick={handleTuzemoonToggle}
+      className={`group ${meme.is_featured ? 'text-yellow-500' : ''}`}
+    >
+      <Star className={`h-5 w-5 mr-2 ${meme.is_featured ? 'fill-current' : ''}`} />
+      {meme.is_featured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
+    </Button>
   );
 };
