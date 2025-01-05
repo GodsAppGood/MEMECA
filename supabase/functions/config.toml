@@ -1,0 +1,10 @@
+project_id = "dpybiegurkiqwponvxac"
+
+[global.env]
+SUPABASE_URL = "env"
+SUPABASE_SERVICE_ROLE_KEY = "env"
+
+[[wallet-auth]]
+name = "wallet-auth"
+path = "/wallet-auth"
+verify_jwt = false

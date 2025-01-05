@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { PhantomWalletButton } from "./PhantomWalletButton";
 
 interface LoginButtonProps {
   isLoginOpen: boolean;
@@ -36,7 +37,6 @@ export const LoginButton = ({
     });
 
     try {
-      // Ensure we're using a properly formatted URL without extra colons
       const redirectUrl = new URL('/auth/v1/callback', window.location.origin).toString();
       
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -115,9 +115,9 @@ export const LoginButton = ({
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Login with Google</DialogTitle>
+            <DialogTitle>Choose Login Method</DialogTitle>
             <DialogDescription>
-              We use secure Google authentication to protect your data. By logging in, you agree to our{" "}
+              We use secure authentication to protect your data. By logging in, you agree to our{" "}
               <Link to="/privacy" className="text-primary hover:underline">
                 Privacy Policy
               </Link>{" "}
@@ -132,20 +132,29 @@ export const LoginButton = ({
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span>Connecting to Google...</span>
+                <span>Connecting...</span>
               </div>
             ) : (
-              <GoogleLogin
-                onSuccess={onSuccess}
-                onError={onError}
-                useOneTap
-                theme="filled_black"
-                shape="pill"
-                size="large"
-                text="continue_with"
-                locale="en"
-                context="signin"
-              />
+              <>
+                <GoogleLogin
+                  onSuccess={onSuccess}
+                  onError={onError}
+                  useOneTap
+                  theme="filled_black"
+                  shape="pill"
+                  size="large"
+                  text="continue_with"
+                  locale="en"
+                  context="signin"
+                />
+                <div className="w-full text-center my-2">
+                  <span className="text-sm text-gray-500">or</span>
+                </div>
+                <PhantomWalletButton
+                  onSuccess={handleLoginSuccess}
+                  onError={handleLoginError}
+                />
+              </>
             )}
           </div>
         </DialogContent>

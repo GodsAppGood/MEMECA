@@ -123,6 +123,7 @@ export type Database = {
           is_verified: boolean | null
           name: string | null
           profile_image: string | null
+          wallet_address: string | null
         }
         Insert: {
           auth_id?: string | null
@@ -133,6 +134,7 @@ export type Database = {
           is_verified?: boolean | null
           name?: string | null
           profile_image?: string | null
+          wallet_address?: string | null
         }
         Update: {
           auth_id?: string | null
@@ -143,6 +145,34 @@ export type Database = {
           is_verified?: boolean | null
           name?: string | null
           profile_image?: string | null
+          wallet_address?: string | null
+        }
+        Relationships: []
+      }
+      WalletNonces: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: number
+          is_used: boolean | null
+          nonce: string
+          wallet_address: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: number
+          is_used?: boolean | null
+          nonce: string
+          wallet_address: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: number
+          is_used?: boolean | null
+          nonce?: string
+          wallet_address?: string
         }
         Relationships: []
       }
