@@ -66,7 +66,7 @@ export type Database = {
           likes?: number | null
           telegram_link?: string | null
           time_until_listing?: string | null
-          title: string
+          title?: string
           trade_link?: string | null
           tuzemoon_until?: string | null
           twitter_link?: string | null
