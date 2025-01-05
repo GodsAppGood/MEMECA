@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -7,6 +7,7 @@ export const useAdminAuth = () => {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -38,7 +39,8 @@ export const useAdminAuth = () => {
 
         setIsAdmin(userData?.is_admin || false);
 
-        if (!userData?.is_admin) {
+        // Only show the toast if we're on the admin route and user is not an admin
+        if (!userData?.is_admin && location.pathname === '/admin') {
           toast({
             title: "Access Denied",
             description: "You don't have permission to access the admin panel.",
@@ -60,7 +62,7 @@ export const useAdminAuth = () => {
     };
 
     checkAdminStatus();
-  }, [navigate, toast]);
+  }, [navigate, toast, location.pathname]);
 
   return { isAdmin, isLoading };
 };
