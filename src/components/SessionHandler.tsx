@@ -8,23 +8,12 @@ export const SessionHandler = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state change:', {
-        event,
-        timestamp: new Date().toISOString(),
-        sessionExists: !!session,
-        userId: session?.user?.id,
-        origin: window.location.origin,
-        environment: import.meta.env.MODE,
-        currentPath: window.location.pathname
-      });
-
-      if (event === 'SIGNED_IN' && session) {
-        // Fetch user role information immediately after sign in
+    const handleUserRoles = async (userId: string) => {
+      try {
         const { data: userData, error: userError } = await supabase
           .from('Users')
           .select('is_verified, is_admin')
-          .eq('auth_id', session.user.id)
+          .eq('auth_id', userId)
           .single();
         
         if (userError) {
@@ -34,36 +23,55 @@ export const SessionHandler = () => {
             description: "Failed to fetch user information. Please try refreshing the page.",
             variant: "destructive"
           });
-        } else {
-          console.log('User roles fetched:', userData);
+          return null;
         }
-      } else if (event === 'TOKEN_REFRESHED') {
-        console.log('Session token refreshed successfully');
-      } else if (event === 'SIGNED_OUT') {
-        toast({
-          title: "Session Ended",
-          description: "Your session has ended. Please log in again to continue.",
-          variant: "destructive"
+        
+        console.log('User roles fetched:', userData);
+        return userData;
+      } catch (error) {
+        console.error('Error in handleUserRoles:', error);
+        return null;
+      }
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        console.log('Auth state change:', {
+          event,
+          timestamp: new Date().toISOString(),
+          sessionExists: !!session,
+          userId: session?.user?.id,
+          origin: window.location.origin,
+          environment: import.meta.env.MODE,
+          currentPath: window.location.pathname
         });
-        navigate('/');
+
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          await handleUserRoles(session.user.id);
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Session token refreshed successfully');
+        } else if (event === 'SIGNED_OUT') {
+          toast({
+            title: "Session Ended",
+            description: "Your session has ended. Please log in again to continue.",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error in auth state change handler:', error);
       }
     });
 
     // Initial session check
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        const { data: userData, error: userError } = await supabase
-          .from('Users')
-          .select('is_verified, is_admin')
-          .eq('auth_id', session.user.id)
-          .single();
-        
-        if (userError) {
-          console.error('Error fetching initial user roles:', userError);
-        } else {
-          console.log('Initial user roles fetched:', userData);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user?.id) {
+          await handleUserRoles(session.user.id);
         }
+      } catch (error) {
+        console.error('Error in initial session check:', error);
       }
     };
 
