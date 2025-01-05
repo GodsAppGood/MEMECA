@@ -2,16 +2,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { MemeHeader } from "./MemeHeader";
-import { MemeImageDisplay } from "./MemeImageDisplay";
-import { DescriptionSection } from "./DescriptionSection";
-import { BlockchainInfo } from "./BlockchainInfo";
-import { ExternalLink } from "./ExternalLink";
-import { MemeActions } from "./MemeActions";
+import { ArrowLeft, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MemeCardActions } from "../MemeCardActions";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { WatchlistButton } from "../actions/WatchlistButton";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
@@ -19,6 +17,7 @@ export const MemeDetailPage = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const getSession = async () => {
@@ -61,6 +60,53 @@ export const MemeDetailPage = () => {
     },
   });
 
+  useRealtimeSubscription(
+    [
+      { name: 'Memes' },
+      { name: 'Watchlist' }
+    ],
+    () => {
+      void refetch();
+    }
+  );
+
+  const { handleFeatureToggle } = useFeatureToggle(id || '', meme?.is_featured || false);
+
+  const handleTuzemoonClick = async () => {
+    if (!meme) return;
+
+    try {
+      const tuzemoonUntil = !meme.is_featured 
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        : null;
+
+      const { error } = await supabase
+        .from("Memes")
+        .update({ 
+          is_featured: !meme.is_featured,
+          tuzemoon_until: tuzemoonUntil
+        })
+        .eq("id", meme.id);
+
+      if (error) throw error;
+
+      await handleFeatureToggle();
+      toast({
+        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
+        description: meme.is_featured 
+          ? "The meme has been removed from Tuzemoon" 
+          : "The meme has been added to Tuzemoon for 24 hours",
+      });
+    } catch (error) {
+      console.error("Error toggling Tuzemoon status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update Tuzemoon status",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -101,32 +147,85 @@ export const MemeDetailPage = () => {
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="flex justify-between items-start mb-6">
-              <MemeHeader meme={meme} />
+              <h1 className="text-3xl font-serif">{meme.title}</h1>
               <div className="flex gap-2">
                 {(isAdmin || isVerified) && (
-                  <WatchlistButton 
-                    memeId={meme.id.toString()} 
-                    userId={userId} 
-                    showText={true}
-                    className="mr-2"
-                  />
+                  <>
+                    <WatchlistButton 
+                      memeId={meme.id.toString()} 
+                      userId={userId} 
+                      showText={true}
+                      className="mr-2"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={handleTuzemoonClick}
+                      className={`group ${meme.is_featured ? 'text-yellow-500' : ''}`}
+                    >
+                      <Moon className={`h-5 w-5 mr-2 ${meme.is_featured ? 'fill-current' : ''}`} />
+                      {meme.is_featured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
+                    </Button>
+                  </>
                 )}
-                <MemeActions 
-                  meme={meme} 
-                  isAdmin={isAdmin} 
-                  onUpdate={refetch}
+                <MemeCardActions
+                  meme={meme}
+                  userId={userId}
                 />
               </div>
             </div>
 
-            <MemeImageDisplay imageUrl={meme.image_url} title={meme.title} />
-            <DescriptionSection description={meme.description} />
-
+            <img
+              src={meme.image_url}
+              alt={meme.title}
+              className="w-full h-auto max-h-[600px] object-contain mb-8 rounded-lg"
+            />
+            
+            <p className="text-lg mb-8">{meme.description}</p>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <BlockchainInfo blockchain={meme.blockchain} />
-              <ExternalLink type="Trade" url={meme.trade_link} />
-              <ExternalLink type="Twitter" url={meme.twitter_link} />
-              <ExternalLink type="Telegram" url={meme.telegram_link} />
+              <div>
+                <h3 className="font-serif text-lg mb-2">Blockchain</h3>
+                <p className="capitalize">{meme.blockchain}</p>
+              </div>
+              {meme.trade_link && (
+                <div>
+                  <h3 className="font-serif text-lg mb-2">Trade Link</h3>
+                  <a 
+                    href={meme.trade_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-500 hover:underline flex items-center"
+                  >
+                    Trade <ExternalLink className="ml-1 h-4 w-4" />
+                  </a>
+                </div>
+              )}
+              {meme.twitter_link && (
+                <div>
+                  <h3 className="font-serif text-lg mb-2">Twitter</h3>
+                  <a 
+                    href={meme.twitter_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-500 hover:underline flex items-center"
+                  >
+                    Twitter <ExternalLink className="ml-1 h-4 w-4" />
+                  </a>
+                </div>
+              )}
+              {meme.telegram_link && (
+                <div>
+                  <h3 className="font-serif text-lg mb-2">Telegram</h3>
+                  <a 
+                    href={meme.telegram_link} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-500 hover:underline flex items-center"
+                  >
+                    Telegram <ExternalLink className="ml-1 h-4 w-4" />
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
