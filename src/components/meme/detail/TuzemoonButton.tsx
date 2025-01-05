@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Moon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { TuzemoonModal } from "./TuzemoonModal";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -19,6 +21,7 @@ export const TuzemoonButton = ({
   onUpdate 
 }: TuzemoonButtonProps) => {
   const { toast } = useToast();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleTuzemoonClick = async () => {
     if (isAdmin) {
@@ -54,24 +57,36 @@ export const TuzemoonButton = ({
         });
       }
     } else if (isVerified) {
-      toast({
-        title: "Coming Soon",
-        description: "Tuzemoon functionality for verified users will be available soon!",
-      });
-      console.log("Verified user clicked Tuzemoon button");
+      setIsModalOpen(true);
     }
+  };
+
+  const handleConnectWallet = () => {
+    console.log("Connecting to Phantom wallet...");
+    toast({
+      title: "Wallet Connection",
+      description: "Phantom wallet integration coming soon!",
+    });
   };
 
   if (!isAdmin && !isVerified) return null;
 
   return (
-    <Button
-      variant="outline"
-      onClick={handleTuzemoonClick}
-      className={`group ${isFeatured ? 'text-yellow-500' : ''}`}
-    >
-      <Moon className={`h-5 w-5 mr-2 ${isFeatured ? 'fill-current' : ''}`} />
-      {isFeatured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
-    </Button>
+    <>
+      <Button
+        variant="outline"
+        onClick={handleTuzemoonClick}
+        className={`group ${isFeatured ? 'text-yellow-500' : ''}`}
+      >
+        <Moon className={`h-5 w-5 mr-2 ${isFeatured ? 'fill-current' : ''}`} />
+        {isFeatured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
+      </Button>
+
+      <TuzemoonModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConnectWallet={handleConnectWallet}
+      />
+    </>
   );
 };
