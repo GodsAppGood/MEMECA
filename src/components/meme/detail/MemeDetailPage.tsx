@@ -8,27 +8,12 @@ import { MemeImage } from "./MemeImage";
 import { MemeLinks } from "./MemeLinks";
 import { MemeActions } from "./MemeActions";
 import { MemeMetadata } from "./MemeMetadata";
+import { useMemeAuth } from "@/hooks/useMemeAuth";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const { data: isAdmin } = useQuery({
-    queryKey: ["isAdmin"],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) return false;
-
-      const { data, error } = await supabase
-        .from("Users")
-        .select("is_admin")
-        .eq("auth_id", session.user.id)
-        .maybeSingle();
-
-      if (error) return false;
-      return data?.is_admin || false;
-    },
-  });
+  const { userId } = useMemeAuth();
 
   const { data: meme, isLoading, refetch } = useQuery({
     queryKey: ["meme", id],
@@ -87,7 +72,7 @@ export const MemeDetailPage = () => {
             <MemeHeader meme={meme} />
             <MemeActions 
               meme={meme} 
-              isAdmin={isAdmin || false} 
+              userId={userId}
               onUpdate={refetch}
             />
           </div>

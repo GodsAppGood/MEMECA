@@ -41,7 +41,6 @@ export const UnifiedMemeCard = ({
   const queryClient = useQueryClient();
   const isTuzemoon = meme.is_featured && meme.tuzemoon_until && new Date(meme.tuzemoon_until) > new Date();
 
-  // Subscribe to real-time updates for this meme
   useRealtimeSubscription(
     [
       { 
@@ -58,7 +57,6 @@ export const UnifiedMemeCard = ({
       }
     ],
     () => {
-      // Invalidate all relevant queries when updates occur
       queryClient.invalidateQueries({ queryKey: ['memes'] });
       queryClient.invalidateQueries({ queryKey: ['watchlist-memes'] });
       queryClient.invalidateQueries({ queryKey: ['user-memes'] });
