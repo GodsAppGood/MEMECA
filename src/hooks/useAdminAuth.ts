@@ -13,10 +13,13 @@ export const useAdminAuth = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       try {
+        console.log('Checking admin status...');
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!session) {
           console.log('No session found, redirecting to login');
+          setIsAdmin(false);
+          setIsLoading(false);
           navigate('/');
           return;
         }
@@ -50,18 +53,30 @@ export const useAdminAuth = () => {
         }
       } catch (error) {
         console.error('Admin auth error:', error);
-        toast({
-          title: "Authentication Error",
-          description: "Please try logging in again.",
-          variant: "destructive"
-        });
-        navigate('/');
+        setIsAdmin(false);
+        if (location.pathname === '/admin') {
+          toast({
+            title: "Authentication Error",
+            description: "Please try logging in again.",
+            variant: "destructive"
+          });
+          navigate('/');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAdminStatus();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      checkAdminStatus();
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate, toast, location.pathname]);
 
   return { isAdmin, isLoading };
