@@ -5,6 +5,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LoginButtonProps {
   isLoginOpen: boolean;
@@ -22,7 +23,7 @@ export const LoginButton = ({
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const onSuccess = (response: any) => {
+  const onSuccess = async (response: any) => {
     setIsLoading(true);
     console.log('Google OAuth login attempt:', {
       timestamp: new Date().toISOString(),
@@ -32,16 +33,41 @@ export const LoginButton = ({
       environment: import.meta.env.MODE,
       currentPath: window.location.pathname,
       redirectUri: `${window.location.origin}/auth/v1/callback`,
-      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-      allowedDomains: [
-        'memecatlandar.io',
-        'www.memecatlandar.io',
-        window.location.hostname
-      ]
+      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
     });
 
-    handleLoginSuccess(response);
-    setIsLoading(false);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
+          redirectTo: `${window.location.origin}/auth/v1/callback`
+        }
+      });
+
+      if (error) {
+        console.error('Supabase OAuth error:', error);
+        toast({
+          variant: "destructive",
+          title: "Login Error",
+          description: "Failed to authenticate with Google. Please try again.",
+        });
+        handleLoginError();
+        return;
+      }
+
+      console.log('Supabase OAuth success:', data);
+      handleLoginSuccess(response);
+    } catch (error) {
+      console.error('Login error:', error);
+      handleLoginError();
+    } finally {
+      setIsLoading(false);
+      setIsLoginOpen(false);
+    }
   };
 
   const onError = () => {
@@ -53,11 +79,6 @@ export const LoginButton = ({
       environment: import.meta.env.MODE,
       googleClientId: import.meta.env.VITE_GOOGLE_CLIENT_ID,
       redirectUri: `${window.location.origin}/auth/v1/callback`,
-      allowedDomains: [
-        'memecatlandar.io',
-        'www.memecatlandar.io',
-        window.location.hostname
-      ],
       userAgent: navigator.userAgent,
       cookiesEnabled: navigator.cookieEnabled,
       hasLocalStorage: !!window.localStorage
@@ -66,7 +87,7 @@ export const LoginButton = ({
     toast({
       variant: "destructive",
       title: "Login Error",
-      description: "There was a problem logging in with Google. Please make sure pop-ups and cookies are enabled, then try again. If the problem persists, try clearing your browser cache.",
+      description: "There was a problem logging in with Google. Please make sure pop-ups and cookies are enabled, then try again.",
     });
     handleLoginError();
   };
