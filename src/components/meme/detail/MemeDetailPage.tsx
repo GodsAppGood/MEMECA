@@ -10,42 +10,21 @@ import { BlockchainInfo } from "./BlockchainInfo";
 import { ExternalLinks } from "./ExternalLinks";
 import { MemeActions } from "./MemeActions";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { LoadingSpinner } from "../ui/LoadingSpinner";
+import { ErrorState } from "../ui/ErrorState";
+import { useUserRole } from "@/hooks/useUserRole";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const { userId, isVerified, isAdmin, isLoading: isRoleLoading, error: roleError } = useUserRole();
 
-  useEffect(() => {
-    const getSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUserId(session.user.id);
-          
-          const { data: userData, error: userError } = await supabase
-            .from('Users')
-            .select('is_verified, is_admin')
-            .eq('auth_id', session.user.id)
-            .single();
-          
-          if (!userError && userData) {
-            setIsVerified(userData.is_verified);
-            setIsAdmin(userData.is_admin);
-            console.log('User roles:', { isVerified: userData.is_verified, isAdmin: userData.is_admin });
-          }
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-      }
-    };
-    void getSession();
-  }, []);
-
-  const { data: meme, isLoading, refetch } = useQuery({
+  const { 
+    data: meme, 
+    isLoading: isMemeLoading, 
+    error: memeError,
+    refetch 
+  } = useQuery({
     queryKey: ["meme", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,17 +39,16 @@ export const MemeDetailPage = () => {
     },
   });
 
-  if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
-          <div className="h-96 bg-gray-200 rounded mb-8"></div>
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-        </div>
-      </div>
-    );
+  if (isRoleLoading || isMemeLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (roleError) {
+    return <ErrorState error={roleError} />;
+  }
+
+  if (memeError) {
+    return <ErrorState error={memeError instanceof Error ? memeError : new Error("Failed to load meme")} onRetry={() => refetch()} />;
   }
 
   if (!meme) {
