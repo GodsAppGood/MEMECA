@@ -6,7 +6,7 @@ import { SolanaProvider } from "./components/providers/SolanaProvider";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { Routes, Route } from "react-router-dom";
 import MemeDetail from "@/pages/MemeDetail";
-import Tuzemoon from "@/components/dashboard/Tuzemoon";
+import { Tuzemoon } from "@/components/dashboard/Tuzemoon";
 
 function App() {
   return (
