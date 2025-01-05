@@ -61,12 +61,34 @@ export const TuzemoonButton = ({
     }
   };
 
-  const handleConnectWallet = () => {
-    console.log("Connecting to Phantom wallet...");
-    toast({
-      title: "Wallet Connection",
-      description: "Phantom wallet integration coming soon!",
-    });
+  const handleSuccess = async () => {
+    try {
+      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error } = await supabase
+        .from("Memes")
+        .update({ 
+          is_featured: true,
+          tuzemoon_until: tuzemoonUntil
+        })
+        .eq("id", memeId);
+
+      if (error) throw error;
+
+      void onUpdate();
+      
+      toast({
+        title: "Success!",
+        description: "Your meme has been added to Tuzemoon!",
+      });
+    } catch (error) {
+      console.error("Error updating Tuzemoon status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update Tuzemoon status",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!isAdmin && !isVerified) return null;
@@ -85,7 +107,7 @@ export const TuzemoonButton = ({
       <TuzemoonModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConnectWallet={handleConnectWallet}
+        onSuccess={handleSuccess}
       />
     </>
   );
