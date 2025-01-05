@@ -19,12 +19,14 @@ interface MemeCardActionsProps {
   userPoints?: number;
   userId?: string | null;
   isFirst?: boolean;
+  className?: string;
 }
 
 export const MemeCardActions = ({ 
   meme, 
   userId, 
-  isFirst 
+  isFirst,
+  className 
 }: MemeCardActionsProps) => {
   // Don't show actions for placeholder memes
   if (meme.isPlaceholder) {
@@ -89,7 +91,7 @@ export const MemeCardActions = ({
   };
 
   return (
-    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+    <div className={`flex items-center gap-2 ${className || ''}`} onClick={(e) => e.stopPropagation()}>
       <Button
         variant="ghost"
         size="icon"

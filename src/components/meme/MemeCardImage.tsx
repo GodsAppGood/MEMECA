@@ -3,15 +3,16 @@ interface MemeCardImageProps {
   title: string;
   position?: number;
   isFirst?: boolean;
+  className?: string;
 }
 
-export const MemeCardImage = ({ imageUrl, title, position, isFirst }: MemeCardImageProps) => {
+export const MemeCardImage = ({ imageUrl, title, position, isFirst, className }: MemeCardImageProps) => {
   return (
     <div className="relative">
       <img
         src={imageUrl}
         alt={title}
-        className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+        className={`w-full object-cover transition-transform duration-300 hover:scale-105 ${className || ''}`}
       />
       {position && (
         <div className={`absolute top-2 left-2 ${
