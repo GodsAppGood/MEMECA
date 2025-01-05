@@ -14,3 +14,8 @@ export interface Meme {
   is_featured?: boolean | null;
   tuzemoon_until?: string | null;
 }
+
+export type MemeWithStringId = Omit<Meme, 'id'> & {
+  id: string;
+  isPlaceholder?: boolean;
+};

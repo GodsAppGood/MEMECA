@@ -58,15 +58,14 @@ export const TopMemeGrid = () => {
       const { data, error } = await supabase
         .from('Memes')
         .select('*')
+        .gt('likes', 0) // Only include memes with at least one like
         .order('likes', { ascending: false })
+        .order('created_at', { ascending: false }) // Secondary sort by creation date
         .limit(200);
       
       if (error) throw error;
       
-      // Sort memes by likes in descending order to ensure correct ranking
-      const sortedMemes = (data || []).sort((a, b) => (b.likes || 0) - (a.likes || 0));
-      
-      return sortedMemes.map(meme => ({
+      return (data || []).map(meme => ({
         ...meme,
         id: meme.id.toString()
       }));
@@ -78,8 +77,14 @@ export const TopMemeGrid = () => {
       .channel('memes_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'Memes' },
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'Memes',
+          filter: 'likes>0' // Only listen for changes on memes with likes
+        },
         () => {
+          console.log("Received real-time update for top memes, refetching...");
           void refetch();
         }
       )

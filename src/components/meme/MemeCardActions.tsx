@@ -8,12 +8,10 @@ import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useLikeActions } from "@/hooks/useLikeActions";
 import { formatNumber } from "@/utils/formatNumber";
-import { Meme } from "@/types/meme";
+import { MemeWithStringId } from "@/types/meme";
 
 interface MemeCardActionsProps {
-  meme: Pick<Meme, 'id' | 'is_featured' | 'created_by' | 'title' | 'likes'> & {
-    isPlaceholder?: boolean;
-  };
+  meme: Pick<MemeWithStringId, 'id' | 'is_featured' | 'created_by' | 'title' | 'likes'>;
   userLikes?: string[];
   userPoints?: number;
   userId?: string | null;
