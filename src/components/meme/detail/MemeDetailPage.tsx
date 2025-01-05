@@ -4,32 +4,47 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { MemeHeader } from "./MemeHeader";
-import { MemeImage } from "./MemeImage";
-import { MemeLinks } from "./MemeLinks";
+import { MemeImageDisplay } from "./MemeImageDisplay";
+import { DescriptionSection } from "./DescriptionSection";
+import { BlockchainInfo } from "./BlockchainInfo";
+import { ExternalLink } from "./ExternalLink";
 import { MemeActions } from "./MemeActions";
-import { MemeMetadata } from "./MemeMetadata";
+import { WatchlistButton } from "../actions/WatchlistButton";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect, useState } from "react";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
-  const { data: isAdmin } = useQuery({
-    queryKey: ["isAdmin"],
-    queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user?.id) return false;
-
-      const { data, error } = await supabase
-        .from("Users")
-        .select("is_admin")
-        .eq("auth_id", session.user.id)
-        .maybeSingle();
-
-      if (error) return false;
-      return data?.is_admin || false;
-    },
-  });
+  useEffect(() => {
+    const getSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUserId(session.user.id);
+          
+          const { data: userData, error: userError } = await supabase
+            .from('Users')
+            .select('is_verified, is_admin')
+            .eq('auth_id', session.user.id)
+            .single();
+          
+          if (!userError && userData) {
+            setIsVerified(userData.is_verified);
+            setIsAdmin(userData.is_admin);
+            console.log('User roles:', { isVerified: userData.is_verified, isAdmin: userData.is_admin });
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
+    void getSession();
+  }, []);
 
   const { data: meme, isLoading, refetch } = useQuery({
     queryKey: ["meme", id],
@@ -87,26 +102,32 @@ export const MemeDetailPage = () => {
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="flex justify-between items-start mb-6">
               <MemeHeader meme={meme} />
-              <MemeActions 
-                meme={meme} 
-                isAdmin={isAdmin || false} 
-                onUpdate={refetch}
-              />
+              <div className="flex gap-2">
+                {(isAdmin || isVerified) && (
+                  <WatchlistButton 
+                    memeId={meme.id.toString()} 
+                    userId={userId} 
+                    showText={true}
+                    className="mr-2"
+                  />
+                )}
+                <MemeActions 
+                  meme={meme} 
+                  isAdmin={isAdmin} 
+                  onUpdate={refetch}
+                />
+              </div>
             </div>
 
-            <MemeImage
-              meme={meme}
-              className={meme.is_featured ? 'animate-float' : ''}
-            />
+            <MemeImageDisplay imageUrl={meme.image_url} title={meme.title} />
+            <DescriptionSection description={meme.description} />
 
-            {meme.description && (
-              <p className="text-lg mb-8 mt-6 break-words whitespace-pre-wrap max-w-full">
-                {meme.description}
-              </p>
-            )}
-
-            <MemeMetadata meme={meme} />
-            <MemeLinks meme={meme} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <BlockchainInfo blockchain={meme.blockchain} />
+              <ExternalLink type="Trade" url={meme.trade_link} />
+              <ExternalLink type="Twitter" url={meme.twitter_link} />
+              <ExternalLink type="Telegram" url={meme.telegram_link} />
+            </div>
           </div>
         </div>
       </div>
