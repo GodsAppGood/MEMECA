@@ -7,6 +7,7 @@ import { DeleteButton } from "./actions/DeleteButton";
 import { useFeatureToggle } from "@/hooks/useFeatureToggle";
 import { useToast } from "@/hooks/use-toast";
 import { useLikeActions } from "@/hooks/useLikeActions";
+import { formatNumber } from "@/utils/formatNumber";
 
 interface MemeCardActionsProps {
   meme: {
@@ -28,7 +29,6 @@ export const MemeCardActions = ({
   isFirst,
   className 
 }: MemeCardActionsProps) => {
-  // Don't show actions for placeholder memes
   if (meme.isPlaceholder) {
     return null;
   }
@@ -100,7 +100,7 @@ export const MemeCardActions = ({
         disabled={!userId}
       >
         <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-        <span className="ml-1">{likesCount}</span>
+        <span className="ml-1">{formatNumber(likesCount)}</span>
         {!userId && (
           <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
             Login to like memes

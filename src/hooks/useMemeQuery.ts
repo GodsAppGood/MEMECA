@@ -63,9 +63,11 @@ export const useMemeQuery = ({
         query = query.gte('created_at', last24Hours);
       }
 
-      if (showTopOnly) {
-        query = query.order('likes', { ascending: false });
-      } else {
+      // Always order by likes in descending order for consistent ranking
+      query = query.order('likes', { ascending: false });
+
+      if (!showTopOnly) {
+        // If not showing top memes, add a secondary sort by creation date
         query = query.order('created_at', { ascending: false });
       }
 
