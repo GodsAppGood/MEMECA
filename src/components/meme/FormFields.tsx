@@ -55,8 +55,10 @@ export const FormFields = ({
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setTitle(value);
-    validateField('title', value);
+    if (value.length <= 25) {
+      setTitle(value);
+      validateField('title', value);
+    }
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -71,18 +73,24 @@ export const FormFields = ({
     <>
       <div>
         <label className="block text-sm font-serif mb-2">Meme Title</label>
-        <Input
-          value={title}
-          onChange={handleTitleChange}
-          className={`font-serif ${errors.title ? 'border-red-500' : ''}`}
-          placeholder="Enter meme title"
-        />
-        {errors.title && (
-          <Alert variant="destructive" className="mt-2">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{errors.title}</AlertDescription>
-          </Alert>
-        )}
+        <div className="space-y-2">
+          <Input
+            value={title}
+            onChange={handleTitleChange}
+            className={`font-serif ${errors.title ? 'border-red-500' : ''}`}
+            placeholder="Enter meme title"
+            maxLength={25}
+          />
+          <p className="text-sm text-gray-500">
+            {title.length}/25 characters
+          </p>
+          {errors.title && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errors.title}</AlertDescription>
+            </Alert>
+          )}
+        </div>
       </div>
 
       <div>

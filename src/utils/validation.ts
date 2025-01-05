@@ -1,33 +1,31 @@
+import { validateDescription, validateUrl } from "@/utils/validation";
+
 export const validateMemeTitle = (title: string): string | null => {
-  if (!title) return "Title is required";
-  if (title.length < 3) return "Title must be at least 3 characters long";
-  if (title.length > 100) return "Title must be less than 100 characters";
+  if (!title) {
+    return "Title is required";
+  }
+  if (title.length > 25) {
+    return "Title must not exceed 25 characters";
+  }
   return null;
 };
 
 export const validateDescription = (description: string): string | null => {
-  if (description && description.length > 200) {
-    return "Description must be less than 200 characters";
+  if (!description) {
+    return "Description is required";
+  }
+  if (description.length > 200) {
+    return "Description must not exceed 200 characters";
   }
   return null;
 };
 
 export const validateUrl = (url: string): string | null => {
-  if (!url) return null; // URLs are optional
-  try {
-    new URL(url);
-    return null;
-  } catch {
-    return "Please enter a valid URL";
+  const urlPattern = new RegExp(
+    "^(https?:\\/\\/)?([\\w\\-]+\\.)+[\\w\\-]+(\\/[\\w\\- .\\/\\?%&=]*)?$"
+  );
+  if (url && !urlPattern.test(url)) {
+    return "Invalid URL format";
   }
-};
-
-export const validateBlockchain = (blockchain: string): string | null => {
-  if (!blockchain) return "Please select a blockchain";
-  return null;
-};
-
-export const validateImageUrl = (imageUrl: string): string | null => {
-  if (!imageUrl) return "Please upload an image";
   return null;
 };
