@@ -7,9 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 interface WatchlistButtonProps {
   memeId: string;
   userId: string | null;
+  showText?: boolean;
+  className?: string;
 }
 
-export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
+export const WatchlistButton = ({ memeId, userId, showText = false, className = "" }: WatchlistButtonProps) => {
   const { isInWatchlist, toggleWatchlist, isLoading, initializeWatchlist } = useWatchlistStore();
   const [isAnimating, setIsAnimating] = useState(false);
   const { toast } = useToast();
@@ -80,8 +82,8 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
 
   return (
     <Button
-      variant="ghost"
-      size="icon"
+      variant={showText ? "default" : "ghost"}
+      size={showText ? "default" : "icon"}
       onClick={handleWatchlist}
       className={`
         watchlist-toggle
@@ -89,12 +91,13 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
         relative
         transition-all 
         duration-300 
-        ${isWatchlisted ? 'text-yellow-500 bg-yellow-50' : 'text-yellow-500'} 
+        ${isWatchlisted ? (showText ? 'bg-yellow-500 hover:bg-yellow-600' : 'text-yellow-500 bg-yellow-50') : 'text-yellow-500'} 
         ${isAnimating ? 'scale-110' : 'scale-100'}
         hover:scale-105
         disabled:opacity-50
         disabled:cursor-not-allowed
         ${connectionError ? 'opacity-50' : ''}
+        ${className}
       `}
       disabled={isLoading || connectionError}
       title={isWatchlisted ? "Remove from Watchlist" : "Add to Watchlist"}
@@ -108,8 +111,10 @@ export const WatchlistButton = ({ memeId, userId }: WatchlistButtonProps) => {
           duration-300 
           ${isWatchlisted ? 'fill-current animate-[pulse_0.3s_ease-in-out]' : ''} 
           ${isAnimating ? 'animate-[spin_0.3s_ease-in-out]' : ''}
+          ${showText ? 'mr-2' : ''}
         `} 
       />
+      {showText && (isWatchlisted ? 'Remove from Watchlist' : 'Add to Watchlist')}
       {!userId && (
         <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
           Login to add to watchlist

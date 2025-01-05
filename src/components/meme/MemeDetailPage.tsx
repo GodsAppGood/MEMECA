@@ -7,6 +7,7 @@ import { useUserData } from "@/hooks/useUserData";
 import { useEffect, useState } from "react";
 import { MemeCardActions } from "./MemeCardActions";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
+import { WatchlistButton } from "./actions/WatchlistButton";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
@@ -34,7 +35,6 @@ export const MemeDetailPage = () => {
       
       if (error) throw error;
       
-      // Convert the numeric id to string for MemeCardActions
       return {
         ...data,
         id: data.id.toString()
@@ -75,12 +75,20 @@ export const MemeDetailPage = () => {
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="flex justify-between items-start mb-6">
           <h1 className="text-3xl font-serif">{meme.title}</h1>
-          <MemeCardActions
-            meme={meme}
-            userLikes={userLikes}
-            userPoints={userPoints}
-            userId={userId}
-          />
+          <div className="flex gap-2">
+            <WatchlistButton 
+              memeId={meme.id} 
+              userId={userId} 
+              showText={true}
+              className="mr-2"
+            />
+            <MemeCardActions
+              meme={meme}
+              userLikes={userLikes}
+              userPoints={userPoints}
+              userId={userId}
+            />
+          </div>
         </div>
 
         <img

@@ -2,7 +2,6 @@ import { Heart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { WatchlistButton } from "./actions/WatchlistButton";
 import { EditButton } from "./actions/EditButton";
 import { DeleteButton } from "./actions/DeleteButton";
 import { useFeatureToggle } from "@/hooks/useFeatureToggle";
@@ -107,8 +106,6 @@ export const MemeCardActions = ({
         )}
       </Button>
 
-      <WatchlistButton memeId={meme.id} userId={userId || null} />
-      
       {isAdmin && (
         <Button
           variant="ghost"
