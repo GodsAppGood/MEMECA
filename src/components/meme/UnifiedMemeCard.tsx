@@ -45,7 +45,7 @@ export const UnifiedMemeCard = ({
 
   return (
     <Card 
-      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative
+      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative flex flex-col h-full
         ${isFirst ? 'border-2 border-yellow-400' : ''}
         ${isTuzemoon ? 'animate-pulse-border' : ''}`}
       onClick={handleCardClick}
@@ -56,11 +56,11 @@ export const UnifiedMemeCard = ({
         position={position}
         isFirst={isFirst}
       />
-      <div className="p-4">
+      <div className="p-4 flex flex-col flex-grow">
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold">{meme.title}</h3>
+              <h3 className="text-lg font-semibold line-clamp-2">{meme.title}</h3>
               {isTuzemoon && (
                 <Badge className="bg-red-500 text-white animate-pulse">
                   <Flame className="w-4 h-4 mr-1" />
@@ -81,11 +81,11 @@ export const UnifiedMemeCard = ({
           />
         </div>
         {meme.description && (
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-muted-foreground mb-4 line-clamp-4 flex-grow">
             {meme.description}
           </p>
         )}
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm text-muted-foreground mt-auto">
           {format(new Date(meme.created_at), 'PPP')}
         </span>
       </div>
