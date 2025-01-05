@@ -80,20 +80,26 @@ export const SessionHandler = () => {
           console.log('Session successfully established:', {
             userId: currentSession.user.id,
             isAdmin: userData.is_admin,
-            isVerified: userData.is_verified
+            isVerified: userData.is_verified,
+            redirectPath: window.location.pathname
           });
+
+          // Only redirect if we're on the not-found-404 page or root
+          const currentPath = window.location.pathname;
+          if (currentPath === '/not-found-404' || currentPath === '/') {
+            if (userData.is_admin) {
+              console.log('Redirecting admin user to admin dashboard');
+              navigate('/admin');
+            } else {
+              console.log('Redirecting regular user to home page');
+              navigate('/');
+            }
+          }
 
           toast({
             title: "Welcome back!",
             description: `Signed in as ${userData.email}`,
           });
-
-          // Redirect admin users to admin dashboard
-          if (userData.is_admin) {
-            navigate('/admin');
-          } else {
-            navigate('/');
-          }
 
         } else if (event === 'TOKEN_REFRESHED') {
           console.log('Session token refreshed successfully');

@@ -72,6 +72,7 @@ const App = () => {
                 <Route path="/my-memes" element={<MyMemes />} />
                 <Route path="/watchlist" element={<Watchlist />} />
                 <Route path="/tuzemoon" element={<Tuzemoon />} />
+                <Route path="/not-found-404" element={<NotFound />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <Toaster />
