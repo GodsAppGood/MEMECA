@@ -20,8 +20,6 @@ export const MemeForm = ({ onSubmitAttempt, isAuthenticated }: MemeFormProps) =>
     <FormWrapper 
       onSubmitAttempt={onSubmitAttempt} 
       isAuthenticated={isAuthenticated}
-      editMode={editMode}
-      initialData={memeData}
     />
   );
 };

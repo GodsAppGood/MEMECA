@@ -12,7 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 const MAX_DESCRIPTION_LENGTH = 200;
 
-interface FormWrapperProps {
+export interface FormWrapperProps {
   onSubmitAttempt: () => void;
   isAuthenticated: boolean;
 }
