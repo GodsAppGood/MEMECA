@@ -11,6 +11,7 @@ import { MemeGridLoader } from "./meme/grid/MemeGridLoader";
 import { MemeGridError } from "./meme/grid/MemeGridError";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -32,6 +33,7 @@ export const MemeGrid = ({
   userOnly = false
 }: MemeGridProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { userId } = useMemeAuth();
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
   
@@ -52,15 +54,22 @@ export const MemeGrid = ({
     }
   }, [error]);
 
+  // Subscribe to all relevant real-time updates
   useRealtimeSubscription(
     [
       { name: 'Memes' },
+      { name: 'Likes' },
       { name: 'Watchlist' }
     ],
     () => {
       console.log("Realtime update received, refetching data...");
       void refetch();
       void refetchLikes();
+      // Invalidate all related queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['memes'] });
+      queryClient.invalidateQueries({ queryKey: ['watchlist-memes'] });
+      queryClient.invalidateQueries({ queryKey: ['user-memes'] });
+      queryClient.invalidateQueries({ queryKey: ['featured-memes'] });
     }
   );
 

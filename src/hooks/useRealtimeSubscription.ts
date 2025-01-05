@@ -16,23 +16,32 @@ export const useRealtimeSubscription = (
     const channel = supabase.channel('db-changes');
 
     tables.forEach(({ name, event = "*", filter }) => {
+      const filterObj: RealtimePostgresChangesFilter<any> = {
+        event,
+        schema: 'public',
+        table: name,
+      };
+
+      if (filter) {
+        filterObj.filter = filter;
+      }
+
       channel.on(
         'postgres_changes',
-        {
-          event,
-          schema: 'public',
-          table: name,
-          filter,
-        } as RealtimePostgresChangesFilter<any>,
-        () => {
+        filterObj,
+        (payload) => {
+          console.log(`Realtime update received for ${name}:`, payload);
           onUpdate();
         }
       );
     });
 
-    channel.subscribe();
+    channel.subscribe((status) => {
+      console.log(`Realtime subscription status for channel:`, status);
+    });
 
     return () => {
+      console.log('Cleaning up realtime subscription');
       void supabase.removeChannel(channel);
     };
   }, [tables, onUpdate]);
