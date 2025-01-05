@@ -27,7 +27,7 @@ export const MemeActions = ({ meme, userId, onUpdate }: MemeActionsProps) => {
   const { toast } = useToast();
   const [showTuzemoonDialog, setShowTuzemoonDialog] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlistStore();
-  const isWatchlisted = isInWatchlist(meme.id);
+  const isWatchlisted = isInWatchlist(meme.id.toString());
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
@@ -107,7 +107,7 @@ export const MemeActions = ({ meme, userId, onUpdate }: MemeActionsProps) => {
     }
 
     try {
-      await toggleWatchlist(meme.id, userId);
+      await toggleWatchlist(meme.id.toString(), userId);
       toast({
         title: isWatchlisted ? "Removed from Watchlist" : "Added to Watchlist",
         description: isWatchlisted 
