@@ -34,6 +34,7 @@ export const MemeDetailPage = () => {
           if (!userError && userData) {
             setIsVerified(userData.is_verified);
             setIsAdmin(userData.is_admin);
+            console.log('User roles:', { isVerified: userData.is_verified, isAdmin: userData.is_admin });
           }
         }
       } catch (error) {
