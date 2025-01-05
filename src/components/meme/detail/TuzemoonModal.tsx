@@ -9,6 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Buffer } from 'buffer';
+
+// Ensure Buffer is available globally
+if (typeof window !== 'undefined') {
+  window.Buffer = window.Buffer || Buffer;
+}
 
 interface TuzemoonModalProps {
   isOpen: boolean;
