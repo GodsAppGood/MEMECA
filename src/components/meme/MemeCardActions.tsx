@@ -1,127 +1,99 @@
-import { Heart, Star } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EditButton } from "./actions/EditButton";
 import { DeleteButton } from "./actions/DeleteButton";
-import { useFeatureToggle } from "@/hooks/useFeatureToggle";
+import { LikeButton } from "./actions/LikeButton";
+import { WatchlistButton } from "./actions/WatchlistButton";
 import { useToast } from "@/hooks/use-toast";
 import { useLikeActions } from "@/hooks/useLikeActions";
 import { formatNumber } from "@/utils/formatNumber";
-import { MemeWithStringId } from "@/types/meme";
+import { Meme } from "@/types/meme";
 
 interface MemeCardActionsProps {
-  meme: Pick<MemeWithStringId, 'id' | 'is_featured' | 'created_by' | 'title' | 'likes'>;
+  meme: Pick<Meme, 'id' | 'is_featured' | 'created_by' | 'title' | 'likes'>;
   userLikes?: string[];
   userPoints?: number;
   userId?: string | null;
-  isFirst?: boolean;
-  className?: string;
+  isAuthenticated: boolean;
+  onAuthRequired: () => void;
 }
 
-export const MemeCardActions = ({ 
-  meme, 
-  userId, 
-  isFirst,
-  className 
+export const MemeCardActions = ({
+  meme,
+  userLikes = [],
+  userPoints = 0,
+  userId,
+  isAuthenticated,
+  onAuthRequired,
 }: MemeCardActionsProps) => {
-  if (meme.isPlaceholder) {
-    return null;
-  }
-
-  const { isLiked, likesCount, handleLike } = useLikeActions(meme.id, userId || null);
-  const { handleFeatureToggle } = useFeatureToggle(meme.id, meme.is_featured || false);
+  const navigate = useNavigate();
   const { toast } = useToast();
+  const [isLiking, setIsLiking] = useState(false);
+  const { handleLike, handleUnlike } = useLikeActions();
 
-  const { data: isAdmin } = useQuery({
-    queryKey: ["isAdmin", userId],
-    queryFn: async () => {
-      if (!userId) return false;
-      const { data, error } = await supabase
-        .from("Users")
-        .select("is_admin")
-        .eq("auth_id", userId)
-        .maybeSingle();
-      
-      if (error) {
-        console.error("Error checking admin status:", error);
-        return false;
-      }
-      return data?.is_admin || false;
-    },
-    enabled: !!userId
-  });
+  const isLiked = userLikes?.includes(meme.id.toString());
 
-  const handleFeatureClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleLikeClick = async () => {
+    if (!isAuthenticated) {
+      onAuthRequired();
+      return;
+    }
+
+    if (isLiking) return;
+
     try {
-      const tuzemoonUntil = !meme.is_featured 
-        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        : null;
+      setIsLiking(true);
+      if (isLiked) {
+        await handleUnlike(meme.id.toString());
+        toast({
+          title: "Unlike successful",
+          description: "You've removed your like from this meme",
+        });
+      } else {
+        if (userPoints < 1) {
+          toast({
+            title: "Not enough points",
+            description: "You need at least 1 point to like a meme",
+            variant: "destructive",
+          });
+          return;
+        }
 
-      const { error } = await supabase
-        .from("Memes")
-        .update({ 
-          is_featured: !meme.is_featured,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq("id", meme.id);
-
-      if (error) throw error;
-
-      await handleFeatureToggle();
-      toast({
-        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
-        description: meme.is_featured 
-          ? "The meme has been removed from Tuzemoon" 
-          : "The meme has been added to Tuzemoon for 24 hours",
-      });
+        await handleLike(meme.id.toString());
+        toast({
+          title: "Like successful",
+          description: "You've liked this meme",
+        });
+      }
     } catch (error) {
-      console.error("Error toggling feature status:", error);
+      console.error('Error handling like:', error);
       toast({
         title: "Error",
-        description: "Failed to update Tuzemoon status. Please try again.",
-        variant: "destructive"
+        description: "Failed to process like action",
+        variant: "destructive",
       });
+    } finally {
+      setIsLiking(false);
     }
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className || ''}`} onClick={(e) => e.stopPropagation()}>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleLike}
-        className={`group relative ${isLiked ? "text-red-500" : ""}`}
-        disabled={!userId}
-      >
-        <Heart className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`} />
-        <span className="ml-1">{formatNumber(likesCount)}</span>
-        {!userId && (
-          <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            Login to like memes
-          </span>
-        )}
-      </Button>
-
-      {isAdmin && (
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleFeatureClick}
-          className={`group relative ${meme.is_featured ? "text-yellow-500" : ""}`}
-          title={meme.is_featured ? "Remove from Tuzemoon" : "Add to Tuzemoon"}
-        >
-          <Star className={`h-5 w-5 ${meme.is_featured ? "fill-current" : ""}`} />
-          <span className="sr-only">
-            {meme.is_featured ? "Remove from Tuzemoon" : "Add to Tuzemoon"}
-          </span>
-          <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-            {meme.is_featured ? "Remove from Tuzemoon" : "Add to Tuzemoon"}
-          </span>
-        </Button>
-      )}
-
+    <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex items-center space-x-2">
+        <LikeButton
+          isLiked={isLiked}
+          onClick={handleLikeClick}
+          disabled={isLiking}
+        />
+        <span className="text-sm font-medium">
+          {formatNumber(meme.likes || 0)}
+        </span>
+        <WatchlistButton
+          memeId={meme.id.toString()}
+          isAuthenticated={isAuthenticated}
+          onAuthRequired={onAuthRequired}
+        />
+      </div>
       <EditButton meme={meme} userId={userId || null} />
       <DeleteButton meme={meme} userId={userId || null} />
     </div>

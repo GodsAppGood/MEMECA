@@ -1,16 +1,11 @@
-import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
-import { ImageUploader } from "./ImageUploader";
-import { FormFields } from "./FormFields";
-import { BlockchainSelector } from "./BlockchainSelector";
-import { DateSelector } from "./DateSelector";
-import { SubmitButton } from "./SubmitButton";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-
-const MAX_DESCRIPTION_LENGTH = 200;
+import { FormHeader } from "./form/FormHeader";
+import { FormBody } from "./form/FormBody";
+import { FormFooter } from "./form/FormFooter";
 
 export interface FormWrapperProps {
   onSubmitAttempt: () => void;
@@ -136,38 +131,32 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
-        <ImageUploader imageUrl={imageUrl} onImageChange={setImageUrl} />
-      </div>
-
-      <div className="space-y-6">
-        <FormFields
-          title={title}
-          setTitle={setTitle}
-          description={description}
-          setDescription={setDescription}
-          maxDescriptionLength={MAX_DESCRIPTION_LENGTH}
-          tradeLink={tradeLink}
-          setTradeLink={setTradeLink}
-          twitterLink={twitterLink}
-          setTwitterLink={setTwitterLink}
-          telegramLink={telegramLink}
-          setTelegramLink={setTelegramLink}
-        />
-
-        <BlockchainSelector
-          blockchain={blockchain}
-          setBlockchain={setBlockchain}
-        />
-
-        <DateSelector
-          date={createdAt}
-          setDate={setCreatedAt}
-        />
-
-        <SubmitButton isEditing={isEditing} isLoading={isSubmitting} />
-      </div>
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <FormHeader isEditing={isEditing} />
+      
+      <FormBody
+        imageUrl={imageUrl}
+        setImageUrl={setImageUrl}
+        title={title}
+        setTitle={setTitle}
+        description={description}
+        setDescription={setDescription}
+        blockchain={blockchain}
+        setBlockchain={setBlockchain}
+        createdAt={createdAt}
+        setCreatedAt={setCreatedAt}
+        twitterLink={twitterLink}
+        setTwitterLink={setTwitterLink}
+        telegramLink={telegramLink}
+        setTelegramLink={setTelegramLink}
+        tradeLink={tradeLink}
+        setTradeLink={setTradeLink}
+      />
+      
+      <FormFooter 
+        isEditing={isEditing} 
+        isSubmitting={isSubmitting} 
+      />
     </form>
   );
 };
