@@ -8,6 +8,7 @@ import { MemeImage } from "./MemeImage";
 import { MemeLinks } from "./MemeLinks";
 import { MemeActions } from "./MemeActions";
 import { MemeMetadata } from "./MemeMetadata";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
@@ -71,41 +72,45 @@ export const MemeDetailPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
-        <Button
-          variant="ghost"
-          className="mb-8"
-          onClick={() => navigate(-1)}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+    <TooltipProvider>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <Button
+            variant="ghost"
+            className="mb-8"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
 
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="flex justify-between items-start mb-6">
-            <MemeHeader meme={meme} />
-            <MemeActions 
-              meme={meme} 
-              isAdmin={isAdmin || false} 
-              onUpdate={refetch}
+          <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="flex justify-between items-start mb-6">
+              <MemeHeader meme={meme} />
+              <MemeActions 
+                meme={meme} 
+                isAdmin={isAdmin || false} 
+                onUpdate={refetch}
+              />
+            </div>
+
+            <MemeImage
+              meme={meme}
+              className={meme.is_featured ? 'animate-float' : ''}
             />
+
+            {meme.description && (
+              <p className="text-lg mb-8 mt-6 break-words whitespace-pre-wrap max-w-full">
+                {meme.description}
+              </p>
+            )}
+
+            <MemeMetadata meme={meme} />
+            <MemeLinks meme={meme} />
           </div>
-
-          <MemeImage
-            meme={meme}
-            className={meme.is_featured ? 'animate-float' : ''}
-          />
-
-          {meme.description && (
-            <p className="text-lg mb-8 mt-6">{meme.description}</p>
-          )}
-
-          <MemeMetadata meme={meme} />
-          <MemeLinks meme={meme} />
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
