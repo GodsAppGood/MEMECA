@@ -1,5 +1,3 @@
-import { validateDescription, validateUrl } from "@/utils/validation";
-
 export const validateMemeTitle = (title: string): string | null => {
   if (!title) {
     return "Title is required";
