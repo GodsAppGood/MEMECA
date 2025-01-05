@@ -27,7 +27,7 @@ export const MemeCardActions = ({
 }: MemeCardActionsProps) => {
   const { toast } = useToast();
   const [isLiking, setIsLiking] = useState(false);
-  const { handleLike, handleUnlike } = useLikeActions();
+  const { handleLike, handleUnlike } = useLikeActions(meme.id.toString(), userId);
 
   const isLiked = userLikes?.includes(meme.id.toString());
   const [isAuthenticated, setIsAuthenticated] = useState(!!userId);
@@ -51,7 +51,7 @@ export const MemeCardActions = ({
     try {
       setIsLiking(true);
       if (isLiked) {
-        await handleUnlike(meme.id.toString());
+        await handleUnlike();
         toast({
           title: "Unlike successful",
           description: "You've removed your like from this meme",
@@ -66,7 +66,7 @@ export const MemeCardActions = ({
           return;
         }
 
-        await handleLike(meme.id.toString());
+        await handleLike();
         toast({
           title: "Like successful",
           description: "You've liked this meme",
