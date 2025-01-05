@@ -37,9 +37,13 @@ export function Watchlist() {
       if (!userId) return [];
       
       try {
+        console.log("Fetching watchlist for user:", userId);
         const { data: watchlistData, error: watchlistError } = await supabase
           .from('Watchlist')
-          .select('meme_id, Memes(*)')
+          .select(`
+            meme_id,
+            Memes (*)
+          `)
           .eq('user_id', userId);
         
         if (watchlistError) {
@@ -47,7 +51,7 @@ export function Watchlist() {
           throw new Error("Failed to fetch watchlist");
         }
         
-        console.log("Watchlist data:", watchlistData); // Debug log
+        console.log("Watchlist data:", watchlistData);
         
         if (!watchlistData) return [];
         
@@ -69,6 +73,7 @@ export function Watchlist() {
     }
   });
 
+  // Use the subscription hook to handle real-time updates
   useWatchlistSubscription(() => {
     console.log("Watchlist updated, refetching...");
     void refetch();
