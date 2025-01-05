@@ -26,7 +26,7 @@ import { SessionHandler } from "@/components/SessionHandler";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
-const AppContent = () => {
+const App = () => {
   const handleOAuthError = () => {
     console.error('Google OAuth script failed to load', {
       timestamp: new Date().toISOString(),
@@ -43,14 +43,14 @@ const AppContent = () => {
   };
 
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <GoogleOAuthProvider 
-          clientId={GOOGLE_CLIENT_ID}
-          onScriptLoadError={handleOAuthError}
-        >
-          <TooltipProvider>
-            <ErrorBoundary>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <GoogleOAuthProvider 
+            clientId={GOOGLE_CLIENT_ID}
+            onScriptLoadError={handleOAuthError}
+          >
+            <TooltipProvider>
               <SessionHandler />
               <Routes>
                 <Route path="/" element={<Index />} />
@@ -76,16 +76,12 @@ const AppContent = () => {
               </Routes>
               <Toaster />
               <SonnerToaster />
-            </ErrorBoundary>
-          </TooltipProvider>
-        </GoogleOAuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+            </TooltipProvider>
+          </GoogleOAuthProvider>
+        </QueryClientProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
-};
-
-const App = () => {
-  return <AppContent />;
 };
 
 export default App;
