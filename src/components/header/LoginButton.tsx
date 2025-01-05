@@ -32,11 +32,13 @@ export const LoginButton = ({
       origin: window.location.origin,
       environment: import.meta.env.MODE,
       currentPath: window.location.pathname,
-      redirectUri: `${window.location.origin}/auth/v1/callback`,
-      clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID
+      redirectUri: `${window.location.origin}/auth/v1/callback`
     });
 
     try {
+      // Ensure we're using a properly formatted URL without extra colons
+      const redirectUrl = new URL('/auth/v1/callback', window.location.origin).toString();
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -44,7 +46,7 @@ export const LoginButton = ({
             access_type: 'offline',
             prompt: 'consent',
           },
-          redirectTo: `${window.location.origin}/auth/v1/callback`
+          redirectTo: redirectUrl
         }
       });
 
