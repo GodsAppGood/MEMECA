@@ -43,7 +43,7 @@ export const MemeGrid = ({
     currentPage,
     itemsPerPage,
     userOnly,
-    userId
+    userId: userOnly ? userId : null // Only filter by userId if userOnly is true
   });
 
   useEffect(() => {

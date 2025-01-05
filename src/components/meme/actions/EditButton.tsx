@@ -16,6 +16,15 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
     
+    if (!userId) {
+      toast({
+        variant: "destructive",
+        title: "Authentication Required",
+        description: "Please log in to edit memes",
+      });
+      return;
+    }
+
     if (userId !== meme.created_by) {
       toast({
         variant: "destructive",
@@ -25,11 +34,25 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
       return;
     }
 
-    // Navigate to submit form with meme data in state
-    navigate('/submit', { state: { editMode: true, memeData: meme } });
+    console.log("Editing meme:", {
+      memeId: meme.id,
+      userId,
+      createdBy: meme.created_by
+    });
+
+    navigate('/submit', { 
+      state: { 
+        editMode: true, 
+        memeData: {
+          ...meme,
+          id: meme.id.toString()
+        }
+      } 
+    });
   };
 
-  if (userId !== meme.created_by) return null;
+  // Only show edit button if user is the creator
+  if (!userId || userId !== meme.created_by) return null;
 
   return (
     <Button
