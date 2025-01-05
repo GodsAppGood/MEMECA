@@ -16,8 +16,8 @@ if (typeof window !== 'undefined') {
   window.Buffer = window.Buffer || Buffer;
 }
 
-// Configure Solana RPC endpoint
-const SOLANA_RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
+// Configure Solana RPC endpoint with fallback
+const SOLANA_RPC_ENDPOINT = import.meta.env.VITE_SOLANA_RPC_ENDPOINT || "https://api.mainnet-beta.solana.com";
 console.log("Using Solana RPC endpoint:", SOLANA_RPC_ENDPOINT);
 
 interface TuzemoonModalProps {
@@ -43,6 +43,18 @@ export const TuzemoonModal = ({
       setError(null);
     }
   }, [isOpen]);
+
+  const verifyRpcConnection = async (connection: Connection): Promise<boolean> => {
+    try {
+      const blockHeight = await connection.getBlockHeight();
+      console.log("RPC connection verified, current block height:", blockHeight);
+      return true;
+    } catch (err) {
+      console.error("RPC connection failed:", err);
+      setError("Unable to connect to Solana network. Please try again later.");
+      return false;
+    }
+  };
 
   const connectWallet = async () => {
     setIsLoading(true);
@@ -76,6 +88,13 @@ export const TuzemoonModal = ({
       }
 
       const connection = new Connection(SOLANA_RPC_ENDPOINT);
+      
+      // Verify RPC connection before proceeding
+      const isRpcAvailable = await verifyRpcConnection(connection);
+      if (!isRpcAvailable) {
+        throw new Error("Solana network is currently unavailable. Please try again later.");
+      }
+
       const fromPubkey = provider.publicKey;
       
       const transaction = new Transaction().add(
@@ -86,7 +105,11 @@ export const TuzemoonModal = ({
         })
       );
 
-      const { blockhash } = await connection.getLatestBlockhash();
+      const { blockhash } = await connection.getLatestBlockhash().catch(err => {
+        console.error("Error getting blockhash:", err);
+        throw new Error("Failed to prepare transaction. Please try again.");
+      });
+      
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = fromPubkey;
 
@@ -95,10 +118,15 @@ export const TuzemoonModal = ({
       
       console.log("Transaction sent:", signature);
       
-      // Wait for transaction confirmation
-      const confirmation = await connection.confirmTransaction(signature);
+      // Wait for transaction confirmation with timeout
+      const confirmation = await Promise.race([
+        connection.confirmTransaction(signature),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Transaction confirmation timeout")), 30000)
+        )
+      ]);
       
-      if (confirmation.value.err) {
+      if ((confirmation as any).value?.err) {
         throw new Error("Transaction failed to confirm");
       }
 
