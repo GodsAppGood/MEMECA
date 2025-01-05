@@ -16,6 +16,10 @@ if (typeof window !== 'undefined') {
   window.Buffer = window.Buffer || Buffer;
 }
 
+// Configure Solana RPC endpoint
+const SOLANA_RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
+console.log("Using Solana RPC endpoint:", SOLANA_RPC_ENDPOINT);
+
 interface TuzemoonModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -71,7 +75,7 @@ export const TuzemoonModal = ({
         throw new Error("Phantom Wallet not found");
       }
 
-      const connection = new Connection("https://api.mainnet-beta.solana.com");
+      const connection = new Connection(SOLANA_RPC_ENDPOINT);
       const fromPubkey = provider.publicKey;
       
       const transaction = new Transaction().add(
