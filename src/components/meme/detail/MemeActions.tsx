@@ -16,6 +16,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+
+const SOLANA_NETWORK = "devnet";
+const RECIPIENT_ADDRESS = "YOUR_RECIPIENT_WALLET_ADDRESS"; // Replace with your actual wallet address
 
 interface MemeActionsProps {
   meme: Meme;
@@ -26,8 +32,10 @@ interface MemeActionsProps {
 export const MemeActions = ({ meme, userId, onUpdate }: MemeActionsProps) => {
   const { toast } = useToast();
   const [showTuzemoonDialog, setShowTuzemoonDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { isInWatchlist, toggleWatchlist } = useWatchlistStore();
   const isWatchlisted = isInWatchlist(meme.id.toString());
+  const { publicKey, sendTransaction } = useWallet();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
@@ -44,6 +52,55 @@ export const MemeActions = ({ meme, userId, onUpdate }: MemeActionsProps) => {
     },
     enabled: !!userId
   });
+
+  const handleSolanaPayment = async () => {
+    if (!publicKey) {
+      toast({
+        title: "Wallet Required",
+        description: "Please connect your Solana wallet to proceed",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      const connection = new Connection(
+        `https://api.${SOLANA_NETWORK}.solana.com`,
+        'confirmed'
+      );
+
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(RECIPIENT_ADDRESS),
+          lamports: LAMPORTS_PER_SOL * 0.1, // 0.1 SOL
+        })
+      );
+
+      const signature = await sendTransaction(transaction, connection);
+      const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+
+      if (confirmation.value.err) throw new Error('Transaction failed');
+
+      await addToTuzemoon();
+      setShowTuzemoonDialog(false);
+      
+      toast({
+        title: "Payment Successful",
+        description: "Your meme has been added to Tuzemoon!",
+      });
+    } catch (error: any) {
+      console.error('Payment error:', error);
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Failed to process payment. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleTuzemoonToggle = async () => {
     if (!userId) {
@@ -150,21 +207,22 @@ export const MemeActions = ({ meme, userId, onUpdate }: MemeActionsProps) => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Welcome to Tuzemoon by Memeca!</AlertDialogTitle>
-            <AlertDialogDescription>
-              To add this meme to Tuzemoon, you'll need to pay 0.1 Solana.
-              This feature is coming soon!
+            <AlertDialogDescription className="space-y-4">
+              <p>To add this meme to Tuzemoon, you'll need to pay 0.1 Solana.</p>
+              {!publicKey && (
+                <div className="flex justify-center">
+                  <WalletMultiButton />
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              setShowTuzemoonDialog(false);
-              toast({
-                title: "Coming Soon",
-                description: "Solana payments will be available soon!",
-              });
-            }}>
-              Pay 0.1 SOL
+            <AlertDialogAction
+              onClick={handleSolanaPayment}
+              disabled={!publicKey || isProcessing}
+            >
+              {isProcessing ? 'Processing...' : 'Pay 0.1 SOL'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
