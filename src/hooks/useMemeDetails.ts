@@ -17,7 +17,7 @@ export const useMemeDetails = (id: string | undefined) => {
       
       return {
         ...data,
-        id: data.id.toString()
+        id: Number(data.id) // Convert the id to a number
       } as Meme;
     },
     enabled: !!id,
