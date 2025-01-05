@@ -14,13 +14,33 @@ export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [userId, setUserId] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUserId(session?.user?.id ?? null);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUserId(session.user.id);
+          
+          // Fetch user role information
+          const { data: userData, error: userError } = await supabase
+            .from('Users')
+            .select('is_verified, is_admin')
+            .eq('auth_id', session.user.id)
+            .single();
+          
+          if (!userError && userData) {
+            setIsVerified(userData.is_verified);
+            setIsAdmin(userData.is_admin);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
     };
-    getSession();
+    void getSession();
   }, []);
 
   const { userPoints, userLikes, refetchLikes } = useUserData(userId);
@@ -78,12 +98,14 @@ export const MemeDetailPage = () => {
           <div className="flex justify-between items-start mb-6">
             <h1 className="text-3xl font-serif">{meme.title}</h1>
             <div className="flex gap-2">
-              <WatchlistButton 
-                memeId={meme.id} 
-                userId={userId} 
-                showText={true}
-                className="mr-2"
-              />
+              {(isAdmin || isVerified) && (
+                <WatchlistButton 
+                  memeId={meme.id} 
+                  userId={userId} 
+                  showText={true}
+                  className="mr-2"
+                />
+              )}
               <MemeCardActions
                 meme={meme}
                 userLikes={userLikes}
