@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { PhantomWalletButton } from "./PhantomWalletButton";
 
 interface LoginButtonProps {
   isLoginOpen: boolean;
@@ -115,7 +114,7 @@ export const LoginButton = ({
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Choose Login Method</DialogTitle>
+            <DialogTitle>Login with Google</DialogTitle>
             <DialogDescription>
               We use secure authentication to protect your data. By logging in, you agree to our{" "}
               <Link to="/privacy" className="text-primary hover:underline">
@@ -135,26 +134,17 @@ export const LoginButton = ({
                 <span>Connecting...</span>
               </div>
             ) : (
-              <>
-                <GoogleLogin
-                  onSuccess={onSuccess}
-                  onError={onError}
-                  useOneTap
-                  theme="filled_black"
-                  shape="pill"
-                  size="large"
-                  text="continue_with"
-                  locale="en"
-                  context="signin"
-                />
-                <div className="w-full text-center my-2">
-                  <span className="text-sm text-gray-500">or</span>
-                </div>
-                <PhantomWalletButton
-                  onSuccess={handleLoginSuccess}
-                  onError={handleLoginError}
-                />
-              </>
+              <GoogleLogin
+                onSuccess={onSuccess}
+                onError={onError}
+                useOneTap
+                theme="filled_black"
+                shape="pill"
+                size="large"
+                text="continue_with"
+                locale="en"
+                context="signin"
+              />
             )}
           </div>
         </DialogContent>
