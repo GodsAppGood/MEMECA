@@ -1,63 +1,42 @@
-import { Button } from "@/components/ui/button";
-import { Star } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { Meme } from "@/types/meme";
-import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
+import { WatchlistButton } from "../actions/WatchlistButton";
+import { TuzemoonButton } from "./TuzemoonButton";
 
 interface MemeActionsProps {
-  meme: Meme;
+  memeId: string;
+  userId: string | null;
   isAdmin: boolean;
-  onUpdate: (options?: RefetchOptions | undefined) => Promise<QueryObserverResult<any, Error>>;
+  isVerified: boolean;
+  isFeatured: boolean;
+  onUpdate: () => Promise<any>;
 }
 
-export const MemeActions = ({ meme, isAdmin, onUpdate }: MemeActionsProps) => {
-  const { toast } = useToast();
-
-  const handleTuzemoonToggle = async () => {
-    try {
-      const tuzemoonUntil = meme.is_featured 
-        ? null 
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-      const { error } = await supabase
-        .from("Memes")
-        .update({ 
-          is_featured: !meme.is_featured,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq("id", meme.id);
-
-      if (error) throw error;
-
-      void onUpdate();
-      
-      toast({
-        title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
-        description: meme.is_featured 
-          ? "The meme has been removed from Tuzemoon" 
-          : "The meme has been added to Tuzemoon for 24 hours",
-      });
-    } catch (error) {
-      console.error("Error toggling Tuzemoon status:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update Tuzemoon status",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (!isAdmin) return null;
-
+export const MemeActions = ({
+  memeId,
+  userId,
+  isAdmin,
+  isVerified,
+  isFeatured,
+  onUpdate
+}: MemeActionsProps) => {
   return (
-    <Button
-      variant="outline"
-      onClick={handleTuzemoonToggle}
-      className={`group ${meme.is_featured ? 'text-yellow-500' : ''}`}
-    >
-      <Star className={`h-5 w-5 mr-2 ${meme.is_featured ? 'fill-current' : ''}`} />
-      {meme.is_featured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
-    </Button>
+    <div className="flex gap-2">
+      {(isAdmin || isVerified) && (
+        <>
+          <WatchlistButton 
+            memeId={memeId}
+            userId={userId}
+            showText={true}
+            className="mr-2"
+          />
+          <TuzemoonButton
+            memeId={memeId}
+            isFeatured={isFeatured}
+            isAdmin={isAdmin}
+            isVerified={isVerified}
+            onUpdate={onUpdate}
+          />
+        </>
+      )}
+    </div>
   );
 };

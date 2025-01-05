@@ -9,16 +9,12 @@ import { DescriptionSection } from "./DescriptionSection";
 import { BlockchainInfo } from "./BlockchainInfo";
 import { ExternalLinks } from "./ExternalLinks";
 import { MemeActions } from "./MemeActions";
-import { WatchlistButton } from "../actions/WatchlistButton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect, useState } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Moon } from "lucide-react";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [userId, setUserId] = useState<string | null>(null);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
@@ -64,52 +60,6 @@ export const MemeDetailPage = () => {
     },
   });
 
-  const handleTuzemoonClick = async () => {
-    if (!meme) return;
-
-    if (isAdmin) {
-      // Use existing admin functionality
-      const tuzemoonUntil = meme.is_featured 
-        ? null 
-        : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-
-      try {
-        const { error } = await supabase
-          .from("Memes")
-          .update({ 
-            is_featured: !meme.is_featured,
-            tuzemoon_until: tuzemoonUntil
-          })
-          .eq("id", meme.id);
-
-        if (error) throw error;
-
-        void refetch();
-        
-        toast({
-          title: meme.is_featured ? "Removed from Tuzemoon" : "Added to Tuzemoon",
-          description: meme.is_featured 
-            ? "The meme has been removed from Tuzemoon" 
-            : "The meme has been added to Tuzemoon for 24 hours",
-        });
-      } catch (error) {
-        console.error("Error toggling Tuzemoon status:", error);
-        toast({
-          title: "Error",
-          description: "Failed to update Tuzemoon status",
-          variant: "destructive",
-        });
-      }
-    } else if (isVerified) {
-      // Placeholder functionality for verified users
-      toast({
-        title: "Coming Soon",
-        description: "Tuzemoon functionality for verified users will be available soon!",
-      });
-      console.log("Verified user clicked Tuzemoon button");
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -150,38 +100,15 @@ export const MemeDetailPage = () => {
 
           <div className="bg-white rounded-lg shadow-lg p-8">
             <div className="flex justify-between items-start mb-6">
-              <MemeHeader meme={meme} />
-              <div className="flex gap-2">
-                {(isAdmin || isVerified) && (
-                  <>
-                    <WatchlistButton 
-                      memeId={meme.id.toString()} 
-                      userId={userId} 
-                      showText={true}
-                      className="mr-2"
-                    />
-                    {(isAdmin || isVerified) && (
-                      <Button
-                        variant="outline"
-                        onClick={handleTuzemoonClick}
-                        className={`group ${meme.is_featured ? 'text-yellow-500' : ''}`}
-                      >
-                        <Moon className={`h-5 w-5 mr-2 ${meme.is_featured ? 'fill-current' : ''}`} />
-                        {meme.is_featured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
-                      </Button>
-                    )}
-                  </>
-                )}
-                <MemeActions 
-                  meme={{
-                    id: meme.id.toString(),
-                    is_featured: meme.is_featured,
-                    created_by: meme.created_by
-                  }} 
-                  isAdmin={isAdmin} 
-                  onUpdate={refetch}
-                />
-              </div>
+              <MemeHeader title={meme.title} isFeatured={meme.is_featured} />
+              <MemeActions
+                memeId={meme.id.toString()}
+                userId={userId}
+                isAdmin={isAdmin}
+                isVerified={isVerified}
+                isFeatured={meme.is_featured}
+                onUpdate={refetch}
+              />
             </div>
 
             <MemeImageDisplay imageUrl={meme.image_url} title={meme.title} />
