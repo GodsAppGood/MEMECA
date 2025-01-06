@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { FormWrapper } from "./FormWrapper";
 import { Meme } from "@/types/meme";
 import { useToast } from "@/hooks/use-toast";
@@ -10,24 +10,22 @@ interface MemeFormProps {
   isAuthenticated: boolean;
   initialData?: Meme | null;
   isEditMode?: boolean;
-  memeId?: string;
 }
 
 export const MemeForm = ({ 
   onSubmitAttempt, 
   isAuthenticated,
   initialData,
-  isEditMode = false,
-  memeId
 }: MemeFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
   const [formData, setFormData] = useState<Partial<Meme>>({});
   
-  const { data: fetchedMeme, isLoading, error } = useMemeDetails(memeId);
+  const { data: fetchedMeme, isLoading, error } = useMemeDetails(id);
 
   useEffect(() => {
-    if (isEditMode) {
+    if (id) {
       // If we have initialData from navigation state, use it
       if (initialData) {
         setFormData({
@@ -53,7 +51,7 @@ export const MemeForm = ({
         });
       }
     }
-  }, [isEditMode, initialData, fetchedMeme]);
+  }, [id, initialData, fetchedMeme]);
 
   useEffect(() => {
     if (error) {
@@ -75,7 +73,7 @@ export const MemeForm = ({
       onSubmitAttempt={onSubmitAttempt} 
       isAuthenticated={isAuthenticated}
       initialData={formData}
-      isEditMode={isEditMode}
+      isEditMode={!!id}
     />
   );
 };
