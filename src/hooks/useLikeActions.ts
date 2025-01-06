@@ -16,6 +16,24 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
     }
 
     try {
+      // First check if the meme exists
+      const { data: memeData, error: memeError } = await supabase
+        .from("Memes")
+        .select("id")
+        .eq("id", id)
+        .single();
+
+      if (memeError) {
+        console.error("Error checking meme existence:", memeError);
+        return;
+      }
+
+      if (!memeData) {
+        console.error("Meme not found:", id);
+        return;
+      }
+
+      // Then fetch likes count
       const { data: likesData, error: likesError } = await supabase
         .from("Likes")
         .select("id")
@@ -29,12 +47,17 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       setLikesCount(likesData.length);
 
       if (userId) {
-        const { data: userLike } = await supabase
+        const { data: userLike, error: userLikeError } = await supabase
           .from("Likes")
           .select("id")
           .eq("meme_id", id)
           .eq("user_id", userId)
-          .single();
+          .maybeSingle();
+
+        if (userLikeError) {
+          console.error("Error checking user like:", userLikeError);
+          return;
+        }
 
         setIsLiked(!!userLike);
       }
