@@ -18,30 +18,13 @@ export const sendSolPayment = async (
       return { success: false };
     }
 
-    // Fetch the recipient wallet address from Supabase
-    const { data: configData, error: configError } = await supabase
-      .from('config')
-      .select('value')
-      .eq('key', 'TUZEMOON_WALLET_ADDRESS')
-      .single();
-
-    if (configError || !configData?.value) {
-      console.error('Error fetching wallet address:', configError);
-      toast({
-        title: "Configuration Error",
-        description: "Unable to process payment at this time",
-        variant: "destructive",
-      });
-      return { success: false };
-    }
-
     // Connect to Solana network
     const connection = new Connection("https://api.mainnet-beta.solana.com");
     const fromWallet = window.solana;
 
     // Get the public key of the connected wallet
     const fromPubkey = new PublicKey(await (await fromWallet.connect()).publicKey.toString());
-    const toPubkey = new PublicKey(configData.value);
+    const toPubkey = new PublicKey("E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu");
 
     // Create transaction
     const transaction = new Transaction().add(
