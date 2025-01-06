@@ -3,7 +3,7 @@ import { Heart } from "lucide-react";
 
 interface LikeButtonProps {
   isLiked: boolean;
-  onClick: () => void;
+  onClick: (e: React.MouseEvent) => void;
   disabled: boolean;
   likesCount: number;
 }
@@ -15,9 +15,20 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
       size="icon"
       onClick={onClick}
       disabled={disabled}
-      className={`hover:text-red-500 ${isLiked ? 'text-red-500' : ''}`}
+      className={`
+        transition-all duration-200 ease-in-out
+        hover:text-red-500 hover:scale-110
+        ${isLiked ? 'text-red-500 scale-105' : ''}
+        ${disabled ? 'animate-pulse' : ''}
+      `}
     >
-      <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+      <Heart 
+        className={`
+          h-4 w-4 
+          transition-all duration-200
+          ${isLiked ? 'fill-current animate-scale-in' : ''}
+        `} 
+      />
     </Button>
   );
 };

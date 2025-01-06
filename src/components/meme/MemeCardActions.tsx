@@ -2,7 +2,6 @@ import { useState } from "react";
 import { EditButton } from "./actions/EditButton";
 import { DeleteButton } from "./actions/DeleteButton";
 import { LikeButton } from "./actions/LikeButton";
-import { WatchlistButton } from "./actions/WatchlistButton";
 import { useToast } from "@/hooks/use-toast";
 import { useLikeActions } from "@/hooks/useLikeActions";
 import { formatNumber } from "@/utils/formatNumber";
@@ -28,21 +27,18 @@ export const MemeCardActions = ({
   const { toast } = useToast();
   const [isLiking, setIsLiking] = useState(false);
   const { handleLike, handleUnlike } = useLikeActions(meme.id.toString(), userId);
-
   const isLiked = userLikes?.includes(meme.id.toString());
-  const [isAuthenticated, setIsAuthenticated] = useState(!!userId);
 
-  const onAuthRequired = () => {
-    toast({
-      title: "Authentication Required",
-      description: "Please log in to perform this action",
-      variant: "destructive"
-    });
-  };
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation
+    e.stopPropagation(); // Stop event bubbling
 
-  const handleLikeClick = async () => {
-    if (!isAuthenticated) {
-      onAuthRequired();
+    if (!userId) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to like memes",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -93,14 +89,9 @@ export const MemeCardActions = ({
           disabled={isLiking}
           likesCount={meme.likes}
         />
-        <span className="text-sm font-medium">
+        <span className="text-sm font-medium transition-all duration-200">
           {formatNumber(meme.likes || 0)}
         </span>
-        <WatchlistButton
-          memeId={meme.id.toString()}
-          userId={userId}
-          onAuthRequired={onAuthRequired}
-        />
       </div>
       <div className="flex items-center space-x-2">
         <EditButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
