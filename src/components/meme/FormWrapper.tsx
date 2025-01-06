@@ -6,29 +6,47 @@ import { useQueryClient } from "@tanstack/react-query";
 import { FormHeader } from "./form/FormHeader";
 import { FormBody } from "./form/FormBody";
 import { FormFooter } from "./form/FormFooter";
+import { Meme } from "@/types/meme";
 
 export interface FormWrapperProps {
   onSubmitAttempt: () => void;
   isAuthenticated: boolean;
+  initialData?: Partial<Meme>;
+  isEditMode?: boolean;
 }
 
-export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperProps) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [blockchain, setBlockchain] = useState("");
+export const FormWrapper = ({ 
+  onSubmitAttempt, 
+  isAuthenticated,
+  initialData,
+  isEditMode = false
+}: FormWrapperProps) => {
+  const [title, setTitle] = useState(initialData?.title || "");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [blockchain, setBlockchain] = useState(initialData?.blockchain || "");
   const [createdAt, setCreatedAt] = useState<Date>();
-  const [twitterLink, setTwitterLink] = useState("");
-  const [telegramLink, setTelegramLink] = useState("");
-  const [tradeLink, setTradeLink] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [twitterLink, setTwitterLink] = useState(initialData?.twitter_link || "");
+  const [telegramLink, setTelegramLink] = useState(initialData?.telegram_link || "");
+  const [tradeLink, setTradeLink] = useState(initialData?.trade_link || "");
+  const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
 
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (initialData) {
+      setTitle(initialData.title || "");
+      setDescription(initialData.description || "");
+      setBlockchain(initialData.blockchain || "");
+      setTwitterLink(initialData.twitter_link || "");
+      setTelegramLink(initialData.telegram_link || "");
+      setTradeLink(initialData.trade_link || "");
+      setImageUrl(initialData.image_url || "");
+    }
+  }, [initialData]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -89,32 +107,26 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
 
       console.log("Meme data to submit:", memeData);
 
-      if (isEditing && editingId) {
+      if (isEditMode && initialData?.id) {
         const { error: updateError } = await supabase
           .from('Memes')
           .update(memeData)
-          .eq('id', editingId);
+          .eq('id', initialData.id);
 
-        if (updateError) {
-          console.error("Update error:", updateError);
-          throw updateError;
-        }
+        if (updateError) throw updateError;
       } else {
         const { error: insertError } = await supabase
           .from('Memes')
           .insert([memeData]);
 
-        if (insertError) {
-          console.error("Insert error:", insertError);
-          throw insertError;
-        }
+        if (insertError) throw insertError;
       }
 
       await queryClient.invalidateQueries({ queryKey: ["memes"] });
-
+      
       toast({
         title: "Success!",
-        description: isEditing ? "Meme updated successfully." : "Meme submitted successfully.",
+        description: isEditMode ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
       });
       
       navigate("/my-memes");
@@ -123,7 +135,7 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Unable to submit the meme. Please try again later.",
+        description: error.message || "Failed to submit meme",
       });
     } finally {
       setIsSubmitting(false);
@@ -132,7 +144,7 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      <FormHeader isEditing={isEditing} />
+      <FormHeader isEditing={isEditMode} />
       
       <FormBody
         imageUrl={imageUrl}
@@ -154,7 +166,7 @@ export const FormWrapper = ({ onSubmitAttempt, isAuthenticated }: FormWrapperPro
       />
       
       <FormFooter 
-        isEditing={isEditing} 
+        isEditing={isEditMode} 
         isSubmitting={isSubmitting} 
       />
     </form>

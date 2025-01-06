@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
@@ -9,19 +9,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Meme } from "@/types/meme";
-
-interface LocationState {
-  editMode?: boolean;
-  memeData?: Meme;
-}
+import { useMemeDetails } from "@/hooks/useMemeDetails";
+import { LoadingSpinner } from "@/components/meme/ui/LoadingSpinner";
+import { ErrorState } from "@/components/meme/ui/ErrorState";
 
 const SubmitMeme = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { editMode, memeData } = (location.state as LocationState) || {};
+  const { id } = useParams();
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+
+  // Fetch meme data if in edit mode
+  const { data: memeData, isLoading, error } = useMemeDetails(id);
 
   const checkAuth = async () => {
     try {
@@ -53,6 +54,30 @@ const SubmitMeme = () => {
     };
   }, [navigate]);
 
+  if (id && isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <LoadingSpinner />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (id && error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <ErrorState message="Failed to load meme data" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <Header />
@@ -60,11 +85,13 @@ const SubmitMeme = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
             <h2 className="text-3xl font-serif text-center mb-8">
-              {editMode ? "Edit Your Meme" : "Submit Your Meme"}
+              {id ? "Edit Your Meme" : "Submit Your Meme"}
             </h2>
             <MemeForm 
               onSubmitAttempt={handleSubmitAttempt} 
-              isAuthenticated={!!user} 
+              isAuthenticated={!!user}
+              initialData={memeData}
+              isEditMode={!!id}
             />
           </div>
         </div>
@@ -75,7 +102,7 @@ const SubmitMeme = () => {
           <DialogHeader>
             <DialogTitle>Authentication Required</DialogTitle>
             <DialogDescription>
-              You need to log in to {editMode ? "edit" : "add"} memes. Please log in or sign up.
+              You need to log in to {id ? "edit" : "add"} memes. Please log in or sign up.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 pt-4">
