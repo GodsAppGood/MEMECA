@@ -8,17 +8,23 @@ import {
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
+import { sendSolPayment } from "@/services/phantom-payment";
+import { toast } from "@/hooks/use-toast";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => Promise<void>;
+  memeId: string;
+  memeTitle: string;
 }
 
 export const TuzemoonModal = ({
   isOpen,
   onClose,
   onSuccess,
+  memeId,
+  memeTitle,
 }: TuzemoonModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,10 +40,18 @@ export const TuzemoonModal = ({
     setError(null);
 
     try {
-      // Temporary placeholder for payment logic
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await onSuccess();
-      onClose();
+      const { success, signature } = await sendSolPayment(memeId, memeTitle);
+      
+      if (success && signature) {
+        toast({
+          title: "Success",
+          description: "Tuzemoon activated successfully!",
+        });
+        await onSuccess();
+        onClose();
+      } else {
+        setError("Transaction failed. Please try again.");
+      }
     } catch (err: any) {
       console.error("Payment failed:", err);
       setError(err.message || "Payment failed. Please try again.");
@@ -57,6 +71,7 @@ export const TuzemoonModal = ({
             <p className="text-lg font-medium">You are entering a premium feature.</p>
             <div className="space-y-2 text-muted-foreground">
               <p>Your meme will receive special privileges for 24 hours.</p>
+              <p>Cost: 0.1 SOL</p>
               <p>This feature supports the platform's sustainability.</p>
             </div>
             {error && (

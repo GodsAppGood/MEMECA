@@ -9,6 +9,7 @@ import { updateTuzemoonStatus } from "@/services/tuzemoon-service";
 
 interface TuzemoonButtonProps {
   memeId: string;
+  memeTitle: string;
   isFeatured: boolean;
   isAdmin: boolean;
   isVerified: boolean;
@@ -17,6 +18,7 @@ interface TuzemoonButtonProps {
 
 export const TuzemoonButton = ({ 
   memeId, 
+  memeTitle,
   isFeatured, 
   isAdmin, 
   isVerified,
@@ -109,6 +111,8 @@ export const TuzemoonButton = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSuccess={handleSuccess}
+        memeId={memeId}
+        memeTitle={memeTitle}
       />
     </>
   );
