@@ -85,8 +85,8 @@ export const MemeCardActions = ({
   };
 
   return (
-    <div className={`flex items-center justify-between px-4 py-2 ${className}`}>
-      <div className="flex items-center space-x-2">
+    <div className={`flex items-center justify-between px-4 py-4 mt-2 border-t ${className}`}>
+      <div className="flex items-center space-x-4">
         <LikeButton
           isLiked={isLiked}
           onClick={handleLikeClick}
@@ -102,8 +102,10 @@ export const MemeCardActions = ({
           onAuthRequired={onAuthRequired}
         />
       </div>
-      <EditButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
-      <DeleteButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
+      <div className="flex items-center space-x-2">
+        <EditButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
+        <DeleteButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
+      </div>
     </div>
   );
 };

@@ -2,8 +2,8 @@ export const validateMemeTitle = (title: string): string | null => {
   if (!title) {
     return "Title is required";
   }
-  if (title.length > 25) {
-    return "Title must not exceed 25 characters";
+  if (title.length > 20) {
+    return "Title must not exceed 20 characters";
   }
   return null;
 };

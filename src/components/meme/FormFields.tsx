@@ -33,6 +33,7 @@ export const FormFields = ({
   maxDescriptionLength,
 }: FormFieldsProps) => {
   const [errors, setErrors] = useState<Record<string, string | null>>({});
+  const maxTitleLength = 20;
 
   const validateField = (field: string, value: string) => {
     let error = null;
@@ -55,7 +56,7 @@ export const FormFields = ({
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    if (value.length <= 25) {
+    if (value.length <= maxTitleLength) {
       setTitle(value);
       validateField('title', value);
     }
@@ -79,10 +80,10 @@ export const FormFields = ({
             onChange={handleTitleChange}
             className={`font-serif ${errors.title ? 'border-red-500' : ''}`}
             placeholder="Enter meme title"
-            maxLength={25}
+            maxLength={maxTitleLength}
           />
-          <p className="text-sm text-gray-500">
-            {title.length}/25 characters
+          <p className={`text-sm ${title.length >= maxTitleLength ? 'text-red-500' : 'text-gray-500'}`}>
+            {title.length}/{maxTitleLength} characters
           </p>
           {errors.title && (
             <Alert variant="destructive" className="mt-2">

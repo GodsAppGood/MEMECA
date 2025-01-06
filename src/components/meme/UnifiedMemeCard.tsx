@@ -43,6 +43,11 @@ export const UnifiedMemeCard = ({
     navigate(`/meme/${meme.id}`);
   };
 
+  const truncateTitle = (title: string, maxLength: number = 20) => {
+    if (title.length <= maxLength) return title;
+    return `${title.substring(0, maxLength)}...`;
+  };
+
   return (
     <Card 
       className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative flex flex-col min-h-[450px] max-h-[600px]
@@ -61,7 +66,9 @@ export const UnifiedMemeCard = ({
         <div className="flex justify-between items-start mb-2">
           <div className="space-y-2 flex-grow">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold line-clamp-2 break-words">{meme.title}</h3>
+              <h3 className="text-lg font-semibold line-clamp-1 break-words" title={meme.title}>
+                {truncateTitle(meme.title)}
+              </h3>
               {isTuzemoon && (
                 <Badge className="bg-red-500 text-white animate-pulse shrink-0">
                   <Flame className="w-4 h-4 mr-1" />
@@ -73,23 +80,23 @@ export const UnifiedMemeCard = ({
               <CountdownTimer listingTime={meme.time_until_listing} />
             )}
           </div>
-          <MemeCardActions
-            meme={meme}
-            userLikes={userLikes}
-            userPoints={userPoints}
-            userId={userId}
-            isFirst={isFirst}
-            className="shrink-0 ml-2"
-          />
         </div>
         {meme.description && (
           <p className="text-sm text-muted-foreground mb-4 line-clamp-4 break-words flex-grow overflow-hidden">
             {meme.description}
           </p>
         )}
-        <span className="text-sm text-muted-foreground mt-auto">
+        <span className="text-sm text-muted-foreground">
           {format(new Date(meme.created_at), 'PPP')}
         </span>
+        <MemeCardActions
+          meme={meme}
+          userLikes={userLikes}
+          userPoints={userPoints}
+          userId={userId}
+          isFirst={isFirst}
+          className="mt-auto"
+        />
       </div>
     </Card>
   );
