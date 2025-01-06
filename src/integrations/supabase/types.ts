@@ -113,6 +113,44 @@ export type Database = {
         }
         Relationships: []
       }
+      TuzemoonPayments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: number
+          meme_id: number
+          status: string
+          transaction_signature: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: never
+          meme_id: number
+          status: string
+          transaction_signature: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: never
+          meme_id?: number
+          status?: string
+          transaction_signature?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "TuzemoonPayments_meme_id_fkey"
+            columns: ["meme_id"]
+            isOneToOne: false
+            referencedRelation: "Memes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Users: {
         Row: {
           auth_id: string | null

@@ -3,6 +3,7 @@ import { TuzemoonButton } from "./TuzemoonButton";
 
 interface MemeActionsProps {
   memeId: string;
+  memeTitle: string;
   userId: string | null;
   isAdmin: boolean;
   isVerified: boolean;
@@ -12,6 +13,7 @@ interface MemeActionsProps {
 
 export const MemeActions = ({
   memeId,
+  memeTitle,
   userId,
   isAdmin,
   isVerified,
@@ -30,6 +32,7 @@ export const MemeActions = ({
           />
           <TuzemoonButton
             memeId={memeId}
+            memeTitle={memeTitle}
             isFeatured={isFeatured}
             isAdmin={isAdmin}
             isVerified={isVerified}

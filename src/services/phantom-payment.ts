@@ -46,11 +46,18 @@ export const sendSolPayment = async (
     const signature = await connection.sendRawTransaction(signed.serialize());
     await connection.confirmTransaction(signature);
 
+    // Get current user's ID
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      throw new Error("User not authenticated");
+    }
+
     // Record payment in database
     const { error: paymentError } = await supabase
-      .from("TuzemoonPayments")
+      .from('TuzemoonPayments')
       .insert({
-        meme_id: memeId,
+        meme_id: parseInt(memeId),
+        user_id: session.user.id,
         transaction_signature: signature,
         amount: TUZEMOON_COST,
         status: 'completed'
