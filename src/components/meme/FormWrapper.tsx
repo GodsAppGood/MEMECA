@@ -88,6 +88,16 @@ export const FormWrapper = ({
       return;
     }
 
+    // Validate required fields
+    if (!title.trim() || !description.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Title and description are required.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -109,7 +119,12 @@ export const FormWrapper = ({
       console.log(`Meme data to ${isEditMode ? 'update' : 'submit'}:`, memeData);
 
       let error;
-      if (isEditMode && initialData?.id) {
+      if (isEditMode) {
+        // Verify we have a valid meme ID for updates
+        if (!initialData?.id) {
+          throw new Error('Cannot update meme - missing meme ID');
+        }
+
         console.log("Updating existing meme with ID:", initialData.id);
         const { error: updateError } = await supabase
           .from('Memes')
@@ -125,10 +140,6 @@ export const FormWrapper = ({
         
         error = updateError;
       } else {
-        if (isEditMode) {
-          throw new Error('Cannot create new meme in edit mode - missing meme ID');
-        }
-        
         console.log("Creating new meme");
         const { error: insertError } = await supabase
           .from('Memes')
