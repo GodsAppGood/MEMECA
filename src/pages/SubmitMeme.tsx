@@ -9,15 +9,11 @@ import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Meme } from "@/types/meme";
-import { useMemeDetails } from "@/hooks/useMemeDetails";
-import { LoadingSpinner } from "@/components/meme/ui/LoadingSpinner";
-import { ErrorState } from "@/components/meme/ui/ErrorState";
 
 const SubmitMeme = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { id } = useParams();
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -61,14 +57,12 @@ const SubmitMeme = () => {
         <div className="container mx-auto px-4 py-8">
           <div className="bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
             <h2 className="text-3xl font-serif text-center mb-8">
-              {id ? "Edit Your Meme" : "Submit Your Meme"}
+              {location.pathname.includes('/submit/') ? "Edit Your Meme" : "Submit Your Meme"}
             </h2>
             <MemeForm 
               onSubmitAttempt={handleSubmitAttempt} 
               isAuthenticated={!!user}
               initialData={memeData}
-              isEditMode={!!id}
-              memeId={id}
             />
           </div>
         </div>
@@ -79,7 +73,7 @@ const SubmitMeme = () => {
           <DialogHeader>
             <DialogTitle>Authentication Required</DialogTitle>
             <DialogDescription>
-              You need to log in to {id ? "edit" : "add"} memes. Please log in or sign up.
+              You need to log in to {location.pathname.includes('/submit/') ? "edit" : "add"} memes. Please log in or sign up.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end space-x-2 pt-4">
