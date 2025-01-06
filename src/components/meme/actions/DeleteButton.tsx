@@ -51,7 +51,16 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (!userId || (!isAdmin && userId !== meme.created_by)) {
+    if (!userId) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to delete memes",
+      });
+      return;
+    }
+
+    if (!isAdmin && userId !== meme.created_by) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -62,6 +71,14 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
+      console.log('Attempting to delete meme:', meme.id);
+      
+      // Optimistically update UI
+      queryClient.setQueryData(["memes"], (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter((m: any) => m.id !== meme.id);
+      });
+
       const { error } = await supabase
         .from('Memes')
         .delete()
@@ -78,10 +95,14 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       });
     } catch (error: any) {
       console.error('Error deleting meme:', error);
+      
+      // Revert optimistic update
+      await queryClient.invalidateQueries({ queryKey: ["memes"] });
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete meme",
+        description: "Failed to delete meme. Please try again.",
       });
     } finally {
       setIsDeleting(false);
