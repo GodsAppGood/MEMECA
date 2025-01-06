@@ -6,6 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { FormHeader } from "./form/FormHeader";
 import { FormBody } from "./form/FormBody";
 import { FormFooter } from "./form/FormFooter";
+import { useFormValidation } from "./form/useFormValidation";
+import { useFormSubmission } from "./form/useFormSubmission";
 import { Meme } from "@/types/meme";
 
 export interface FormWrapperProps {
@@ -29,12 +31,12 @@ export const FormWrapper = ({
   const [telegramLink, setTelegramLink] = useState(initialData?.telegram_link || "");
   const [tradeLink, setTradeLink] = useState(initialData?.trade_link || "");
   const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
 
+  const { validateForm } = useFormValidation();
+  const { handleSubmission, isSubmitting } = useFormSubmission();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (initialData) {
@@ -79,103 +81,27 @@ export const FormWrapper = ({
       return;
     }
 
-    if (!imageUrl) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please upload an image.",
-      });
+    if (!validateForm(title, description, imageUrl)) {
       return;
     }
 
-    // Validate required fields
-    if (!title.trim() || !description.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Title and description are required.",
-      });
-      return;
-    }
+    const memeData = {
+      title,
+      description,
+      blockchain,
+      twitter_link: twitterLink || null,
+      telegram_link: telegramLink || null,
+      trade_link: tradeLink || null,
+      image_url: imageUrl,
+      created_by: user.id,
+      created_at: createdAt?.toISOString() || new Date().toISOString(),
+      time_until_listing: createdAt?.toISOString() || new Date().toISOString()
+    };
 
-    setIsSubmitting(true);
-
-    try {
-      console.log(`${isEditMode ? 'Updating' : 'Creating'} meme with user ID:`, user.id);
-      
-      const memeData = {
-        title,
-        description,
-        blockchain,
-        twitter_link: twitterLink || null,
-        telegram_link: telegramLink || null,
-        trade_link: tradeLink || null,
-        image_url: imageUrl,
-        created_by: user.id,
-        created_at: createdAt?.toISOString() || new Date().toISOString(),
-        time_until_listing: createdAt?.toISOString() || new Date().toISOString()
-      };
-
-      console.log(`Meme data to ${isEditMode ? 'update' : 'submit'}:`, memeData);
-
-      let error;
-      if (isEditMode) {
-        // Verify we have a valid meme ID for updates
-        if (!initialData?.id) {
-          throw new Error('Cannot update meme - missing meme ID');
-        }
-
-        console.log("Updating existing meme with ID:", initialData.id);
-        const { error: updateError } = await supabase
-          .from('Memes')
-          .update(memeData)
-          .eq('id', initialData.id)
-          .select()
-          .single();
-        
-        if (updateError) {
-          console.error('Error updating meme:', updateError);
-          throw new Error(updateError.message || 'Failed to update meme');
-        }
-        
-        error = updateError;
-      } else {
-        console.log("Creating new meme");
-        const { error: insertError } = await supabase
-          .from('Memes')
-          .insert([memeData])
-          .select()
-          .single();
-          
-        if (insertError) {
-          console.error('Error creating meme:', insertError);
-          throw new Error(insertError.message || 'Failed to create meme');
-        }
-        
-        error = insertError;
-      }
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ["memes"] });
-      
-      toast({
-        title: "Success!",
-        description: isEditMode 
-          ? "Your meme has been updated successfully." 
-          : "Your meme has been submitted successfully.",
-      });
-      
+    const success = await handleSubmission(memeData, isEditMode, initialData?.id);
+    
+    if (success) {
       navigate("/my-memes");
-    } catch (error: any) {
-      console.error(`Error ${isEditMode ? 'updating' : 'submitting'} meme:`, error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || (isEditMode ? "Failed to update meme" : "Failed to submit meme"),
-      });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
