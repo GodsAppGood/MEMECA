@@ -53,6 +53,7 @@ export const MemeDetailPage = () => {
             <MemeHeader title={meme.title} isFeatured={meme.is_featured} />
             <MemeActions
               memeId={meme.id.toString()}
+              memeTitle={meme.title}
               userId={userId}
               isAdmin={isAdmin}
               isVerified={isVerified}
