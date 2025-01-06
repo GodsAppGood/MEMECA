@@ -107,20 +107,23 @@ export const FormWrapper = ({
 
       console.log("Meme data to submit:", memeData);
 
+      let error;
       if (isEditMode && initialData?.id) {
+        console.log("Updating existing meme with ID:", initialData.id);
         const { error: updateError } = await supabase
           .from('Memes')
           .update(memeData)
           .eq('id', initialData.id);
-
-        if (updateError) throw updateError;
+        error = updateError;
       } else {
+        console.log("Creating new meme");
         const { error: insertError } = await supabase
           .from('Memes')
           .insert([memeData]);
-
-        if (insertError) throw insertError;
+        error = insertError;
       }
+
+      if (error) throw error;
 
       await queryClient.invalidateQueries({ queryKey: ["memes"] });
       
@@ -135,7 +138,7 @@ export const FormWrapper = ({
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to submit meme",
+        description: error.message || (isEditMode ? "Failed to update meme" : "Failed to submit meme"),
       });
     } finally {
       setIsSubmitting(false);
