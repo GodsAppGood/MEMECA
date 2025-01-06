@@ -39,6 +39,7 @@ export const FormWrapper = ({
 
   useEffect(() => {
     if (initialData) {
+      console.log("Setting initial form data:", initialData);
       setTitle(initialData.title || "");
       setDescription(initialData.description || "");
       setBlockchain(initialData.blockchain || "");
@@ -97,6 +98,8 @@ export const FormWrapper = ({
       time_until_listing: createdAt?.toISOString() || new Date().toISOString()
     };
 
+    console.log("Submitting meme data:", { memeData, isEditMode, memeId: initialData?.id });
+    
     const success = await handleSubmission(memeData, isEditMode, initialData?.id);
     
     if (success) {

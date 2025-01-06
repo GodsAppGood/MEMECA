@@ -29,7 +29,7 @@ export const useFormSubmission = () => {
     memeId?: number | string
   ) => {
     setIsSubmitting(true);
-    console.log(`Operation mode: ${isEditMode ? 'Edit' : 'Create'}, Meme ID: ${memeId}`);
+    console.log("Form submission:", { isEditMode, memeId, formData });
 
     try {
       if (isEditMode) {
@@ -37,7 +37,7 @@ export const useFormSubmission = () => {
           throw new Error('Cannot update meme - missing meme ID');
         }
 
-        // Get current meme data to compare changes
+        // Get current meme data
         const { data: currentMeme, error: fetchError } = await supabase
           .from('Memes')
           .select('*')
@@ -45,15 +45,21 @@ export const useFormSubmission = () => {
           .single();
 
         if (fetchError) {
+          console.error('Error fetching current meme:', fetchError);
           throw fetchError;
         }
 
-        // Check if any changes were made
-        const hasChanges = Object.keys(formData).some(key => 
-          formData[key as keyof FormData] !== currentMeme[key as keyof FormData]
-        );
+        // Compare and only update changed fields
+        const updatedFields = Object.entries(formData).reduce((acc, [key, value]) => {
+          if (value !== currentMeme[key]) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Partial<FormData>);
 
-        if (!hasChanges) {
+        console.log("Fields to update:", updatedFields);
+
+        if (Object.keys(updatedFields).length === 0) {
           toast({
             title: "No Changes",
             description: "No changes were detected in the form.",
@@ -63,10 +69,11 @@ export const useFormSubmission = () => {
 
         const { error: updateError } = await supabase
           .from('Memes')
-          .update(formData)
+          .update(updatedFields)
           .eq('id', memeId);
 
         if (updateError) {
+          console.error('Error updating meme:', updateError);
           throw updateError;
         }
 
@@ -80,6 +87,7 @@ export const useFormSubmission = () => {
           .insert([formData]);
 
         if (insertError) {
+          console.error('Error creating meme:', insertError);
           throw insertError;
         }
 

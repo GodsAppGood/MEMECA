@@ -5,8 +5,8 @@ export const useFormValidation = () => {
 
   const validateForm = (title: string, description: string, imageUrl: string, isEditMode: boolean = false) => {
     // Trim strings to check for empty content
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
+    const trimmedTitle = title?.trim();
+    const trimmedDescription = description?.trim();
 
     let errors: string[] = [];
 
@@ -18,6 +18,7 @@ export const useFormValidation = () => {
       errors.push("Description");
     }
 
+    // Only check for image in create mode
     if (!imageUrl && !isEditMode) {
       errors.push("Image");
     }
