@@ -2,7 +2,6 @@ import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } f
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-const RECIPIENT_WALLET = "YourWalletAddressHere"; // Replace with actual wallet address
 const TUZEMOON_COST = 0.1; // SOL
 
 export const sendSolPayment = async (
@@ -19,13 +18,30 @@ export const sendSolPayment = async (
       return { success: false };
     }
 
+    // Fetch the recipient wallet address from Supabase
+    const { data: configData, error: configError } = await supabase
+      .from('config')
+      .select('value')
+      .eq('key', 'TUZEMOON_WALLET_ADDRESS')
+      .single();
+
+    if (configError || !configData?.value) {
+      console.error('Error fetching wallet address:', configError);
+      toast({
+        title: "Configuration Error",
+        description: "Unable to process payment at this time",
+        variant: "destructive",
+      });
+      return { success: false };
+    }
+
     // Connect to Solana network
     const connection = new Connection("https://api.mainnet-beta.solana.com");
     const fromWallet = window.solana;
 
     // Get the public key of the connected wallet
     const fromPubkey = new PublicKey(await (await fromWallet.connect()).publicKey.toString());
-    const toPubkey = new PublicKey(RECIPIENT_WALLET);
+    const toPubkey = new PublicKey(configData.value);
 
     // Create transaction
     const transaction = new Transaction().add(
