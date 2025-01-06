@@ -71,8 +71,12 @@ export const useMemeQuery = ({
         query = query.order('created_at', { ascending: false });
       }
 
-      const { data, error } = await query
-        .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1);
+      // Add pagination
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage - 1;
+      query = query.range(start, end);
+
+      const { data, error } = await query;
       
       if (error) {
         console.error("Error fetching memes:", error);

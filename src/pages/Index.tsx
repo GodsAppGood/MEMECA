@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Hero } from "@/components/Hero";
 import { Filters } from "@/components/Filters";
 import { MemeGrid } from "@/components/MemeGrid";
-import { MemePagination } from "@/components/MemePagination";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { TestRunnerComponent } from "@/components/testing/TestRunner";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -18,7 +17,12 @@ const Index = () => {
   const handleSearch = () => {
     setAppliedDate(selectedDate);
     setAppliedBlockchain(selectedBlockchain);
-    setCurrentPage(1);
+    setCurrentPage(1); // Reset to first page when filters change
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const isTestingMode = new URLSearchParams(window.location.search).get('testing') === 'true';
@@ -40,11 +44,8 @@ const Index = () => {
             selectedDate={appliedDate} 
             selectedBlockchain={appliedBlockchain}
             currentPage={currentPage}
-            itemsPerPage={100}
-          />
-          <MemePagination 
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
+            itemsPerPage={20}
+            onPageChange={handlePageChange}
           />
         </ErrorBoundary>
       </div>

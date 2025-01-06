@@ -11,6 +11,7 @@ import { MemeGridLoader } from "./meme/grid/MemeGridLoader";
 import { MemeGridError } from "./meme/grid/MemeGridError";
 import { Button } from "./ui/button";
 import { useNavigate } from "react-router-dom";
+import { MemePagination } from "./MemePagination";
 
 interface MemeGridProps {
   selectedDate?: Date;
@@ -20,6 +21,7 @@ interface MemeGridProps {
   currentPage?: number;
   itemsPerPage?: number;
   userOnly?: boolean;
+  onPageChange?: (page: number) => void;
 }
 
 export const MemeGrid = ({ 
@@ -28,8 +30,9 @@ export const MemeGrid = ({
   showTodayOnly,
   showTopOnly,
   currentPage = 1,
-  itemsPerPage = 100,
-  userOnly = false
+  itemsPerPage = 20,
+  userOnly = false,
+  onPageChange
 }: MemeGridProps) => {
   const navigate = useNavigate();
   const { userId } = useMemeAuth();
@@ -43,7 +46,7 @@ export const MemeGrid = ({
     currentPage,
     itemsPerPage,
     userOnly,
-    userId: userOnly ? userId : null // Only filter by userId if userOnly is true
+    userId: userOnly ? userId : null
   });
 
   useEffect(() => {
@@ -98,16 +101,24 @@ export const MemeGrid = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {memes.map((meme: any) => (
-        <UnifiedMemeCard
-          key={meme.id}
-          meme={meme}
-          userLikes={userLikes}
-          userPoints={userPoints}
-          userId={userId}
+    <div className="space-y-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {memes.map((meme: any) => (
+          <UnifiedMemeCard
+            key={meme.id}
+            meme={meme}
+            userLikes={userLikes}
+            userPoints={userPoints}
+            userId={userId}
+          />
+        ))}
+      </div>
+      {onPageChange && (
+        <MemePagination 
+          currentPage={currentPage} 
+          setCurrentPage={onPageChange}
         />
-      ))}
+      )}
     </div>
   );
 };
