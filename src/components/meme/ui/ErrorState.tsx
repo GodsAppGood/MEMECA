@@ -3,17 +3,18 @@ import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "lucide-react";
 
 interface ErrorStateProps {
-  error: Error | null;
+  error?: Error | null;
+  message?: string;
   onRetry?: () => void;
 }
 
-export const ErrorState = ({ error, onRetry }: ErrorStateProps) => {
+export const ErrorState = ({ error, message, onRetry }: ErrorStateProps) => {
   return (
     <div className="flex items-center justify-center min-h-[400px] p-4">
       <Alert variant="destructive" className="max-w-lg">
         <AlertTitle>Error</AlertTitle>
         <AlertDescription>
-          {error?.message || 'An unexpected error occurred'}
+          {message || error?.message || 'An unexpected error occurred'}
         </AlertDescription>
         {onRetry && (
           <Button
