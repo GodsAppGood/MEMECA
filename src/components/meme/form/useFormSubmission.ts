@@ -3,15 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Meme } from "@/types/meme";
 
 interface FormData {
   title: string;
   description: string;
   blockchain: string;
-  twitter_link: string;
-  telegram_link: string;
-  trade_link: string;
+  twitter_link: string | null;
+  telegram_link: string | null;
+  trade_link: string | null;
   image_url: string;
   created_by: string;
   created_at: string;
@@ -30,21 +29,42 @@ export const useFormSubmission = () => {
     memeId?: number | string
   ) => {
     setIsSubmitting(true);
+    console.log(`Operation mode: ${isEditMode ? 'Edit' : 'Create'}, Meme ID: ${memeId}`);
 
     try {
-      console.log(`${isEditMode ? 'Updating' : 'Creating'} meme with data:`, formData);
-
       if (isEditMode) {
         if (!memeId) {
           throw new Error('Cannot update meme - missing meme ID');
         }
 
+        // Get current meme data to compare changes
+        const { data: currentMeme, error: fetchError } = await supabase
+          .from('Memes')
+          .select('*')
+          .eq('id', memeId)
+          .single();
+
+        if (fetchError) {
+          throw fetchError;
+        }
+
+        // Check if any changes were made
+        const hasChanges = Object.keys(formData).some(key => 
+          formData[key as keyof FormData] !== currentMeme[key as keyof FormData]
+        );
+
+        if (!hasChanges) {
+          toast({
+            title: "No Changes",
+            description: "No changes were detected in the form.",
+          });
+          return true;
+        }
+
         const { error: updateError } = await supabase
           .from('Memes')
           .update(formData)
-          .eq('id', memeId)
-          .select()
-          .single();
+          .eq('id', memeId);
 
         if (updateError) {
           throw updateError;
@@ -57,9 +77,7 @@ export const useFormSubmission = () => {
       } else {
         const { error: insertError } = await supabase
           .from('Memes')
-          .insert([formData])
-          .select()
-          .single();
+          .insert([formData]);
 
         if (insertError) {
           throw insertError;
@@ -73,6 +91,7 @@ export const useFormSubmission = () => {
 
       await queryClient.invalidateQueries({ queryKey: ["memes"] });
       navigate("/my-memes");
+      return true;
     } catch (error: any) {
       console.error(`Error ${isEditMode ? 'updating' : 'submitting'} meme:`, error);
       toast({
@@ -84,8 +103,6 @@ export const useFormSubmission = () => {
     } finally {
       setIsSubmitting(false);
     }
-
-    return true;
   };
 
   return { handleSubmission, isSubmitting };

@@ -36,7 +36,6 @@ export const FormWrapper = ({
   const { validateForm } = useFormValidation();
   const { handleSubmission, isSubmitting } = useFormSubmission();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (initialData) {
@@ -81,7 +80,7 @@ export const FormWrapper = ({
       return;
     }
 
-    if (!validateForm(title, description, imageUrl)) {
+    if (!validateForm(title, description, imageUrl, isEditMode)) {
       return;
     }
 

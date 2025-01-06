@@ -3,30 +3,30 @@ import { useToast } from "@/hooks/use-toast";
 export const useFormValidation = () => {
   const { toast } = useToast();
 
-  const validateForm = (title: string, description: string, imageUrl: string) => {
-    if (!title.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Title is required.",
-      });
-      return false;
+  const validateForm = (title: string, description: string, imageUrl: string, isEditMode: boolean = false) => {
+    // Trim strings to check for empty content
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+
+    let errors: string[] = [];
+
+    if (!trimmedTitle) {
+      errors.push("Title");
     }
 
-    if (!description.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Description is required.",
-      });
-      return false;
+    if (!trimmedDescription) {
+      errors.push("Description");
     }
 
-    if (!imageUrl) {
+    if (!imageUrl && !isEditMode) {
+      errors.push("Image");
+    }
+
+    if (errors.length > 0) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "Please upload an image.",
+        title: "Required Fields Missing",
+        description: `Please complete all required fields: ${errors.join(", ")}.`,
       });
       return false;
     }
