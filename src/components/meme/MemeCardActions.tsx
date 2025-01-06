@@ -4,6 +4,7 @@ import { DeleteButton } from "./actions/DeleteButton";
 import { LikeButton } from "./actions/LikeButton";
 import { useToast } from "@/hooks/use-toast";
 import { useLikeActions } from "@/hooks/useLikeActions";
+import { useRealtimeLikes } from "@/hooks/useRealtimeLikes";
 import { formatNumber } from "@/utils/formatNumber";
 import { Meme } from "@/types/meme";
 
@@ -26,12 +27,15 @@ export const MemeCardActions = ({
 }: MemeCardActionsProps) => {
   const { toast } = useToast();
   const [isLiking, setIsLiking] = useState(false);
-  const { handleLike, handleUnlike } = useLikeActions(meme.id.toString(), userId);
+  const { handleLike, handleUnlike, isProcessing } = useLikeActions(meme.id.toString(), userId);
   const isLiked = userLikes?.includes(meme.id.toString());
 
+  // Subscribe to real-time updates
+  useRealtimeLikes(meme.id);
+
   const handleLikeClick = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigation
-    e.stopPropagation(); // Stop event bubbling
+    e.preventDefault();
+    e.stopPropagation();
 
     if (!userId) {
       toast({
@@ -42,16 +46,12 @@ export const MemeCardActions = ({
       return;
     }
 
-    if (isLiking) return;
+    if (isLiking || isProcessing) return;
 
     try {
       setIsLiking(true);
       if (isLiked) {
         await handleUnlike();
-        toast({
-          title: "Unlike successful",
-          description: "You've removed your like from this meme",
-        });
       } else {
         if (userPoints < 1) {
           toast({
@@ -61,20 +61,8 @@ export const MemeCardActions = ({
           });
           return;
         }
-
         await handleLike();
-        toast({
-          title: "Like successful",
-          description: "You've liked this meme",
-        });
       }
-    } catch (error) {
-      console.error('Error handling like:', error);
-      toast({
-        title: "Error",
-        description: "Failed to process like action",
-        variant: "destructive",
-      });
     } finally {
       setIsLiking(false);
     }
@@ -86,7 +74,7 @@ export const MemeCardActions = ({
         <LikeButton
           isLiked={isLiked}
           onClick={handleLikeClick}
-          disabled={isLiking}
+          disabled={isLiking || isProcessing}
           likesCount={meme.likes}
         />
         <span className="text-sm font-medium transition-all duration-200">

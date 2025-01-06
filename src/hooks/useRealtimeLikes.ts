@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export const useRealtimeLikes = (memeId: string | number) => {
   const queryClient = useQueryClient();
@@ -17,12 +17,12 @@ export const useRealtimeLikes = (memeId: string | number) => {
           filter: `meme_id=eq.${memeId}`
         },
         () => {
-          console.log("Likes changed, refetching...");
-          // Invalidate related queries to trigger refetch
-          void queryClient.invalidateQueries({ queryKey: ['memes'] });
-          void queryClient.invalidateQueries({ queryKey: ['user-likes'] });
-          void queryClient.invalidateQueries({ queryKey: ['featured-memes'] });
-          void queryClient.invalidateQueries({ queryKey: ['watchlist-memes'] });
+          console.log("Likes changed, invalidating queries...");
+          void queryClient.invalidateQueries({ queryKey: ["memes"] });
+          void queryClient.invalidateQueries({ queryKey: ["top-memes"] });
+          void queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] });
+          void queryClient.invalidateQueries({ queryKey: ["featured-memes"] });
+          void queryClient.invalidateQueries({ queryKey: ["user-likes"] });
         }
       )
       .subscribe();

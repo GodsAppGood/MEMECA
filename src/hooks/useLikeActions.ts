@@ -1,20 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useLikeStatus } from "./useLikeStatus";
-import { useRealtimeLikes } from "./useRealtimeLikes";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 export const useLikeActions = (memeId: string | number, userId: string | null) => {
   const { toast } = useToast();
-  const {
-    isLiked,
-    likesCount,
-    setIsLiked,
-    setLikesCount,
-    refetchLikeStatus
-  } = useLikeStatus(memeId, userId);
-
-  // Set up realtime subscription
-  useRealtimeLikes(memeId);
+  const queryClient = useQueryClient();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleLike = async () => {
     if (!userId) {
@@ -26,6 +18,8 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       return;
     }
 
+    if (isProcessing) return;
+
     const id = typeof memeId === 'string' ? parseInt(memeId) : memeId;
     if (isNaN(id)) {
       console.error("Invalid meme ID:", memeId);
@@ -33,9 +27,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
     }
 
     try {
-      // Optimistically update UI
-      setIsLiked(true);
-      setLikesCount(prev => prev + 1);
+      setIsProcessing(true);
 
       const { error: insertError } = await supabase
         .from("Likes")
@@ -51,28 +43,33 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
             description: "You have already liked this meme",
             variant: "destructive",
           });
-          // Revert optimistic update
-          setIsLiked(false);
-          setLikesCount(prev => prev - 1);
           return;
         }
         throw insertError;
       }
       
+      // Invalidate relevant queries to trigger updates
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-likes"] })
+      ]);
+
       toast({
         title: "Success",
         description: "Meme liked successfully",
       });
     } catch (error: any) {
       console.error("Error liking meme:", error);
-      // Revert optimistic update
-      setIsLiked(false);
-      setLikesCount(prev => prev - 1);
       toast({
         title: "Error",
         description: error.message || "Failed to like meme",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -86,6 +83,8 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       return;
     }
 
+    if (isProcessing) return;
+
     const id = typeof memeId === 'string' ? parseInt(memeId) : memeId;
     if (isNaN(id)) {
       console.error("Invalid meme ID:", memeId);
@@ -93,9 +92,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
     }
 
     try {
-      // Optimistically update UI
-      setIsLiked(false);
-      setLikesCount(prev => Math.max(0, prev - 1));
+      setIsProcessing(true);
 
       const { error: deleteError } = await supabase
         .from("Likes")
@@ -105,28 +102,34 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
 
       if (deleteError) throw deleteError;
       
+      // Invalidate relevant queries to trigger updates
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-likes"] })
+      ]);
+
       toast({
         title: "Success",
         description: "Like removed successfully",
       });
     } catch (error: any) {
       console.error("Error unliking meme:", error);
-      // Revert optimistic update
-      setIsLiked(true);
-      setLikesCount(prev => prev + 1);
       toast({
         title: "Error",
         description: error.message || "Failed to unlike meme",
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   return {
-    isLiked,
-    likesCount,
     handleLike,
     handleUnlike,
-    refetchLikeStatus
+    isProcessing
   };
 };
