@@ -91,7 +91,8 @@ export const FormWrapper = ({
     setIsSubmitting(true);
 
     try {
-      console.log("Submitting meme with user ID:", user.id);
+      console.log(`${isEditMode ? 'Updating' : 'Creating'} meme with user ID:`, user.id);
+      
       const memeData = {
         title,
         description,
@@ -105,7 +106,7 @@ export const FormWrapper = ({
         time_until_listing: createdAt?.toISOString() || new Date().toISOString()
       };
 
-      console.log("Meme data to submit:", memeData);
+      console.log(`Meme data to ${isEditMode ? 'update' : 'submit'}:`, memeData);
 
       let error;
       if (isEditMode && initialData?.id) {
@@ -113,13 +114,33 @@ export const FormWrapper = ({
         const { error: updateError } = await supabase
           .from('Memes')
           .update(memeData)
-          .eq('id', initialData.id);
+          .eq('id', initialData.id)
+          .select()
+          .single();
+        
+        if (updateError) {
+          console.error('Error updating meme:', updateError);
+          throw new Error(updateError.message || 'Failed to update meme');
+        }
+        
         error = updateError;
       } else {
+        if (isEditMode) {
+          throw new Error('Cannot create new meme in edit mode - missing meme ID');
+        }
+        
         console.log("Creating new meme");
         const { error: insertError } = await supabase
           .from('Memes')
-          .insert([memeData]);
+          .insert([memeData])
+          .select()
+          .single();
+          
+        if (insertError) {
+          console.error('Error creating meme:', insertError);
+          throw new Error(insertError.message || 'Failed to create meme');
+        }
+        
         error = insertError;
       }
 
@@ -136,7 +157,7 @@ export const FormWrapper = ({
       
       navigate("/my-memes");
     } catch (error: any) {
-      console.error('Error submitting meme:', error);
+      console.error(`Error ${isEditMode ? 'updating' : 'submitting'} meme:`, error);
       toast({
         variant: "destructive",
         title: "Error",
