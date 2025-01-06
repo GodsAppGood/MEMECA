@@ -126,9 +126,9 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogTitle>Delete Meme</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this meme.
+            Are you sure you want to delete this meme? This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
