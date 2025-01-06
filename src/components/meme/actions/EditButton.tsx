@@ -3,6 +3,8 @@ import { Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Meme } from "@/types/meme";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditButtonProps {
   meme: Meme;
@@ -12,8 +14,34 @@ interface EditButtonProps {
 export const EditButton = ({ meme, userId }: EditButtonProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isVerified, setIsVerified] = useState(false);
 
-  const handleEdit = (e: React.MouseEvent) => {
+  useEffect(() => {
+    const checkUserVerification = async () => {
+      if (!userId) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('Users')
+          .select('is_verified')
+          .eq('auth_id', userId)
+          .single();
+
+        if (error) {
+          console.error('Error checking user verification:', error);
+          return;
+        }
+
+        setIsVerified(data?.is_verified || false);
+      } catch (error) {
+        console.error('Error in checkUserVerification:', error);
+      }
+    };
+
+    void checkUserVerification();
+  }, [userId]);
+
+  const handleEdit = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!userId) {
@@ -21,6 +49,15 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
         variant: "destructive",
         title: "Authentication Required",
         description: "Please log in to edit memes",
+      });
+      return;
+    }
+
+    if (!isVerified) {
+      toast({
+        variant: "destructive",
+        title: "Verification Required",
+        description: "You need to verify your account to edit memes",
       });
       return;
     }
@@ -51,8 +88,8 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
     });
   };
 
-  // Only show edit button if user is the creator
-  if (!userId || userId !== meme.created_by) return null;
+  // Only show edit button if user is the creator and is verified
+  if (!userId || userId !== meme.created_by || !isVerified) return null;
 
   return (
     <Button
