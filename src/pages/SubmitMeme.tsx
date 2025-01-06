@@ -21,27 +21,20 @@ const SubmitMeme = () => {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  // Fetch meme data if in edit mode
-  const { data: memeData, isLoading, error } = useMemeDetails(id);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-    } catch (error) {
-      console.error('Auth check error:', error);
-    }
-  };
-
-  const handleSubmitAttempt = () => {
-    if (!user) {
-      setIsLoginDialogOpen(true);
-      return;
-    }
-  };
+  // Get meme data from location state if available
+  const memeData = location.state?.memeData as Meme | undefined;
 
   useEffect(() => {
-    checkAuth();
+    const checkAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setUser(session?.user || null);
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    };
+
+    void checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
@@ -54,29 +47,12 @@ const SubmitMeme = () => {
     };
   }, [navigate]);
 
-  if (id && isLoading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <LoadingSpinner />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
-
-  if (id && error) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container mx-auto px-4 py-8">
-          <ErrorState message="Failed to load meme data" />
-        </main>
-        <Footer />
-      </div>
-    );
-  }
+  const handleSubmitAttempt = () => {
+    if (!user) {
+      setIsLoginDialogOpen(true);
+      return;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -92,6 +68,7 @@ const SubmitMeme = () => {
               isAuthenticated={!!user}
               initialData={memeData}
               isEditMode={!!id}
+              memeId={id}
             />
           </div>
         </div>

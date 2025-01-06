@@ -25,7 +25,7 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
           .from('Users')
           .select('is_verified')
           .eq('auth_id', userId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error checking user verification:', error);
@@ -71,15 +71,15 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
       return;
     }
 
-    console.log("Editing meme:", {
+    console.log("Navigating to edit meme:", {
       memeId: meme.id,
       userId,
       createdBy: meme.created_by
     });
 
-    navigate('/submit', { 
+    navigate(`/submit/${meme.id}`, { 
       state: { 
-        editMode: true, 
+        editMode: true,
         memeData: {
           ...meme,
           id: meme.id.toString()
