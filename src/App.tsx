@@ -55,7 +55,6 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/submit" element={<SubmitMeme />} />
-                <Route path="/submit/:id" element={<SubmitMeme />} />
                 <Route path="/meme/:id" element={<MemeDetailPage />} />
                 <Route path="/top-memes" element={<TopMemes />} />
                 <Route 

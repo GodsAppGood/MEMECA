@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { EditButton } from "./actions/EditButton";
 import { DeleteButton } from "./actions/DeleteButton";
 import { LikeButton } from "./actions/LikeButton";
 import { useToast } from "@/hooks/use-toast";
@@ -82,7 +81,6 @@ export const MemeCardActions = ({
         </span>
       </div>
       <div className="flex items-center space-x-2">
-        <EditButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
         <DeleteButton meme={{ ...meme, id: meme.id.toString() }} userId={userId} />
       </div>
     </div>
