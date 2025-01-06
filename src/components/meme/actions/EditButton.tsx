@@ -71,16 +71,9 @@ export const EditButton = ({ meme, userId }: EditButtonProps) => {
       return;
     }
 
-    console.log("Navigating to edit meme:", {
-      memeId: meme.id,
-      userId,
-      createdBy: meme.created_by
-    });
-
-    navigate(`/submit/${meme.id}`);
+    navigate(`/submit/${meme.id}`, { state: { memeData: meme } });
   };
 
-  // Only show edit button if user is the creator and is verified
   if (!userId || userId !== meme.created_by || !isVerified) return null;
 
   return (

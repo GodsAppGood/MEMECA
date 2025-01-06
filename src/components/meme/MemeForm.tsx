@@ -16,6 +16,7 @@ export const MemeForm = ({
   onSubmitAttempt, 
   isAuthenticated,
   initialData,
+  isEditMode = false,
 }: MemeFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -73,7 +74,7 @@ export const MemeForm = ({
       onSubmitAttempt={onSubmitAttempt} 
       isAuthenticated={isAuthenticated}
       initialData={formData}
-      isEditMode={!!id}
+      isEditMode={isEditMode}
     />
   );
 };
