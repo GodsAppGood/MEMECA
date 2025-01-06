@@ -129,7 +129,9 @@ export const FormWrapper = ({
       
       toast({
         title: "Success!",
-        description: isEditMode ? "Your meme has been updated successfully." : "Your meme has been submitted successfully.",
+        description: isEditMode 
+          ? "Your meme has been updated successfully." 
+          : "Your meme has been submitted successfully.",
       });
       
       navigate("/my-memes");
