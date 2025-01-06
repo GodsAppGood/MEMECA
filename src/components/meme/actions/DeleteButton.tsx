@@ -49,6 +49,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   });
 
   const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     
     if (!userId) {
@@ -86,8 +87,13 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
       if (error) throw error;
 
-      await queryClient.invalidateQueries({ queryKey: ["memes"] });
-      await queryClient.invalidateQueries({ queryKey: ["user-memes"] });
+      // Invalidate relevant queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
+      ]);
 
       toast({
         title: "Success",
@@ -96,8 +102,13 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     } catch (error: any) {
       console.error('Error deleting meme:', error);
       
-      // Revert optimistic update
-      await queryClient.invalidateQueries({ queryKey: ["memes"] });
+      // Revert optimistic update by refetching data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
+      ]);
       
       toast({
         variant: "destructive",
@@ -120,11 +131,12 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
           size="icon"
           className="hover:text-red-500"
           disabled={isDeleting}
+          onClick={(e) => e.stopPropagation()} // Prevent navigation
         >
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent>
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}> {/* Prevent navigation */}
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Meme</AlertDialogTitle>
           <AlertDialogDescription>
@@ -133,7 +145,10 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+          <AlertDialogAction 
+            onClick={handleDelete} 
+            className="bg-red-500 hover:bg-red-600"
+          >
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>
