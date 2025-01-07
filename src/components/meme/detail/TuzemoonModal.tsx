@@ -41,9 +41,12 @@ export const TuzemoonModal = ({
     setError(null);
 
     try {
+      console.log('Initiating payment for meme:', { memeId, memeTitle });
+      
       const { success, signature, error: paymentError } = await sendSolPayment(memeId, memeTitle);
       
       if (success && signature) {
+        console.log('Payment successful:', signature);
         toast({
           title: "Success",
           description: "Tuzemoon activated successfully!",
@@ -51,6 +54,7 @@ export const TuzemoonModal = ({
         await onSuccess();
         onClose();
       } else {
+        console.error('Payment failed:', paymentError);
         setError(paymentError || "Transaction failed. Please try again.");
         toast({
           title: "Payment Failed",
@@ -59,7 +63,7 @@ export const TuzemoonModal = ({
         });
       }
     } catch (err: any) {
-      console.error("Payment failed:", err);
+      console.error("Payment process error:", err);
       const errorMessage = err.message || "Payment failed. Please try again.";
       setError(errorMessage);
       toast({

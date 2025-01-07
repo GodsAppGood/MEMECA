@@ -9,20 +9,29 @@ export const sendSolPayment = async (
   memeTitle: string
 ): Promise<{ success: boolean; signature?: string; error?: string }> => {
   try {
+    console.log('Starting payment process for meme:', { memeId, memeTitle });
+
     if (!window.solana?.isPhantom) {
+      console.error('Phantom wallet not found');
       return { 
         success: false, 
         error: "Phantom wallet is not installed" 
       };
     }
 
-    // Connect to Solana network (using devnet for testing)
+    // Connect to Solana mainnet
     const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
     const fromWallet = window.solana;
 
     // Get the public key of the connected wallet
     const fromPubkey = new PublicKey(await (await fromWallet.connect()).publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
+
+    console.log('Transaction details:', {
+      from: fromPubkey.toString(),
+      to: toPubkey.toString(),
+      amount: TUZEMOON_COST
+    });
 
     // Get recent blockhash
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
@@ -43,6 +52,7 @@ export const sendSolPayment = async (
     // Get current user's session
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
+      console.error('User not authenticated');
       return { 
         success: false, 
         error: "User not authenticated" 
@@ -50,14 +60,16 @@ export const sendSolPayment = async (
     }
 
     // Create payment record with pending status
-    const { error: insertError } = await supabase
+    const { data: paymentRecord, error: insertError } = await supabase
       .from('TuzemoonPayments')
       .insert({
         meme_id: parseInt(memeId),
         user_id: session.user.id,
         amount: TUZEMOON_COST,
         transaction_status: 'pending'
-      });
+      })
+      .select()
+      .single();
 
     if (insertError) {
       console.error("Error creating payment record:", insertError);
@@ -67,10 +79,17 @@ export const sendSolPayment = async (
       };
     }
 
+    console.log('Created pending payment record:', paymentRecord);
+
     // Sign and send transaction
     try {
+      // Request signature from user
       const signed = await fromWallet.signTransaction(transaction);
+      console.log('Transaction signed by user');
+
+      // Send the transaction
       const signature = await connection.sendRawTransaction(signed.serialize());
+      console.log('Transaction sent:', signature);
       
       // Wait for transaction confirmation
       const confirmation = await connection.confirmTransaction({
@@ -83,6 +102,8 @@ export const sendSolPayment = async (
         throw new Error("Transaction failed to confirm");
       }
 
+      console.log('Transaction confirmed:', confirmation);
+
       // Update payment record with success status
       const { error: updateError } = await supabase
         .from('TuzemoonPayments')
@@ -90,9 +111,7 @@ export const sendSolPayment = async (
           transaction_signature: signature,
           transaction_status: 'completed'
         })
-        .eq('meme_id', parseInt(memeId))
-        .eq('user_id', session.user.id)
-        .eq('transaction_status', 'pending');
+        .eq('id', paymentRecord.id);
 
       if (updateError) {
         console.error("Error updating payment record:", updateError);
@@ -102,6 +121,7 @@ export const sendSolPayment = async (
         };
       }
 
+      console.log('Payment record updated with success status');
       return { success: true, signature };
     } catch (error: any) {
       console.error("Transaction error:", error);
@@ -113,9 +133,7 @@ export const sendSolPayment = async (
           transaction_status: 'failed',
           transaction_signature: null
         })
-        .eq('meme_id', parseInt(memeId))
-        .eq('user_id', session.user.id)
-        .eq('transaction_status', 'pending');
+        .eq('id', paymentRecord.id);
 
       return { 
         success: false, 
