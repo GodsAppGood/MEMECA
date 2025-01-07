@@ -4,6 +4,11 @@ project_id = "dpybiegurkiqwponvxac"
 SUPABASE_URL = "env"
 SUPABASE_SERVICE_ROLE_KEY = "env"
 
+[[log-transaction]]
+name = "log-transaction"
+path = "/log-transaction"
+verify_jwt = false
+
 [[wallet-auth]]
 name = "wallet-auth"
 path = "/wallet-auth"

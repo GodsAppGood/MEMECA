@@ -113,6 +113,50 @@ export type Database = {
         }
         Relationships: []
       }
+      TransactionLogs: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          error_message: string | null
+          id: number
+          meme_id: number
+          transaction_signature: string | null
+          transaction_status: string
+          user_id: string
+          wallet_address: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          meme_id: number
+          transaction_signature?: string | null
+          transaction_status: string
+          user_id: string
+          wallet_address?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          meme_id?: number
+          transaction_signature?: string | null
+          transaction_status?: string
+          user_id?: string
+          wallet_address?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "TransactionLogs_meme_id_fkey"
+            columns: ["meme_id"]
+            isOneToOne: false
+            referencedRelation: "Memes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       TuzemoonPayments: {
         Row: {
           amount: number

@@ -4,6 +4,35 @@ import { supabase } from "@/integrations/supabase/client";
 const TUZEMOON_COST = 0.1; // SOL
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 
+const logTransaction = async (transactionDetails: {
+  user_id: string;
+  meme_id: string;
+  amount: number;
+  transaction_status: string;
+  error_message?: string;
+  wallet_address?: string;
+  transaction_signature?: string;
+}) => {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('No active session');
+
+    const response = await supabase.functions.invoke('log-transaction', {
+      body: transactionDetails
+    });
+
+    if (!response.data?.success) {
+      console.error('Transaction logging failed:', response.error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error logging transaction:', error);
+    return false;
+  }
+};
+
 export const sendSolPayment = async (
   memeId: string,
   memeTitle: string
@@ -11,8 +40,25 @@ export const sendSolPayment = async (
   try {
     console.log('Starting payment process for meme:', { memeId, memeTitle });
 
+    // Get current user's session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      console.error('User not authenticated');
+      return { 
+        success: false, 
+        error: "User not authenticated" 
+      };
+    }
+
     if (!window.solana?.isPhantom) {
       console.error('Phantom wallet not found');
+      await logTransaction({
+        user_id: session.user.id,
+        meme_id: memeId,
+        amount: TUZEMOON_COST,
+        transaction_status: 'failed',
+        error_message: 'Phantom wallet not installed'
+      });
       return { 
         success: false, 
         error: "Phantom wallet is not installed" 
@@ -33,6 +79,15 @@ export const sendSolPayment = async (
       amount: TUZEMOON_COST
     });
 
+    // Log initial transaction attempt
+    await logTransaction({
+      user_id: session.user.id,
+      meme_id: memeId,
+      amount: TUZEMOON_COST,
+      transaction_status: 'pending',
+      wallet_address: fromPubkey.toString()
+    });
+
     // Get recent blockhash
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
 
@@ -49,39 +104,6 @@ export const sendSolPayment = async (
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = fromPubkey;
 
-    // Get current user's session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
-      console.error('User not authenticated');
-      return { 
-        success: false, 
-        error: "User not authenticated" 
-      };
-    }
-
-    // Create payment record with pending status
-    const { data: paymentRecord, error: insertError } = await supabase
-      .from('TuzemoonPayments')
-      .insert({
-        meme_id: parseInt(memeId),
-        user_id: session.user.id,
-        amount: TUZEMOON_COST,
-        transaction_status: 'pending'
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error("Error creating payment record:", insertError);
-      return { 
-        success: false, 
-        error: "Failed to create payment record" 
-      };
-    }
-
-    console.log('Created pending payment record:', paymentRecord);
-
-    // Sign and send transaction
     try {
       // Request signature from user
       const signed = await fromWallet.signTransaction(transaction);
@@ -104,36 +126,29 @@ export const sendSolPayment = async (
 
       console.log('Transaction confirmed:', confirmation);
 
-      // Update payment record with success status
-      const { error: updateError } = await supabase
-        .from('TuzemoonPayments')
-        .update({
-          transaction_signature: signature,
-          transaction_status: 'completed'
-        })
-        .eq('id', paymentRecord.id);
+      // Log successful transaction
+      await logTransaction({
+        user_id: session.user.id,
+        meme_id: memeId,
+        amount: TUZEMOON_COST,
+        transaction_status: 'completed',
+        wallet_address: fromPubkey.toString(),
+        transaction_signature: signature
+      });
 
-      if (updateError) {
-        console.error("Error updating payment record:", updateError);
-        return { 
-          success: false, 
-          error: "Failed to update payment record" 
-        };
-      }
-
-      console.log('Payment record updated with success status');
       return { success: true, signature };
     } catch (error: any) {
       console.error("Transaction error:", error);
       
-      // Update payment record with failed status
-      await supabase
-        .from('TuzemoonPayments')
-        .update({
-          transaction_status: 'failed',
-          transaction_signature: null
-        })
-        .eq('id', paymentRecord.id);
+      // Log failed transaction
+      await logTransaction({
+        user_id: session.user.id,
+        meme_id: memeId,
+        amount: TUZEMOON_COST,
+        transaction_status: 'failed',
+        error_message: error.message,
+        wallet_address: fromPubkey.toString()
+      });
 
       return { 
         success: false, 
@@ -142,6 +157,19 @@ export const sendSolPayment = async (
     }
   } catch (error: any) {
     console.error("Payment error:", error);
+    
+    // Log error if we have a session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.id) {
+      await logTransaction({
+        user_id: session.user.id,
+        meme_id: memeId,
+        amount: TUZEMOON_COST,
+        transaction_status: 'error',
+        error_message: error.message
+      });
+    }
+
     return { 
       success: false, 
       error: error.message || "Payment process failed" 
