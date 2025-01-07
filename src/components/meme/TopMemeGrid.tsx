@@ -58,9 +58,9 @@ export const TopMemeGrid = () => {
       const { data, error } = await supabase
         .from('Memes')
         .select('*')
-        .gt('likes', 0) // Only include memes with at least one like
+        .gt('likes', 0)
         .order('likes', { ascending: false })
-        .order('created_at', { ascending: false }) // Secondary sort by creation date
+        .order('created_at', { ascending: false })
         .limit(200);
       
       if (error) throw error;
@@ -81,7 +81,7 @@ export const TopMemeGrid = () => {
           event: '*', 
           schema: 'public', 
           table: 'Memes',
-          filter: 'likes>0' // Only listen for changes on memes with likes
+          filter: 'likes>0'
         },
         () => {
           console.log("Received real-time update for top memes, refetching...");
@@ -127,6 +127,7 @@ export const TopMemeGrid = () => {
         opts={{
           align: "start",
           loop: false,
+          slidesToScroll: 4, // Set number of slides to scroll
         }}
         className="w-full"
         setApi={(api) => {
