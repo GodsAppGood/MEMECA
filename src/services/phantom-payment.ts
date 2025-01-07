@@ -72,6 +72,7 @@ export const sendSolPayment = async (
     // Get the public key of the connected wallet
     const fromPubkey = new PublicKey(await (await fromWallet.connect()).publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
+    const walletAddress = fromPubkey.toString();
 
     console.log('Transaction details:', {
       from: fromPubkey.toString(),
@@ -85,7 +86,7 @@ export const sendSolPayment = async (
       meme_id: memeId,
       amount: TUZEMOON_COST,
       transaction_status: 'pending',
-      wallet_address: fromPubkey.toString()
+      wallet_address: walletAddress
     });
 
     // Get recent blockhash
@@ -132,9 +133,15 @@ export const sendSolPayment = async (
         meme_id: memeId,
         amount: TUZEMOON_COST,
         transaction_status: 'completed',
-        wallet_address: fromPubkey.toString(),
+        wallet_address: walletAddress,
         transaction_signature: signature
       });
+
+      // Update user's wallet address in Users table
+      await supabase
+        .from('Users')
+        .update({ wallet_address: walletAddress })
+        .eq('auth_id', session.user.id);
 
       return { success: true, signature };
     } catch (error: any) {
@@ -147,7 +154,7 @@ export const sendSolPayment = async (
         amount: TUZEMOON_COST,
         transaction_status: 'failed',
         error_message: error.message,
-        wallet_address: fromPubkey.toString()
+        wallet_address: walletAddress
       });
 
       return { 

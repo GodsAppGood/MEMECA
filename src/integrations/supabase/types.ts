@@ -166,6 +166,7 @@ export type Database = {
           transaction_signature: string | null
           transaction_status: string | null
           user_id: string
+          wallet_address: string | null
         }
         Insert: {
           amount: number
@@ -175,6 +176,7 @@ export type Database = {
           transaction_signature?: string | null
           transaction_status?: string | null
           user_id: string
+          wallet_address?: string | null
         }
         Update: {
           amount?: number
@@ -184,6 +186,7 @@ export type Database = {
           transaction_signature?: string | null
           transaction_status?: string | null
           user_id?: string
+          wallet_address?: string | null
         }
         Relationships: [
           {

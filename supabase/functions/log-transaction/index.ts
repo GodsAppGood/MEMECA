@@ -63,7 +63,8 @@ serve(async (req) => {
           meme_id: requestData.meme_id,
           amount: requestData.amount,
           transaction_status: 'completed',
-          transaction_signature: requestData.transaction_signature
+          transaction_signature: requestData.transaction_signature,
+          wallet_address: requestData.wallet_address
         })
 
       if (paymentError) {
