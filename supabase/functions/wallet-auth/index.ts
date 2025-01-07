@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import { decode as decodeBase58 } from "https://deno.land/std@0.182.0/encoding/base58.ts"
-import { verify } from "https://deno.land/x/noble_ed25519@1.7.3/mod.ts"
+import { verify } from "https://deno.land/x/noble@v1.7.3/ed25519.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
