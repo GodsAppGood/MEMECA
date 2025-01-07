@@ -1,7 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as ed25519 from 'https://deno.land/x/ed25519@1.1.0/mod.ts'
-import { decode as decodeBase58 } from 'https://deno.land/std@0.182.0/encoding/base58.ts'
+import { decode as decodeBase58 } from "https://deno.land/std@0.182.0/encoding/base58.ts"
+import { verify } from "https://deno.land/x/noble_ed25519@1.7.3/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -94,8 +94,8 @@ serve(async (req) => {
         const publicKeyBytes = decodeBase58(walletAddress)
         const messageBytes = new TextEncoder().encode(nonce)
 
-        // Verify the signature
-        const isValid = ed25519.verify(signatureBytes, messageBytes, publicKeyBytes)
+        // Verify the signature using noble_ed25519
+        const isValid = await verify(signatureBytes, messageBytes, publicKeyBytes)
 
         if (!isValid) {
           return new Response(
