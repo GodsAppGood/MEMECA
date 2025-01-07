@@ -119,8 +119,8 @@ export type Database = {
           created_at: string
           id: number
           meme_id: number
-          status: string
-          transaction_signature: string
+          transaction_signature: string | null
+          transaction_status: string | null
           user_id: string
         }
         Insert: {
@@ -128,8 +128,8 @@ export type Database = {
           created_at?: string
           id?: never
           meme_id: number
-          status: string
-          transaction_signature: string
+          transaction_signature?: string | null
+          transaction_status?: string | null
           user_id: string
         }
         Update: {
@@ -137,8 +137,8 @@ export type Database = {
           created_at?: string
           id?: never
           meme_id?: number
-          status?: string
-          transaction_signature?: string
+          transaction_signature?: string | null
+          transaction_status?: string | null
           user_id?: string
         }
         Relationships: [

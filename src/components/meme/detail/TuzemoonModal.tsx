@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Wallet } from "lucide-react";
+import { Wallet, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { sendSolPayment } from "@/services/phantom-payment";
 import { toast } from "@/hooks/use-toast";
@@ -32,6 +32,7 @@ export const TuzemoonModal = ({
   useEffect(() => {
     if (!isOpen) {
       setError(null);
+      setIsLoading(false);
     }
   }, [isOpen]);
 
@@ -40,7 +41,7 @@ export const TuzemoonModal = ({
     setError(null);
 
     try {
-      const { success, signature } = await sendSolPayment(memeId, memeTitle);
+      const { success, signature, error: paymentError } = await sendSolPayment(memeId, memeTitle);
       
       if (success && signature) {
         toast({
@@ -50,11 +51,22 @@ export const TuzemoonModal = ({
         await onSuccess();
         onClose();
       } else {
-        setError("Transaction failed. Please try again.");
+        setError(paymentError || "Transaction failed. Please try again.");
+        toast({
+          title: "Payment Failed",
+          description: paymentError || "Transaction failed. Please try again.",
+          variant: "destructive",
+        });
       }
     } catch (err: any) {
       console.error("Payment failed:", err);
-      setError(err.message || "Payment failed. Please try again.");
+      const errorMessage = err.message || "Payment failed. Please try again.";
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +99,10 @@ export const TuzemoonModal = ({
             disabled={isLoading}
           >
             {isLoading ? (
-              "Processing..."
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                Processing...
+              </>
             ) : (
               <>
                 <Wallet className="mr-2 h-5 w-5" />
