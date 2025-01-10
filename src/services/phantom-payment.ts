@@ -50,30 +50,28 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
       setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
     });
 
-    // Comprehensive connection tests
+    // Comprehensive connection tests using available methods
     const testPromise = Promise.all([
       connection.getVersion(),
       connection.getSlot(),
       connection.getRecentBlockhash(),
-      connection.getHealth(),
       connection.getBlockHeight()
     ]);
 
-    const [version, slot, blockhash, health, blockHeight] = await Promise.race([
+    const [version, slot, blockhash, blockHeight] = await Promise.race([
       testPromise,
       timeoutPromise
-    ]) as [any, number, { blockhash: string }, string, number];
+    ]) as [any, number, { blockhash: string }, number];
 
     console.log('Connection validation results:', {
       version,
       slot,
       blockHeight,
-      health,
       blockhash: blockhash.blockhash.slice(0, 8) + '...',
       timestamp: new Date().toISOString()
     });
 
-    return health === 'ok';
+    return true;
   } catch (error) {
     console.error('Connection validation failed:', error);
     return false;
@@ -94,9 +92,9 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
       }
     });
 
-    // Set up WebSocket keep-alive
+    // Set up WebSocket keep-alive using getSlot instead of getHealth
     const wsKeepAlive = setInterval(() => {
-      connection.getHealth().catch(console.error);
+      connection.getSlot().catch(console.error);
     }, WS_PING_INTERVAL);
 
     // Validate connection
