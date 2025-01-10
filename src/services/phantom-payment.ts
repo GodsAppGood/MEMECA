@@ -4,6 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 const TUZEMOON_COST = 0.1; // SOL
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const RPC_URL = "https://api.mainnet-beta.solana.com";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const logTransaction = async (transactionDetails: {
   user_id: string;
@@ -31,6 +35,33 @@ const logTransaction = async (transactionDetails: {
   } catch (error) {
     console.error('Error logging transaction:', error);
     return false;
+  }
+};
+
+const createSolanaConnection = async (retryCount = 0): Promise<Connection | null> => {
+  try {
+    console.log(`Attempting to connect to Solana network (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+    
+    const connection = new Connection(RPC_URL, {
+      commitment: 'confirmed',
+      confirmTransactionInitialTimeout: 60000,
+      wsEndpoint: "wss://api.mainnet-beta.solana.com",
+    });
+
+    // Test the connection
+    const version = await connection.getVersion();
+    console.log('Successfully connected to Solana network:', version);
+    return connection;
+  } catch (error) {
+    console.error(`Connection attempt ${retryCount + 1} failed:`, error);
+    
+    if (retryCount < MAX_RETRIES - 1) {
+      console.log(`Retrying in ${RETRY_DELAY}ms...`);
+      await sleep(RETRY_DELAY);
+      return createSolanaConnection(retryCount + 1);
+    }
+    
+    return null;
   }
 };
 
@@ -66,17 +97,18 @@ export const sendSolPayment = async (
       };
     }
 
-    // Connect to Solana mainnet with retry logic
-    let connection;
-    try {
-      connection = new Connection(RPC_URL, {
-        commitment: 'confirmed',
-        confirmTransactionInitialTimeout: 60000,
-        wsEndpoint: "wss://api.mainnet-beta.solana.com",
+    // Connect to Solana network with enhanced retry logic
+    const connection = await createSolanaConnection();
+    if (!connection) {
+      const error = "Failed to establish connection to Solana network after multiple attempts";
+      console.error(error);
+      await logTransaction({
+        user_id: session.user.id,
+        meme_id: memeId,
+        amount: TUZEMOON_COST,
+        transaction_status: 'failed',
+        error_message: error
       });
-      await connection.getVersion();
-    } catch (error) {
-      console.error('Failed to connect to Solana network:', error);
       return {
         success: false,
         error: "Failed to connect to Solana network. Please try again."
@@ -104,9 +136,11 @@ export const sendSolPayment = async (
     });
 
     // Get recent blockhash with retry
-    let { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash({
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash({
       commitment: 'finalized'
     });
+
+    console.log('Got blockhash:', { blockhash, lastValidBlockHeight });
 
     // Create transaction
     const transaction = new Transaction().add(
@@ -123,10 +157,12 @@ export const sendSolPayment = async (
 
     try {
       // Request signature from user
+      console.log('Requesting transaction signature from user...');
       const signed = await fromWallet.signTransaction(transaction);
       console.log('Transaction signed by user');
 
       // Send the transaction
+      console.log('Sending transaction...');
       const signature = await connection.sendRawTransaction(signed.serialize(), {
         skipPreflight: false,
         preflightCommitment: 'confirmed'
@@ -134,6 +170,7 @@ export const sendSolPayment = async (
       console.log('Transaction sent:', signature);
       
       // Wait for transaction confirmation
+      console.log('Waiting for transaction confirmation...');
       const confirmation = await connection.confirmTransaction({
         signature,
         blockhash,
