@@ -12,10 +12,18 @@ const CONNECTION_TIMEOUT = 30000;
 const WS_PING_INTERVAL = 10000;
 const COMMITMENT_LEVEL: Commitment = 'confirmed';
 
-// HTTP Headers
+// Enhanced diagnostics
+const diagnostics = {
+  connectionAttempts: 0,
+  lastError: null as Error | null,
+  connectionStatus: 'disconnected' as 'disconnected' | 'connecting' | 'connected' | 'error',
+  lastSuccessfulConnection: null as Date | null,
+};
+
+// HTTP Headers with detailed User-Agent
 const headers = {
   'Content-Type': 'application/json',
-  'User-Agent': 'Memeca/1.0.0',
+  'User-Agent': 'Memeca/1.0.0 (Solana Payment Integration)',
 };
 
 const corsHeaders = {
@@ -25,7 +33,7 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Transaction logging
+// Transaction logging with enhanced details
 const logTransaction = async (transactionDetails: {
   user_id: string;
   meme_id: string;
@@ -36,6 +44,16 @@ const logTransaction = async (transactionDetails: {
   transaction_signature?: string;
 }) => {
   try {
+    console.log('Logging transaction with details:', {
+      ...transactionDetails,
+      timestamp: new Date().toISOString(),
+      diagnostics: {
+        connectionAttempts: diagnostics.connectionAttempts,
+        connectionStatus: diagnostics.connectionStatus,
+        lastSuccessfulConnection: diagnostics.lastSuccessfulConnection,
+      }
+    });
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       console.error('No active session for transaction logging');
@@ -58,10 +76,17 @@ const logTransaction = async (transactionDetails: {
   }
 };
 
-// Connection validation with enhanced error handling
+// Enhanced connection validation with detailed diagnostics
 const validateConnection = async (connection: Connection): Promise<boolean> => {
   try {
-    console.log('Validating Solana connection...');
+    console.log('Validating Solana connection...', {
+      timestamp: new Date().toISOString(),
+      attempts: diagnostics.connectionAttempts + 1,
+      previousStatus: diagnostics.connectionStatus,
+    });
+    
+    diagnostics.connectionStatus = 'connecting';
+    diagnostics.connectionAttempts++;
     
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
@@ -79,15 +104,22 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
       timeoutPromise
     ]) as [any, number, { blockhash: string }, number];
 
-    console.log('Connection validation results:', {
+    const connectionDetails = {
       version,
       slot,
       blockHeight,
       blockhash: blockhash.blockhash.slice(0, 8) + '...',
       timestamp: new Date().toISOString(),
       rpcEndpoint: RPC_URL,
-      commitment: COMMITMENT_LEVEL
-    });
+      commitment: COMMITMENT_LEVEL,
+      attempts: diagnostics.connectionAttempts,
+    };
+
+    console.log('Connection validation successful:', connectionDetails);
+    
+    diagnostics.connectionStatus = 'connected';
+    diagnostics.lastSuccessfulConnection = new Date();
+    diagnostics.lastError = null;
 
     return true;
   } catch (error) {
@@ -95,20 +127,24 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
     console.error('Connection validation failed:', {
       error: errorMessage,
       timestamp: new Date().toISOString(),
-      endpoint: RPC_URL
+      endpoint: RPC_URL,
+      attempts: diagnostics.connectionAttempts,
     });
+
+    diagnostics.connectionStatus = 'error';
+    diagnostics.lastError = error instanceof Error ? error : new Error(errorMessage);
 
     // Check for specific error types
     if (errorMessage.includes('403')) {
       toast({
         title: "Access Error",
-        description: "Unable to access Solana network. Please try again later.",
+        description: "Unable to access Solana network. Please try again later or contact support.",
         variant: "destructive"
       });
     } else if (errorMessage.includes('timeout')) {
       toast({
         title: "Connection Timeout",
-        description: "Network response took too long. Please check your connection.",
+        description: "Network response took too long. Please check your connection and try again.",
         variant: "destructive"
       });
     } else {
