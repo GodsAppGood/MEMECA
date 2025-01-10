@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FormData {
   title: string;
@@ -26,7 +26,7 @@ export const useFormSubmission = () => {
   const handleSubmission = async (
     formData: FormData,
     isEditMode: boolean,
-    memeId?: number | string
+    memeId?: string | number | null
   ) => {
     setIsSubmitting(true);
     console.log("Form submission:", { isEditMode, memeId, formData });
@@ -37,11 +37,13 @@ export const useFormSubmission = () => {
           throw new Error('Cannot update meme - missing meme ID');
         }
 
+        const numericId = typeof memeId === 'string' ? parseInt(memeId, 10) : memeId;
+
         // Get current meme data
         const { data: currentMeme, error: fetchError } = await supabase
           .from('Memes')
           .select('*')
-          .eq('id', memeId)
+          .eq('id', numericId)
           .single();
 
         if (fetchError) {
@@ -70,7 +72,7 @@ export const useFormSubmission = () => {
         const { error: updateError } = await supabase
           .from('Memes')
           .update(updatedFields)
-          .eq('id', memeId);
+          .eq('id', numericId);
 
         if (updateError) {
           console.error('Error updating meme:', updateError);

@@ -1,79 +1,67 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Support } from "@/components/Support";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ExternalLink } from "lucide-react";
-import { useUserData } from "@/hooks/useUserData";
-import { useEffect, useState } from "react";
-import { MemeCardActions } from "./MemeCardActions";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
-import { WatchlistButton } from "./actions/WatchlistButton";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { ArrowLeft, Heart, ExternalLink } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-export const MemeDetailPage = () => {
+const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isVerified, setIsVerified] = useState<boolean>(false);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const getSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          setUserId(session.user.id);
-          
-          // Fetch user role information
-          const { data: userData, error: userError } = await supabase
-            .from('Users')
-            .select('is_verified, is_admin')
-            .eq('auth_id', session.user.id)
-            .single();
-          
-          if (!userError && userData) {
-            setIsVerified(userData.is_verified);
-            setIsAdmin(userData.is_admin);
-            console.log('User roles:', { isVerified: userData.is_verified, isAdmin: userData.is_admin });
-          }
-        }
-      } catch (error) {
-        console.error('Error checking auth status:', error);
-      }
-    };
-    void getSession();
-  }, []);
-
-  const { userPoints, userLikes, refetchLikes } = useUserData(userId);
-
-  const { data: meme, isLoading, refetch } = useQuery({
-    queryKey: ["meme-detail", id],
+  const { data: meme, isLoading } = useQuery({
+    queryKey: ["memes", id],
     queryFn: async () => {
+      if (!id) throw new Error("No meme ID provided");
+      const numericId = parseInt(id, 10);
+      
       const { data, error } = await supabase
-        .from('Memes')
-        .select('*')
-        .eq('id', id)
+        .from("Memes")
+        .select("*")
+        .eq("id", numericId)
         .single();
-      
+
       if (error) throw error;
-      
+      if (!data) throw new Error("Meme not found");
+
       return {
         ...data,
-        id: data.id.toString()
+        id: numericId
       };
-    }
+    },
   });
 
-  useRealtimeSubscription(
-    [
-      { name: 'Memes' },
-      { name: 'Watchlist' }
-    ],
-    () => {
-      void refetch();
-      void refetchLikes();
-    }
-  );
+  const likeMutation = useMutation({
+    mutationFn: async () => {
+      const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
+      const updatedMemes = storedMemes.map((m: any) => {
+        if (m.id === id) {
+          return { ...m, likes: (m.likes || 0) + 1 };
+        }
+        return m;
+      });
+      localStorage.setItem("memes", JSON.stringify(updatedMemes));
+
+      // Add to watchlist
+      const watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
+      if (!watchlist.includes(id)) {
+        watchlist.push(id);
+        localStorage.setItem("watchlist", JSON.stringify(watchlist));
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["memes"] });
+      toast({
+        title: "Success",
+        description: "Meme added to your watchlist",
+      });
+    },
+  });
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -84,8 +72,9 @@ export const MemeDetailPage = () => {
   }
 
   return (
-    <TooltipProvider>
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      <main className="container mx-auto px-4 pt-24 pb-16">
         <Button
           variant="ghost"
           className="mb-8"
@@ -99,14 +88,6 @@ export const MemeDetailPage = () => {
           <div className="flex justify-between items-start mb-6">
             <h1 className="text-3xl font-serif">{meme.title}</h1>
             <div className="flex gap-2">
-              {(isAdmin || isVerified) && (
-                <WatchlistButton 
-                  memeId={meme.id} 
-                  userId={userId} 
-                  showText={true}
-                  className="mr-2"
-                />
-              )}
               <MemeCardActions
                 meme={meme}
                 userLikes={userLikes}
@@ -170,7 +151,11 @@ export const MemeDetailPage = () => {
             )}
           </div>
         </div>
-      </div>
-    </TooltipProvider>
+      </main>
+      <Support />
+      <Footer />
+    </div>
   );
 };
+
+export default MemeDetailPage;
