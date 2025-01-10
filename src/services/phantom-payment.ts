@@ -1,4 +1,4 @@
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Commitment } from '@solana/web3.js';
 import { supabase } from "@/integrations/supabase/client";
 
 const TUZEMOON_COST = 0.1; // SOL
@@ -7,6 +7,8 @@ const RPC_URL = "https://api.mainnet-beta.solana.com";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
 const CONNECTION_TIMEOUT = 30000; // 30 seconds
+const WS_PING_INTERVAL = 10000; // 10 seconds
+const COMMITMENT_LEVEL: Commitment = 'confirmed';
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -39,37 +41,41 @@ const logTransaction = async (transactionDetails: {
   }
 };
 
-const testConnection = async (connection: Connection): Promise<boolean> => {
+const validateConnection = async (connection: Connection): Promise<boolean> => {
   try {
-    console.log('Testing Solana connection...');
+    console.log('Validating Solana connection...');
     
-    // Create a timeout promise
+    // Test basic connectivity
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Connection test timed out')), CONNECTION_TIMEOUT);
+      setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
     });
 
-    // Test multiple aspects of the connection
+    // Comprehensive connection tests
     const testPromise = Promise.all([
       connection.getVersion(),
       connection.getSlot(),
-      connection.getRecentBlockhash()
+      connection.getRecentBlockhash(),
+      connection.getHealth(),
+      connection.getBlockHeight()
     ]);
 
-    // Race between the timeout and the test
-    const [version, slot, blockhash] = await Promise.race([
+    const [version, slot, blockhash, health, blockHeight] = await Promise.race([
       testPromise,
       timeoutPromise
-    ]) as [any, number, { blockhash: string }];
+    ]) as [any, number, { blockhash: string }, string, number];
 
-    console.log('Connection test results:', {
+    console.log('Connection validation results:', {
       version,
       slot,
-      blockhash: blockhash.blockhash.slice(0, 8) + '...' // Log partial blockhash for privacy
+      blockHeight,
+      health,
+      blockhash: blockhash.blockhash.slice(0, 8) + '...',
+      timestamp: new Date().toISOString()
     });
 
-    return true;
+    return health === 'ok';
   } catch (error) {
-    console.error('Connection test failed:', error);
+    console.error('Connection validation failed:', error);
     return false;
   }
 };
@@ -79,18 +85,38 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
     console.log(`Attempting to connect to Solana network (attempt ${retryCount + 1}/${MAX_RETRIES})`);
     
     const connection = new Connection(RPC_URL, {
-      commitment: 'confirmed',
-      confirmTransactionInitialTimeout: 60000,
+      commitment: COMMITMENT_LEVEL,
+      confirmTransactionInitialTimeout: CONNECTION_TIMEOUT,
       wsEndpoint: "wss://api.mainnet-beta.solana.com",
+      disableRetryOnRateLimit: false,
+      httpHeaders: {
+        'Content-Type': 'application/json'
+      }
     });
 
-    // Test the connection thoroughly
-    const isConnected = await testConnection(connection);
-    if (!isConnected) {
-      throw new Error('Connection test failed');
+    // Set up WebSocket keep-alive
+    const wsKeepAlive = setInterval(() => {
+      connection.getHealth().catch(console.error);
+    }, WS_PING_INTERVAL);
+
+    // Validate connection
+    const isValid = await validateConnection(connection);
+    if (!isValid) {
+      clearInterval(wsKeepAlive);
+      throw new Error('Connection validation failed');
     }
 
     console.log('Successfully established Solana connection');
+    
+    // Clean up WebSocket keep-alive on connection close
+    const cleanup = () => {
+      clearInterval(wsKeepAlive);
+      console.log('Cleaned up WebSocket keep-alive');
+    };
+
+    // Attach cleanup to connection object
+    (connection as any).cleanup = cleanup;
+    
     return connection;
   } catch (error) {
     console.error(`Connection attempt ${retryCount + 1} failed:`, error);
@@ -110,6 +136,8 @@ export const sendSolPayment = async (
   memeId: string,
   memeTitle: string
 ): Promise<{ success: boolean; signature?: string; error?: string }> => {
+  let connection: Connection | null = null;
+  
   try {
     console.log('Starting payment process for meme:', { memeId, memeTitle });
 
@@ -138,7 +166,7 @@ export const sendSolPayment = async (
     }
 
     // Connect to Solana network with enhanced retry logic
-    const connection = await createSolanaConnection();
+    connection = await createSolanaConnection();
     if (!connection) {
       const error = "Failed to establish connection to Solana network after multiple attempts. Please check your internet connection and try again.";
       console.error(error);
@@ -252,8 +280,14 @@ export const sendSolPayment = async (
         error: error.message || "Transaction failed" 
       };
     }
+
   } catch (error: any) {
     console.error("Payment error:", error);
+    
+    // Clean up WebSocket keep-alive if connection exists
+    if (connection && (connection as any).cleanup) {
+      (connection as any).cleanup();
+    }
     
     // Log error if we have a session
     const { data: { session } } = await supabase.auth.getSession();
@@ -283,5 +317,10 @@ export const sendSolPayment = async (
       success: false, 
       error: errorMessage
     };
+  } finally {
+    // Ensure WebSocket keep-alive is cleaned up
+    if (connection && (connection as any).cleanup) {
+      (connection as any).cleanup();
+    }
   }
 };
