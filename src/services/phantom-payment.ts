@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 // Constants
 const TUZEMOON_COST = 0.1;
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
-const RPC_URL = "https://api.mainnet-beta.solana.com";
+const RPC_URL = "https://solana-api.projectserum.com";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 const CONNECTION_TIMEOUT = 30000;
@@ -47,6 +47,7 @@ const logTransaction = async (transactionDetails: {
     console.log('Logging transaction with details:', {
       ...transactionDetails,
       timestamp: new Date().toISOString(),
+      rpcEndpoint: RPC_URL,
       diagnostics: {
         connectionAttempts: diagnostics.connectionAttempts,
         connectionStatus: diagnostics.connectionStatus,
@@ -81,6 +82,7 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
   try {
     console.log('Validating Solana connection...', {
       timestamp: new Date().toISOString(),
+      rpcEndpoint: RPC_URL,
       attempts: diagnostics.connectionAttempts + 1,
       previousStatus: diagnostics.connectionStatus,
     });
@@ -154,11 +156,11 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
         variant: "destructive"
       });
     }
+
     return false;
   }
 };
 
-// Enhanced Solana connection creation with retry logic
 const createSolanaConnection = async (retryCount = 0): Promise<Connection | null> => {
   try {
     console.log(`Attempting to connect to Solana network (attempt ${retryCount + 1}/${MAX_RETRIES})`);
