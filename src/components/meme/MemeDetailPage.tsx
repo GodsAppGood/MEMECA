@@ -15,8 +15,8 @@ const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { session } = useSession();
-  const userId = session?.user?.id;
+  const { user } = useSession();
+  const userId = user?.id;
   const { userPoints, userLikes } = useUserData(userId);
 
   const { data: meme, isLoading } = useQuery({
