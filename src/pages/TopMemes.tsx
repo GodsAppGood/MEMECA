@@ -15,7 +15,6 @@ const TopMemes = () => {
               alt="Top 200 Memes Banner"
               className="w-full h-full object-cover"
               loading="eager"
-              priority="true"
             />
           </div>
           <div className="container mx-auto px-4">
