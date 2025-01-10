@@ -1,5 +1,6 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Commitment } from '@solana/web3.js';
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 const TUZEMOON_COST = 0.1; // SOL
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
@@ -45,7 +46,7 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
   try {
     console.log('Validating Solana connection...');
     
-    // Test basic connectivity
+    // Test basic connectivity with timeout
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
     });
@@ -68,12 +69,20 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
       slot,
       blockHeight,
       blockhash: blockhash.blockhash.slice(0, 8) + '...',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      rpcEndpoint: RPC_URL,
+      commitment: COMMITMENT_LEVEL
     });
 
     return true;
   } catch (error) {
     console.error('Connection validation failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    toast({
+      title: "Connection Error",
+      description: `Failed to validate Solana connection: ${errorMessage}`,
+      variant: "destructive"
+    });
     return false;
   }
 };
@@ -88,13 +97,22 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
       wsEndpoint: "wss://api.mainnet-beta.solana.com",
       disableRetryOnRateLimit: false,
       httpHeaders: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Agent': 'Memeca/1.0.0'
       }
     });
 
     // Set up WebSocket keep-alive using getSlot instead of getHealth
     const wsKeepAlive = setInterval(() => {
-      connection.getSlot().catch(console.error);
+      connection.getSlot().catch(error => {
+        console.error('WebSocket keep-alive failed:', error);
+        // Notify user of connection issues
+        toast({
+          title: "Connection Warning",
+          description: "Network connection unstable. Please check your internet connection.",
+          variant: "destructive"
+        });
+      });
     }, WS_PING_INTERVAL);
 
     // Validate connection
@@ -117,6 +135,7 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
     
     return connection;
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error(`Connection attempt ${retryCount + 1} failed:`, error);
     
     if (retryCount < MAX_RETRIES - 1) {
@@ -125,6 +144,12 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
       await sleep(delay);
       return createSolanaConnection(retryCount + 1);
     }
+    
+    toast({
+      title: "Connection Failed",
+      description: `Failed to connect to Solana network after ${MAX_RETRIES} attempts: ${errorMessage}`,
+      variant: "destructive"
+    });
     
     return null;
   }
