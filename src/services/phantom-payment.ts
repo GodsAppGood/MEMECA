@@ -6,6 +6,7 @@ const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const RPC_URL = "https://api.mainnet-beta.solana.com";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+const CONNECTION_TIMEOUT = 30000; // 30 seconds
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -38,6 +39,41 @@ const logTransaction = async (transactionDetails: {
   }
 };
 
+const testConnection = async (connection: Connection): Promise<boolean> => {
+  try {
+    console.log('Testing Solana connection...');
+    
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Connection test timed out')), CONNECTION_TIMEOUT);
+    });
+
+    // Test multiple aspects of the connection
+    const testPromise = Promise.all([
+      connection.getVersion(),
+      connection.getSlot(),
+      connection.getRecentBlockhash()
+    ]);
+
+    // Race between the timeout and the test
+    const [version, slot, blockhash] = await Promise.race([
+      testPromise,
+      timeoutPromise
+    ]) as [any, number, { blockhash: string }];
+
+    console.log('Connection test results:', {
+      version,
+      slot,
+      blockhash: blockhash.blockhash.slice(0, 8) + '...' // Log partial blockhash for privacy
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Connection test failed:', error);
+    return false;
+  }
+};
+
 const createSolanaConnection = async (retryCount = 0): Promise<Connection | null> => {
   try {
     console.log(`Attempting to connect to Solana network (attempt ${retryCount + 1}/${MAX_RETRIES})`);
@@ -48,16 +84,21 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
       wsEndpoint: "wss://api.mainnet-beta.solana.com",
     });
 
-    // Test the connection
-    const version = await connection.getVersion();
-    console.log('Successfully connected to Solana network:', version);
+    // Test the connection thoroughly
+    const isConnected = await testConnection(connection);
+    if (!isConnected) {
+      throw new Error('Connection test failed');
+    }
+
+    console.log('Successfully established Solana connection');
     return connection;
   } catch (error) {
     console.error(`Connection attempt ${retryCount + 1} failed:`, error);
     
     if (retryCount < MAX_RETRIES - 1) {
-      console.log(`Retrying in ${RETRY_DELAY}ms...`);
-      await sleep(RETRY_DELAY);
+      const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
+      console.log(`Retrying in ${delay}ms...`);
+      await sleep(delay);
       return createSolanaConnection(retryCount + 1);
     }
     
@@ -72,7 +113,6 @@ export const sendSolPayment = async (
   try {
     console.log('Starting payment process for meme:', { memeId, memeTitle });
 
-    // Get current user's session
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
       console.error('User not authenticated');
@@ -100,7 +140,7 @@ export const sendSolPayment = async (
     // Connect to Solana network with enhanced retry logic
     const connection = await createSolanaConnection();
     if (!connection) {
-      const error = "Failed to establish connection to Solana network after multiple attempts";
+      const error = "Failed to establish connection to Solana network after multiple attempts. Please check your internet connection and try again.";
       console.error(error);
       await logTransaction({
         user_id: session.user.id,
@@ -111,7 +151,7 @@ export const sendSolPayment = async (
       });
       return {
         success: false,
-        error: "Failed to connect to Solana network. Please try again."
+        error: "Network connection failed. Please check your internet connection and try again."
       };
     }
 
@@ -227,9 +267,21 @@ export const sendSolPayment = async (
       });
     }
 
+    // Provide more specific error messages based on error type
+    let errorMessage = "Payment process failed. ";
+    if (error.message.includes('timeout')) {
+      errorMessage += "The network is responding slowly. Please try again.";
+    } else if (error.message.includes('rejected')) {
+      errorMessage += "The transaction was rejected. Please try again.";
+    } else if (error.message.includes('insufficient')) {
+      errorMessage += "Insufficient funds in your wallet.";
+    } else {
+      errorMessage += "Please check your connection and try again.";
+    }
+
     return { 
       success: false, 
-      error: error.message || "Payment process failed" 
+      error: errorMessage
     };
   }
 };
