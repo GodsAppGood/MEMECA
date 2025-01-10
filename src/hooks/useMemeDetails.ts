@@ -9,7 +9,7 @@ export const useMemeDetails = (id: string | undefined) => {
       const { data, error } = await supabase
         .from("Memes")
         .select("*")
-        .eq("id", id)
+        .eq("id", parseInt(id as string))
         .maybeSingle();
 
       if (error) throw error;
@@ -17,7 +17,7 @@ export const useMemeDetails = (id: string | undefined) => {
       
       return {
         ...data,
-        id: Number(data.id) // Convert the id to a number
+        id: Number(data.id)
       } as Meme;
     },
     enabled: !!id,

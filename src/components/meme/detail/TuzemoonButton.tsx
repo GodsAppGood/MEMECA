@@ -52,7 +52,7 @@ export const TuzemoonButton = ({
         const { data: meme, error: memeError } = await supabase
           .from("Memes")
           .select("title")
-          .eq("id", memeId)
+          .eq("id", parseInt(memeId))
           .single();
 
         if (memeError) throw memeError;

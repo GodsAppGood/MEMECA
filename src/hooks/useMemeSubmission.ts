@@ -31,7 +31,7 @@ export const useMemeSubmission = () => {
         const { error: updateError } = await supabase
           .from('Memes')
           .update(memeData)
-          .eq('id', editingId);
+          .eq('id', parseInt(editingId));
 
         if (updateError) throw updateError;
       } else {

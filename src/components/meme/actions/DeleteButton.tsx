@@ -83,7 +83,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       const { error } = await supabase
         .from('Memes')
         .delete()
-        .eq('id', meme.id);
+        .eq('id', parseInt(meme.id));
 
       if (error) throw error;
 

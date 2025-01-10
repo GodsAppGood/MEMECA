@@ -13,7 +13,7 @@ export const updateTuzemoonStatus = async (memeId: string, isFeatured: boolean) 
         is_featured: !isFeatured,
         tuzemoon_until: tuzemoonUntil
       })
-      .eq("id", memeId);
+      .eq("id", parseInt(memeId));
 
     if (error) throw error;
     

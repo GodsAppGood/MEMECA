@@ -1,7 +1,7 @@
-import { serve } from 'https://jsr.io/@std/http@1.0.0-beta.3/server.ts'
+import { serve } from 'https://deno.land/std@0.208.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import { decode as decodeBase58 } from "https://jsr.io/@std/encoding@0.218.2/base58.ts"
-import * as ed25519 from "https://jsr.io/@noble/ed25519@2.0.0/mod.ts"
+import { decode as decodeBase58 } from "https://deno.land/std@0.208.0/encoding/base58.ts"
+import * as ed25519 from "https://deno.land/x/noble_ed25519@1.2.6/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
