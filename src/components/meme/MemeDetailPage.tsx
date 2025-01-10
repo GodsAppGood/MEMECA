@@ -2,17 +2,22 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Heart, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { MemeCardActions } from "./MemeCardActions";
+import { useUserData } from "@/hooks/useUserData";
+import { useSession } from "@/hooks/auth/useSession";
 
 const MemeDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { session } = useSession();
+  const userId = session?.user?.id;
+  const { userPoints, userLikes } = useUserData(userId);
 
   const { data: meme, isLoading } = useQuery({
     queryKey: ["memes", id],
@@ -33,33 +38,6 @@ const MemeDetailPage = () => {
         ...data,
         id: numericId
       };
-    },
-  });
-
-  const likeMutation = useMutation({
-    mutationFn: async () => {
-      const storedMemes = JSON.parse(localStorage.getItem("memes") || "[]");
-      const updatedMemes = storedMemes.map((m: any) => {
-        if (m.id === id) {
-          return { ...m, likes: (m.likes || 0) + 1 };
-        }
-        return m;
-      });
-      localStorage.setItem("memes", JSON.stringify(updatedMemes));
-
-      // Add to watchlist
-      const watchlist = JSON.parse(localStorage.getItem("watchlist") || "[]");
-      if (!watchlist.includes(id)) {
-        watchlist.push(id);
-        localStorage.setItem("watchlist", JSON.stringify(watchlist));
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["memes"] });
-      toast({
-        title: "Success",
-        description: "Meme added to your watchlist",
-      });
     },
   });
 
