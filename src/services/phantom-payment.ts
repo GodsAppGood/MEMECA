@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const TUZEMOON_COST = 0.1; // SOL
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
+const RPC_URL = "https://api.mainnet-beta.solana.com";
 
 const logTransaction = async (transactionDetails: {
   user_id: string;
@@ -65,11 +66,24 @@ export const sendSolPayment = async (
       };
     }
 
-    // Connect to Solana mainnet
-    const connection = new Connection("https://api.mainnet-beta.solana.com", "confirmed");
-    const fromWallet = window.solana;
+    // Connect to Solana mainnet with retry logic
+    let connection;
+    try {
+      connection = new Connection(RPC_URL, {
+        commitment: 'confirmed',
+        confirmTransactionInitialTimeout: 60000,
+        wsEndpoint: "wss://api.mainnet-beta.solana.com",
+      });
+      await connection.getVersion();
+    } catch (error) {
+      console.error('Failed to connect to Solana network:', error);
+      return {
+        success: false,
+        error: "Failed to connect to Solana network. Please try again."
+      };
+    }
 
-    // Get the public key of the connected wallet
+    const fromWallet = window.solana;
     const fromPubkey = new PublicKey(await (await fromWallet.connect()).publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
     const walletAddress = fromPubkey.toString();
@@ -89,8 +103,10 @@ export const sendSolPayment = async (
       wallet_address: walletAddress
     });
 
-    // Get recent blockhash
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+    // Get recent blockhash with retry
+    let { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash({
+      commitment: 'finalized'
+    });
 
     // Create transaction
     const transaction = new Transaction().add(
@@ -111,7 +127,10 @@ export const sendSolPayment = async (
       console.log('Transaction signed by user');
 
       // Send the transaction
-      const signature = await connection.sendRawTransaction(signed.serialize());
+      const signature = await connection.sendRawTransaction(signed.serialize(), {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed'
+      });
       console.log('Transaction sent:', signature);
       
       // Wait for transaction confirmation
@@ -136,12 +155,6 @@ export const sendSolPayment = async (
         wallet_address: walletAddress,
         transaction_signature: signature
       });
-
-      // Update user's wallet address in Users table
-      await supabase
-        .from('Users')
-        .update({ wallet_address: walletAddress })
-        .eq('auth_id', session.user.id);
 
       return { success: true, signature };
     } catch (error: any) {

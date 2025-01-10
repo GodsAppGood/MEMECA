@@ -6,10 +6,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Wallet, Loader2 } from "lucide-react";
+import { Wallet, Loader2, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { sendSolPayment } from "@/services/phantom-payment";
 import { toast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -76,6 +77,11 @@ export const TuzemoonModal = ({
     }
   };
 
+  const handleRetry = () => {
+    setError(null);
+    handlePayment();
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
@@ -91,13 +97,16 @@ export const TuzemoonModal = ({
               <p>This feature supports the platform's sustainability.</p>
             </div>
             {error && (
-              <p className="text-red-500 font-medium">{error}</p>
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4 pt-4">
           <Button
-            onClick={handlePayment}
+            onClick={error ? handleRetry : handlePayment}
             className="w-full"
             size="lg"
             disabled={isLoading}
@@ -106,6 +115,11 @@ export const TuzemoonModal = ({
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 Processing...
+              </>
+            ) : error ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5" />
+                Retry Payment
               </>
             ) : (
               <>
