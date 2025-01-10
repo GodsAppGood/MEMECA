@@ -9,11 +9,11 @@ const TopMemes = () => {
       <Header />
       <main className="pt-16">
         <div className="w-full">
-          <div className="relative w-full h-[200px] md:h-[300px] mb-8">
+          <div className="relative w-full flex justify-center items-center mb-8">
             <img 
               src="/lovable-uploads/083b4dc6-2daa-4c81-90c8-9981b1e4ade2.png"
               alt="Top 200 Memes Banner"
-              className="w-full h-full object-cover"
+              className="w-full h-auto object-contain max-h-[300px]"
               loading="eager"
             />
           </div>
