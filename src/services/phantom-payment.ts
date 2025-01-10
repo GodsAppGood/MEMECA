@@ -2,17 +2,30 @@ import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Co
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-const TUZEMOON_COST = 0.1; // SOL
+// Constants
+const TUZEMOON_COST = 0.1;
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const RPC_URL = "https://api.mainnet-beta.solana.com";
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
-const CONNECTION_TIMEOUT = 30000; // 30 seconds
-const WS_PING_INTERVAL = 10000; // 10 seconds
+const RETRY_DELAY = 1000;
+const CONNECTION_TIMEOUT = 30000;
+const WS_PING_INTERVAL = 10000;
 const COMMITMENT_LEVEL: Commitment = 'confirmed';
+
+// HTTP Headers
+const headers = {
+  'Content-Type': 'application/json',
+  'User-Agent': 'Memeca/1.0.0',
+};
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Transaction logging
 const logTransaction = async (transactionDetails: {
   user_id: string;
   meme_id: string;
@@ -24,7 +37,10 @@ const logTransaction = async (transactionDetails: {
 }) => {
   try {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('No active session');
+    if (!session) {
+      console.error('No active session for transaction logging');
+      return false;
+    }
 
     const response = await supabase.functions.invoke('log-transaction', {
       body: transactionDetails
@@ -42,16 +58,15 @@ const logTransaction = async (transactionDetails: {
   }
 };
 
+// Connection validation with enhanced error handling
 const validateConnection = async (connection: Connection): Promise<boolean> => {
   try {
     console.log('Validating Solana connection...');
     
-    // Test basic connectivity with timeout
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
     });
 
-    // Comprehensive connection tests using available methods
     const testPromise = Promise.all([
       connection.getVersion(),
       connection.getSlot(),
@@ -76,17 +91,38 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
 
     return true;
   } catch (error) {
-    console.error('Connection validation failed:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    toast({
-      title: "Connection Error",
-      description: `Failed to validate Solana connection: ${errorMessage}`,
-      variant: "destructive"
+    console.error('Connection validation failed:', {
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      endpoint: RPC_URL
     });
+
+    // Check for specific error types
+    if (errorMessage.includes('403')) {
+      toast({
+        title: "Access Error",
+        description: "Unable to access Solana network. Please try again later.",
+        variant: "destructive"
+      });
+    } else if (errorMessage.includes('timeout')) {
+      toast({
+        title: "Connection Timeout",
+        description: "Network response took too long. Please check your connection.",
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Connection Error",
+        description: `Failed to validate Solana connection: ${errorMessage}`,
+        variant: "destructive"
+      });
+    }
     return false;
   }
 };
 
+// Enhanced Solana connection creation with retry logic
 const createSolanaConnection = async (retryCount = 0): Promise<Connection | null> => {
   try {
     console.log(`Attempting to connect to Solana network (attempt ${retryCount + 1}/${MAX_RETRIES})`);
@@ -96,24 +132,26 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
       confirmTransactionInitialTimeout: CONNECTION_TIMEOUT,
       wsEndpoint: "wss://api.mainnet-beta.solana.com",
       disableRetryOnRateLimit: false,
-      httpHeaders: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Memeca/1.0.0'
-      }
+      httpHeaders: headers
     });
 
-    // Set up WebSocket keep-alive using getSlot instead of getHealth
-    const wsKeepAlive = setInterval(() => {
-      connection.getSlot().catch(error => {
-        console.error('WebSocket keep-alive failed:', error);
-        // Notify user of connection issues
-        toast({
-          title: "Connection Warning",
-          description: "Network connection unstable. Please check your internet connection.",
-          variant: "destructive"
-        });
-      });
-    }, WS_PING_INTERVAL);
+    let wsKeepAlive: NodeJS.Timeout;
+    
+    // WebSocket keep-alive with enhanced error handling
+    const setupWebSocket = () => {
+      wsKeepAlive = setInterval(async () => {
+        try {
+          await connection.getSlot();
+        } catch (error) {
+          console.error('WebSocket keep-alive failed:', error);
+          toast({
+            title: "Connection Warning",
+            description: "Network connection unstable. Please check your internet connection.",
+            variant: "destructive"
+          });
+        }
+      }, WS_PING_INTERVAL);
+    };
 
     // Validate connection
     const isValid = await validateConnection(connection);
@@ -122,6 +160,7 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
       throw new Error('Connection validation failed');
     }
 
+    setupWebSocket();
     console.log('Successfully established Solana connection');
     
     // Clean up WebSocket keep-alive on connection close
@@ -136,7 +175,11 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
     return connection;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`Connection attempt ${retryCount + 1} failed:`, error);
+    console.error(`Connection attempt ${retryCount + 1} failed:`, {
+      error: errorMessage,
+      timestamp: new Date().toISOString(),
+      retryCount
+    });
     
     if (retryCount < MAX_RETRIES - 1) {
       const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
@@ -147,7 +190,7 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
     
     toast({
       title: "Connection Failed",
-      description: `Failed to connect to Solana network after ${MAX_RETRIES} attempts: ${errorMessage}`,
+      description: `Unable to establish connection after ${MAX_RETRIES} attempts. Please try again later.`,
       variant: "destructive"
     });
     
