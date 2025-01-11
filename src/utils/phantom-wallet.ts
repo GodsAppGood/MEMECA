@@ -50,11 +50,11 @@ export const signMessage = async (message: string) => {
     );
     
     console.log('Message signed successfully:', {
-      signatureLength: signedMessage.length,
-      signature: Array.from(signedMessage).toString()
+      signatureLength: signedMessage.signature.length,
+      signature: Array.from(signedMessage.signature).toString()
     });
     
-    return signedMessage;
+    return signedMessage.signature;
   } catch (error: any) {
     if (error.code === 4001) {
       console.log('User rejected message signing');
