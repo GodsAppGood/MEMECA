@@ -1,4 +1,4 @@
-import { 
+import {
   Connection,
   PublicKey,
   Transaction,
@@ -13,26 +13,6 @@ import { toast } from "@/hooks/use-toast";
 const TUZEMOON_COST = 0.1;
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const RPC_URL = "https://lingering-radial-wildflower.solana-mainnet.quiknode.pro/2401cf6c3ba08ec561ca8b671467fedb78b2ef71";
-const WS_URL = "wss://lingering-radial-wildflower.solana-mainnet.quiknode.pro/2401cf6c3ba08ec561ca8b671467fedb78b2ef71";
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
-const CONNECTION_TIMEOUT = 30000;
-const WS_PING_INTERVAL = 10000;
-const COMMITMENT_LEVEL: Commitment = "confirmed";
-
-// Enhanced diagnostics
-const diagnostics = {
-  connectionAttempts: 0,
-  lastError: null as Error | null,
-  connectionStatus: 'disconnected' as 'disconnected' | 'connecting' | 'connected' | 'error',
-  lastSuccessfulConnection: null as Date | null,
-};
-
-// HTTP Headers with detailed User-Agent
-const headers = {
-  'Content-Type': 'application/json',
-  'User-Agent': 'Memeca/1.0.0 (Solana Payment Integration)',
-};
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -41,214 +21,43 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-const testRPCConnection = async (connection: Connection): Promise<boolean> => {
-  try {
-    console.log('Testing RPC connection using getSlot...');
-    const slot = await connection.getSlot();
-    console.log('Successfully retrieved slot:', slot);
-    return true;
-  } catch (error) {
-    console.error('Failed to get slot:', error);
-    return false;
-  }
-};
-
-const validateConnection = async (connection: Connection): Promise<boolean> => {
-  try {
-    console.log('Validating Solana connection...', {
-      timestamp: new Date().toISOString(),
-      rpcEndpoint: RPC_URL,
-      wsEndpoint: WS_URL,
-      attempts: diagnostics.connectionAttempts + 1,
-      previousStatus: diagnostics.connectionStatus,
-    });
-    
-    diagnostics.connectionStatus = 'connecting';
-    diagnostics.connectionAttempts++;
-    
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
-    });
-
-    // Test basic connection and get slot
-    const isRPCWorking = await testRPCConnection(connection);
-    if (!isRPCWorking) {
-      throw new Error('RPC connection test failed');
-    }
-
-    const testPromise = Promise.all([
-      connection.getVersion(),
-      connection.getRecentBlockhash(),
-      connection.getBlockHeight()
-    ]);
-
-    const [version, blockhash, blockHeight] = await Promise.race([
-      testPromise,
-      timeoutPromise
-    ]) as [any, { blockhash: string }, number];
-
-    const connectionDetails = {
-      version,
-      blockHeight,
-      blockhash: blockhash.blockhash.slice(0, 8) + '...',
-      timestamp: new Date().toISOString(),
-      rpcEndpoint: RPC_URL,
-      wsEndpoint: WS_URL,
-      commitment: COMMITMENT_LEVEL,
-      attempts: diagnostics.connectionAttempts,
-    };
-
-    console.log('Connection validation successful:', connectionDetails);
-    
-    diagnostics.connectionStatus = 'connected';
-    diagnostics.lastSuccessfulConnection = new Date();
-    diagnostics.lastError = null;
-
-    return true;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Connection validation failed:', {
-      error: errorMessage,
-      timestamp: new Date().toISOString(),
-      endpoint: RPC_URL,
-      attempts: diagnostics.connectionAttempts,
-    });
-
-    diagnostics.connectionStatus = 'error';
-    diagnostics.lastError = error instanceof Error ? error : new Error(errorMessage);
-
-    if (errorMessage.includes('403')) {
-      toast({
-        title: "Access Error",
-        description: "Unable to access Solana network. Please check QuickNode configuration.",
-        variant: "destructive"
-      });
-    } else if (errorMessage.includes('timeout')) {
-      toast({
-        title: "Connection Timeout",
-        description: "Network response took too long. Please check your connection and try again.",
-        variant: "destructive"
-      });
-    } else {
-      toast({
-        title: "Connection Error",
-        description: `Failed to validate Solana connection: ${errorMessage}`,
-        variant: "destructive"
-      });
-    }
-
-    return false;
-  }
-};
-
-const createSolanaConnection = async (retryCount = 0): Promise<Connection | null> => {
-  try {
-    console.log(`Attempting to connect to Solana network (attempt ${retryCount + 1}/${MAX_RETRIES})`);
-    
-    const connection = new Connection(RPC_URL, {
-      commitment: COMMITMENT_LEVEL,
-      confirmTransactionInitialTimeout: CONNECTION_TIMEOUT,
-      wsEndpoint: WS_URL,
-      disableRetryOnRateLimit: false,
-      httpHeaders: headers
-    });
-
-    let wsKeepAlive: NodeJS.Timeout;
-    
-    // WebSocket keep-alive with enhanced error handling
-    const setupWebSocket = () => {
-      wsKeepAlive = setInterval(async () => {
-        try {
-          await connection.getSlot();
-        } catch (error) {
-          console.error('WebSocket keep-alive failed:', error);
-          toast({
-            title: "Connection Warning",
-            description: "Network connection unstable. Please check your internet connection.",
-            variant: "destructive"
-          });
-        }
-      }, WS_PING_INTERVAL);
-    };
-
-    // Validate connection
-    const isValid = await validateConnection(connection);
-    if (!isValid) {
-      clearInterval(wsKeepAlive);
-      throw new Error('Connection validation failed');
-    }
-
-    setupWebSocket();
-    console.log('Successfully established Solana connection');
-    
-    // Clean up WebSocket keep-alive on connection close
-    const cleanup = () => {
-      clearInterval(wsKeepAlive);
-      console.log('Cleaned up WebSocket keep-alive');
-    };
-
-    // Attach cleanup to connection object
-    (connection as any).cleanup = cleanup;
-    
-    return connection;
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`Connection attempt ${retryCount + 1} failed:`, {
-      error: errorMessage,
-      timestamp: new Date().toISOString(),
-      retryCount
-    });
-    
-    if (retryCount < MAX_RETRIES - 1) {
-      const delay = RETRY_DELAY * Math.pow(2, retryCount); // Exponential backoff
-      console.log(`Retrying in ${delay}ms...`);
-      await sleep(delay);
-      return createSolanaConnection(retryCount + 1);
-    }
-    
-    toast({
-      title: "Connection Failed",
-      description: `Unable to establish connection after ${MAX_RETRIES} attempts. Please try again later.`,
-      variant: "destructive"
-    });
-    
-    return null;
-  }
-};
-
 const checkPhantomWallet = async () => {
   console.log('Checking Phantom wallet availability...');
   
-  // First check if window.solana exists
-  if (typeof window === 'undefined' || !window.solana) {
-    console.error('window.solana is undefined - Phantom wallet not found');
+  if (typeof window === 'undefined') {
+    console.error('Window object is undefined');
     return false;
   }
-  
-  // Then check if it's actually Phantom
+
+  if (!window.solana) {
+    console.error('window.solana is undefined');
+    return false;
+  }
+
   if (!window.solana.isPhantom) {
-    console.error('window.solana.isPhantom is false - Not a Phantom wallet');
+    console.error('Not a Phantom wallet');
     return false;
   }
 
   try {
-    // Try to reconnect if already authorized
+    console.log('Attempting to connect to Phantom wallet...');
     if (!window.solana.isConnected) {
       await window.solana.connect({ onlyIfTrusted: true })
-        .catch(() => console.log('Not previously connected, will prompt user'));
+        .catch(() => console.log('Not previously connected'));
     }
     
-    console.log('Phantom wallet status:', {
+    const walletStatus = {
       isPhantom: window.solana.isPhantom,
       isConnected: window.solana.isConnected,
       hasPublicKey: !!window.solana.publicKey,
       publicKeyStr: window.solana.publicKey?.toString()
-    });
+    };
     
+    console.log('Phantom wallet status:', walletStatus);
     return true;
   } catch (error) {
     console.error('Error checking Phantom wallet:', error);
-    return false; // Changed to return false on error
+    return false;
   }
 };
 
@@ -266,23 +75,27 @@ const authenticateWallet = async (walletAddress: string) => {
 
     if (nonceError || !nonceData?.nonce) {
       console.error('Failed to generate nonce:', nonceError);
-      return false;
+      return { success: false, error: 'Failed to generate nonce' };
     }
+
+    console.log('Nonce generated successfully');
 
     // Sign message
     const message = new TextEncoder().encode(nonceData.nonce);
-    const signature = await window.solana.signMessage(message, 'utf8');
-
-    if (!signature) {
-      console.error('Failed to sign message');
-      return false;
+    let signature;
+    try {
+      signature = await window.solana.signMessage(message, 'utf8');
+      console.log('Message signed successfully');
+    } catch (error) {
+      console.error('Failed to sign message:', error);
+      return { success: false, error: 'Failed to sign message' };
     }
 
     // Verify signature
     const { data: verifyData, error: verifyError } = await supabase.functions.invoke('wallet-auth', {
       body: {
         walletAddress,
-        signature: signature.toString(),
+        signature: Array.from(signature).toString(),
         nonce: nonceData.nonce,
         action: 'verify-signature'
       }
@@ -290,14 +103,14 @@ const authenticateWallet = async (walletAddress: string) => {
 
     if (verifyError || !verifyData?.session) {
       console.error('Failed to verify signature:', verifyError);
-      return false;
+      return { success: false, error: 'Failed to verify signature' };
     }
 
     console.log('Wallet authentication successful');
-    return true;
+    return { success: true };
   } catch (error) {
     console.error('Error in wallet authentication:', error);
-    return false;
+    return { success: false, error: 'Authentication failed' };
   }
 };
 
@@ -305,17 +118,14 @@ export const sendSolPayment = async (
   memeId: string,
   memeTitle: string
 ): Promise<{ success: boolean; signature?: string; error?: string }> => {
-  let connection: Connection | null = null;
-  
-  try {
-    console.log('Starting payment process for meme:', { memeId, memeTitle });
+  console.log('Starting payment process for meme:', { memeId, memeTitle });
 
-    // Check for Phantom wallet first
+  try {
+    // Check for Phantom wallet
     if (!await checkPhantomWallet()) {
-      console.error('Phantom wallet check failed');
       return { 
         success: false, 
-        error: "Phantom wallet not found. Please install Phantom wallet to continue." 
+        error: "Phantom wallet not found or not connected" 
       };
     }
 
@@ -328,75 +138,43 @@ export const sendSolPayment = async (
       };
     }
 
-    const fromWallet = window.solana;
-    
-    // Ensure wallet is connected
+    // Connect wallet
+    let walletResponse;
     try {
-      console.log('Connecting to Phantom wallet...');
-      const resp = await fromWallet.connect();
-      
-      // Authenticate wallet
-      const isAuthenticated = await authenticateWallet(resp.publicKey.toString());
-      if (!isAuthenticated) {
-        return { 
-          success: false, 
-          error: "Wallet authentication failed" 
-        };
-      }
-      
-      console.log('Wallet connected successfully:', resp.publicKey.toString());
-    } catch (error: any) {
-      console.error('Error connecting wallet:', error);
-      if (error.code === 4001) {
-        return { success: false, error: "Wallet connection rejected by user" };
-      }
-      throw error;
+      console.log('Connecting to wallet...');
+      walletResponse = await window.solana.connect();
+      console.log('Wallet connected:', walletResponse.publicKey.toString());
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      return { 
+        success: false, 
+        error: error.message || "Failed to connect wallet" 
+      };
     }
 
-    // Verify wallet is still connected and has publicKey
-    if (!fromWallet.publicKey) {
-      console.error('No public key available after connection');
-      throw new Error('Wallet connection lost or publicKey not available');
+    // Authenticate wallet
+    const authResult = await authenticateWallet(walletResponse.publicKey.toString());
+    if (!authResult.success) {
+      return { 
+        success: false, 
+        error: authResult.error || "Wallet authentication failed" 
+      };
     }
 
-    // Create connection to Solana network
-    connection = await createSolanaConnection();
-    if (!connection) {
-      throw new Error('Failed to establish connection to Solana network');
-    }
+    // Create connection
+    console.log('Creating Solana connection...');
+    const connection = new Connection(RPC_URL, {
+      commitment: 'confirmed',
+      confirmTransactionInitialTimeout: 60000
+    });
 
-    const fromPubkey = new PublicKey(fromWallet.publicKey.toString());
+    // Prepare transaction
+    console.log('Preparing transaction...');
+    const fromPubkey = new PublicKey(walletResponse.publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
-    const walletAddress = fromPubkey.toString();
-
-    console.log('Transaction details:', {
-      from: fromPubkey.toString(),
-      to: toPubkey.toString(),
-      amount: TUZEMOON_COST
-    });
-
-    // Log initial transaction attempt
-    await supabase.functions.invoke('log-transaction', {
-      body: {
-        user_id: session.user.id,
-        meme_id: memeId,
-        amount: TUZEMOON_COST,
-        transaction_status: 'pending',
-        wallet_address: walletAddress
-      }
-    });
-
-    // Get recent blockhash with retry
-    console.log('Getting latest blockhash...');
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash({
-      commitment: 'finalized'
-    });
-
-    console.log('Got blockhash:', { blockhash, lastValidBlockHeight });
-
-    // Create transaction with explicit lamports calculation
     const lamports = TUZEMOON_COST * LAMPORTS_PER_SOL;
-    console.log('Creating transaction with lamports:', lamports);
+
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
     
     const transaction = new Transaction().add(
       SystemProgram.transfer({
@@ -406,31 +184,18 @@ export const sendSolPayment = async (
       })
     );
 
-    // Set transaction properties
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = fromPubkey;
 
+    // Sign and send transaction
     try {
-      // Request signature from user with explicit error handling
-      console.log('Requesting transaction signature from user...');
-      const signed = await fromWallet.signTransaction(transaction);
-      console.log('Transaction signed by user');
-
-      if (!signed) {
-        throw new Error("Failed to sign transaction");
-      }
-
-      // Send the transaction with explicit options
-      console.log('Sending transaction...');
-      const signature = await connection.sendRawTransaction(signed.serialize(), {
-        skipPreflight: false,
-        preflightCommitment: 'confirmed',
-        maxRetries: 3
-      });
-      console.log('Transaction sent:', signature);
+      console.log('Requesting transaction signature...');
+      const signed = await window.solana.signTransaction(transaction);
       
-      // Wait for transaction confirmation with detailed logging
-      console.log('Waiting for transaction confirmation...');
+      console.log('Sending transaction...');
+      const signature = await connection.sendRawTransaction(signed.serialize());
+      
+      console.log('Confirming transaction...');
       const confirmation = await connection.confirmTransaction({
         signature,
         blockhash,
@@ -441,7 +206,7 @@ export const sendSolPayment = async (
         throw new Error("Transaction failed to confirm");
       }
 
-      console.log('Transaction confirmed:', confirmation);
+      console.log('Transaction confirmed:', signature);
 
       // Log successful transaction
       await supabase.functions.invoke('log-transaction', {
@@ -450,24 +215,14 @@ export const sendSolPayment = async (
           meme_id: memeId,
           amount: TUZEMOON_COST,
           transaction_status: 'completed',
-          wallet_address: walletAddress,
+          wallet_address: fromPubkey.toString(),
           transaction_signature: signature
         }
       });
 
       return { success: true, signature };
-    } catch (error: any) {
-      console.error("Transaction error:", error);
-      
-      // Enhanced error handling for Phantom-specific errors
-      let errorMessage = "Transaction failed";
-      if (error.code === 4001) {
-        errorMessage = "Transaction rejected by user";
-      } else if (error.code === 4900) {
-        errorMessage = "Wallet disconnected";
-      } else if (error.code === -32603) {
-        errorMessage = "Transaction simulation failed";
-      }
+    } catch (error) {
+      console.error('Transaction error:', error);
       
       // Log failed transaction
       await supabase.functions.invoke('log-transaction', {
@@ -476,60 +231,21 @@ export const sendSolPayment = async (
           meme_id: memeId,
           amount: TUZEMOON_COST,
           transaction_status: 'failed',
-          error_message: errorMessage,
-          wallet_address: walletAddress
+          error_message: error.message,
+          wallet_address: fromPubkey.toString()
         }
       });
 
       return { 
         success: false, 
-        error: errorMessage
+        error: error.message || "Transaction failed" 
       };
     }
-
-  } catch (error: any) {
-    console.error("Payment error:", error);
-    
-    // Clean up WebSocket keep-alive if connection exists
-    if (connection && (connection as any).cleanup) {
-      (connection as any).cleanup();
-    }
-    
-    // Log error if we have a session
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.id) {
-      const errorMessage = error.message || "Unknown error";
-      await supabase.functions.invoke('log-transaction', {
-        body: {
-          user_id: session.user.id,
-          meme_id: memeId,
-          amount: TUZEMOON_COST,
-          transaction_status: 'error',
-          error_message: errorMessage
-        }
-      });
-    }
-
-    // Provide more specific error messages based on error type
-    let errorMessage = "Payment process failed. ";
-    if (error.message.includes('timeout')) {
-      errorMessage += "The network is responding slowly. Please try again.";
-    } else if (error.message.includes('rejected')) {
-      errorMessage += "The transaction was rejected. Please try again.";
-    } else if (error.message.includes('insufficient')) {
-      errorMessage += "Insufficient funds in your wallet.";
-    } else {
-      errorMessage += "Please check your connection and try again.";
-    }
-
+  } catch (error) {
+    console.error('Payment process error:', error);
     return { 
       success: false, 
-      error: errorMessage
+      error: error.message || "Payment process failed" 
     };
-  } finally {
-    // Ensure WebSocket keep-alive is cleaned up
-    if (connection && (connection as any).cleanup) {
-      (connection as any).cleanup();
-    }
   }
 };

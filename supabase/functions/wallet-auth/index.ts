@@ -12,6 +12,7 @@ interface RequestBody {
   walletAddress?: string
   signature?: string
   nonce?: string
+  action?: 'generate-nonce' | 'verify-signature'
 }
 
 serve(async (req) => {
@@ -21,7 +22,6 @@ serve(async (req) => {
     timestamp: new Date().toISOString()
   });
 
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -32,180 +32,130 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { pathname } = new URL(req.url)
     const body: RequestBody = await req.json()
-
-    console.log('Request details:', {
-      pathname,
-      bodyKeys: Object.keys(body),
-      timestamp: new Date().toISOString()
+    console.log('Request body:', {
+      action: body.action,
+      hasWalletAddress: !!body.walletAddress,
+      hasSignature: !!body.signature,
+      hasNonce: !!body.nonce
     });
 
-    // Generate nonce endpoint
-    if (pathname === '/generate-nonce' && req.method === 'POST') {
-      const { walletAddress } = body
-      if (!walletAddress) {
-        console.error('Missing wallet address in generate-nonce request');
-        return new Response(
-          JSON.stringify({ error: 'Wallet address is required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      // Generate a random nonce
-      const nonce = crypto.randomUUID()
-      console.log('Generated nonce for wallet:', {
-        walletAddress,
-        nonce,
-        timestamp: new Date().toISOString()
-      });
+    // Generate nonce
+    if (body.action === 'generate-nonce' && body.walletAddress) {
+      console.log('Generating nonce for wallet:', body.walletAddress);
       
-      // Store the nonce in the database
+      const nonce = crypto.randomUUID()
+      
       const { error: insertError } = await supabaseClient
         .from('WalletNonces')
-        .insert([{ nonce, wallet_address: walletAddress }])
+        .insert([{ 
+          nonce, 
+          wallet_address: body.walletAddress,
+          expires_at: new Date(Date.now() + 5 * 60 * 1000).toISOString()
+        }])
 
       if (insertError) {
-        console.error('Error storing nonce:', insertError)
+        console.error('Error storing nonce:', insertError);
         return new Response(
           JSON.stringify({ error: 'Failed to generate nonce' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
       }
 
+      console.log('Nonce generated successfully');
       return new Response(
         JSON.stringify({ nonce }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Verify signature endpoint
-    if (pathname === '/verify-signature' && req.method === 'POST') {
-      const { signature, nonce, walletAddress } = body
-      console.log('Verifying signature:', {
-        hasSignature: !!signature,
-        hasNonce: !!nonce,
-        walletAddress,
-        timestamp: new Date().toISOString()
-      });
-
-      if (!signature || !nonce || !walletAddress) {
-        console.error('Missing required fields in verify-signature request');
-        return new Response(
-          JSON.stringify({ error: 'Signature, nonce, and wallet address are required' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
+    // Verify signature
+    if (body.action === 'verify-signature' && body.signature && body.nonce && body.walletAddress) {
+      console.log('Verifying signature for wallet:', body.walletAddress);
 
       // Verify nonce exists and hasn't expired
       const { data: nonceData, error: nonceError } = await supabaseClient
         .from('WalletNonces')
         .select('*')
-        .eq('nonce', nonce)
-        .eq('wallet_address', walletAddress)
+        .eq('nonce', body.nonce)
+        .eq('wallet_address', body.walletAddress)
         .eq('is_used', false)
         .single()
 
       if (nonceError || !nonceData) {
-        console.error('Error retrieving nonce:', nonceError)
+        console.error('Invalid or expired nonce:', nonceError);
         return new Response(
           JSON.stringify({ error: 'Invalid or expired nonce' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
       }
 
       try {
-        // Convert the signature and public key from base58
-        const signatureBytes = decodeBase58(signature)
-        const publicKeyBytes = decodeBase58(walletAddress)
-        const messageBytes = new TextEncoder().encode(nonce)
+        // Convert signature and verify
+        const signatureArray = body.signature.split(',').map(Number);
+        const signatureBytes = new Uint8Array(signatureArray);
+        const publicKeyBytes = decodeBase58(body.walletAddress);
+        const messageBytes = new TextEncoder().encode(body.nonce);
 
-        // Verify the signature using ed25519
-        const isValid = await ed25519.verify(signatureBytes, messageBytes, publicKeyBytes)
+        const isValid = await ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
 
         if (!isValid) {
           console.error('Invalid signature detected');
           return new Response(
             JSON.stringify({ error: 'Invalid signature' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
           )
         }
 
-        console.log('Signature verified successfully for wallet:', walletAddress);
+        console.log('Signature verified successfully');
 
         // Mark nonce as used
         await supabaseClient
           .from('WalletNonces')
           .update({ is_used: true })
-          .eq('nonce', nonce)
+          .eq('nonce', body.nonce)
 
-        // Create or update user
-        const { data: userData, error: userError } = await supabaseClient
+        // Update user verification status
+        const { error: userError } = await supabaseClient
           .from('Users')
-          .upsert(
-            {
-              wallet_address: walletAddress,
-              is_verified: true,
-            },
-            { onConflict: 'wallet_address' }
-          )
-          .select()
-          .single()
+          .upsert({
+            wallet_address: body.walletAddress,
+            is_verified: true
+          }, {
+            onConflict: 'wallet_address'
+          })
 
         if (userError) {
-          console.error('Error upserting user:', userError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to create/update user' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
+          console.error('Error updating user verification:', userError);
         }
 
-        // Sign in user
-        const { data: authData, error: signInError } = await supabaseClient.auth.signUp({
-          email: `${walletAddress}@phantom.wallet`,
-          password: crypto.randomUUID(),
-          options: {
-            data: {
-              wallet_address: walletAddress,
-            }
-          }
-        })
-
-        if (signInError) {
-          console.error('Error signing in user:', signInError)
-          return new Response(
-            JSON.stringify({ error: 'Failed to authenticate' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-
-        console.log('User authenticated successfully:', {
-          walletAddress,
-          timestamp: new Date().toISOString()
-        });
-
+        console.log('Wallet verification completed successfully');
         return new Response(
-          JSON.stringify({ session: authData.session }),
+          JSON.stringify({ 
+            success: true,
+            message: 'Wallet verified successfully'
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } catch (error) {
-        console.error('Error verifying signature:', error)
+        console.error('Error verifying signature:', error);
         return new Response(
           JSON.stringify({ error: 'Failed to verify signature' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
         )
       }
     }
 
     return new Response(
-      JSON.stringify({ error: 'Not found' }),
-      { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Invalid request' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
+
   } catch (error) {
-    console.error('Unexpected error:', error)
+    console.error('Unexpected error:', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })
