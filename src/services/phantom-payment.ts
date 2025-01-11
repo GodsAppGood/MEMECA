@@ -53,50 +53,6 @@ const testRPCConnection = async (connection: Connection): Promise<boolean> => {
   }
 };
 
-const logTransaction = async (transactionDetails: {
-  user_id: string;
-  meme_id: string;
-  amount: number;
-  transaction_status: string;
-  error_message?: string;
-  wallet_address?: string;
-  transaction_signature?: string;
-}) => {
-  try {
-    console.log('Logging transaction with details:', {
-      ...transactionDetails,
-      timestamp: new Date().toISOString(),
-      rpcEndpoint: RPC_URL,
-      diagnostics: {
-        connectionAttempts: diagnostics.connectionAttempts,
-        connectionStatus: diagnostics.connectionStatus,
-        lastSuccessfulConnection: diagnostics.lastSuccessfulConnection,
-      }
-    });
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      console.error('No active session for transaction logging');
-      return false;
-    }
-
-    const response = await supabase.functions.invoke('log-transaction', {
-      body: transactionDetails
-    });
-
-    if (!response.data?.success) {
-      console.error('Transaction logging failed:', response.error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error logging transaction:', error);
-    return false;
-  }
-};
-
-// Enhanced connection validation with detailed diagnostics
 const validateConnection = async (connection: Connection): Promise<boolean> => {
   try {
     console.log('Validating Solana connection...', {
@@ -292,7 +248,56 @@ const checkPhantomWallet = async () => {
     return true;
   } catch (error) {
     console.error('Error checking Phantom wallet:', error);
-    return true; // Still return true as the wallet exists, just not connected
+    return false; // Changed to return false on error
+  }
+};
+
+const authenticateWallet = async (walletAddress: string) => {
+  try {
+    console.log('Starting wallet authentication for:', walletAddress);
+    
+    // Generate nonce
+    const { data: nonceData, error: nonceError } = await supabase.functions.invoke('wallet-auth', {
+      body: { 
+        walletAddress,
+        action: 'generate-nonce'
+      }
+    });
+
+    if (nonceError || !nonceData?.nonce) {
+      console.error('Failed to generate nonce:', nonceError);
+      return false;
+    }
+
+    // Sign message
+    const message = new TextEncoder().encode(nonceData.nonce);
+    const signature = await window.solana.signMessage(message, 'utf8');
+
+    if (!signature) {
+      console.error('Failed to sign message');
+      return false;
+    }
+
+    // Verify signature
+    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('wallet-auth', {
+      body: {
+        walletAddress,
+        signature: signature.toString(),
+        nonce: nonceData.nonce,
+        action: 'verify-signature'
+      }
+    });
+
+    if (verifyError || !verifyData?.session) {
+      console.error('Failed to verify signature:', verifyError);
+      return false;
+    }
+
+    console.log('Wallet authentication successful');
+    return true;
+  } catch (error) {
+    console.error('Error in wallet authentication:', error);
+    return false;
   }
 };
 
@@ -329,6 +334,16 @@ export const sendSolPayment = async (
     try {
       console.log('Connecting to Phantom wallet...');
       const resp = await fromWallet.connect();
+      
+      // Authenticate wallet
+      const isAuthenticated = await authenticateWallet(resp.publicKey.toString());
+      if (!isAuthenticated) {
+        return { 
+          success: false, 
+          error: "Wallet authentication failed" 
+        };
+      }
+      
       console.log('Wallet connected successfully:', resp.publicKey.toString());
     } catch (error: any) {
       console.error('Error connecting wallet:', error);
@@ -361,12 +376,14 @@ export const sendSolPayment = async (
     });
 
     // Log initial transaction attempt
-    await logTransaction({
-      user_id: session.user.id,
-      meme_id: memeId,
-      amount: TUZEMOON_COST,
-      transaction_status: 'pending',
-      wallet_address: walletAddress
+    await supabase.functions.invoke('log-transaction', {
+      body: {
+        user_id: session.user.id,
+        meme_id: memeId,
+        amount: TUZEMOON_COST,
+        transaction_status: 'pending',
+        wallet_address: walletAddress
+      }
     });
 
     // Get recent blockhash with retry
@@ -427,13 +444,15 @@ export const sendSolPayment = async (
       console.log('Transaction confirmed:', confirmation);
 
       // Log successful transaction
-      await logTransaction({
-        user_id: session.user.id,
-        meme_id: memeId,
-        amount: TUZEMOON_COST,
-        transaction_status: 'completed',
-        wallet_address: walletAddress,
-        transaction_signature: signature
+      await supabase.functions.invoke('log-transaction', {
+        body: {
+          user_id: session.user.id,
+          meme_id: memeId,
+          amount: TUZEMOON_COST,
+          transaction_status: 'completed',
+          wallet_address: walletAddress,
+          transaction_signature: signature
+        }
       });
 
       return { success: true, signature };
@@ -451,13 +470,15 @@ export const sendSolPayment = async (
       }
       
       // Log failed transaction
-      await logTransaction({
-        user_id: session.user.id,
-        meme_id: memeId,
-        amount: TUZEMOON_COST,
-        transaction_status: 'failed',
-        error_message: errorMessage,
-        wallet_address: walletAddress
+      await supabase.functions.invoke('log-transaction', {
+        body: {
+          user_id: session.user.id,
+          meme_id: memeId,
+          amount: TUZEMOON_COST,
+          transaction_status: 'failed',
+          error_message: errorMessage,
+          wallet_address: walletAddress
+        }
       });
 
       return { 
@@ -477,12 +498,15 @@ export const sendSolPayment = async (
     // Log error if we have a session
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user?.id) {
-      await logTransaction({
-        user_id: session.user.id,
-        meme_id: memeId,
-        amount: TUZEMOON_COST,
-        transaction_status: 'error',
-        error_message: error.message
+      const errorMessage = error.message || "Unknown error";
+      await supabase.functions.invoke('log-transaction', {
+        body: {
+          user_id: session.user.id,
+          meme_id: memeId,
+          amount: TUZEMOON_COST,
+          transaction_status: 'error',
+          error_message: errorMessage
+        }
       });
     }
 

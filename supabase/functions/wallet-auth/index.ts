@@ -15,6 +15,12 @@ interface RequestBody {
 }
 
 serve(async (req) => {
+  console.log('Wallet auth function called:', {
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString()
+  });
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -29,10 +35,17 @@ serve(async (req) => {
     const { pathname } = new URL(req.url)
     const body: RequestBody = await req.json()
 
+    console.log('Request details:', {
+      pathname,
+      bodyKeys: Object.keys(body),
+      timestamp: new Date().toISOString()
+    });
+
     // Generate nonce endpoint
     if (pathname === '/generate-nonce' && req.method === 'POST') {
       const { walletAddress } = body
       if (!walletAddress) {
+        console.error('Missing wallet address in generate-nonce request');
         return new Response(
           JSON.stringify({ error: 'Wallet address is required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -41,6 +54,11 @@ serve(async (req) => {
 
       // Generate a random nonce
       const nonce = crypto.randomUUID()
+      console.log('Generated nonce for wallet:', {
+        walletAddress,
+        nonce,
+        timestamp: new Date().toISOString()
+      });
       
       // Store the nonce in the database
       const { error: insertError } = await supabaseClient
@@ -64,7 +82,15 @@ serve(async (req) => {
     // Verify signature endpoint
     if (pathname === '/verify-signature' && req.method === 'POST') {
       const { signature, nonce, walletAddress } = body
+      console.log('Verifying signature:', {
+        hasSignature: !!signature,
+        hasNonce: !!nonce,
+        walletAddress,
+        timestamp: new Date().toISOString()
+      });
+
       if (!signature || !nonce || !walletAddress) {
+        console.error('Missing required fields in verify-signature request');
         return new Response(
           JSON.stringify({ error: 'Signature, nonce, and wallet address are required' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -94,15 +120,18 @@ serve(async (req) => {
         const publicKeyBytes = decodeBase58(walletAddress)
         const messageBytes = new TextEncoder().encode(nonce)
 
-        // Verify the signature using ed25519 from JSR
+        // Verify the signature using ed25519
         const isValid = await ed25519.verify(signatureBytes, messageBytes, publicKeyBytes)
 
         if (!isValid) {
+          console.error('Invalid signature detected');
           return new Response(
             JSON.stringify({ error: 'Invalid signature' }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
+
+        console.log('Signature verified successfully for wallet:', walletAddress);
 
         // Mark nonce as used
         await supabaseClient
@@ -149,6 +178,11 @@ serve(async (req) => {
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
+
+        console.log('User authenticated successfully:', {
+          walletAddress,
+          timestamp: new Date().toISOString()
+        });
 
         return new Response(
           JSON.stringify({ session: authData.session }),
