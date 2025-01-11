@@ -13,6 +13,8 @@ interface RequestBody {
   signature?: string
   nonce?: string
   action?: 'generate-nonce' | 'verify-signature'
+  memeId?: string
+  amount?: number
 }
 
 serve(async (req) => {
@@ -38,6 +40,8 @@ serve(async (req) => {
       hasWalletAddress: !!body.walletAddress,
       hasSignature: !!body.signature,
       hasNonce: !!body.nonce,
+      memeId: body.memeId,
+      amount: body.amount,
       timestamp: new Date().toISOString()
     });
 
@@ -151,6 +155,39 @@ serve(async (req) => {
           .from('WalletNonces')
           .update({ is_used: true })
           .eq('nonce', body.nonce)
+
+        // Log transaction after successful verification
+        if (body.memeId && body.amount) {
+          console.log('Logging transaction...', {
+            walletAddress: body.walletAddress,
+            memeId: body.memeId,
+            amount: body.amount,
+            timestamp: new Date().toISOString()
+          });
+
+          const { data: logData, error: logError } = await supabaseClient.functions.invoke('log-transaction', {
+            body: {
+              user_id: body.walletAddress,
+              meme_id: body.memeId,
+              amount: body.amount,
+              transaction_status: 'pending',
+              wallet_address: body.walletAddress
+            }
+          });
+
+          if (logError) {
+            console.error('Error logging transaction:', {
+              error: logError,
+              wallet: body.walletAddress,
+              timestamp: new Date().toISOString()
+            });
+          } else {
+            console.log('Transaction logged successfully:', {
+              response: logData,
+              timestamp: new Date().toISOString()
+            });
+          }
+        }
 
         console.log('Wallet verification completed successfully');
         return new Response(

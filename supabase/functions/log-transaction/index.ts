@@ -67,50 +67,6 @@ serve(async (req) => {
 
     console.log('Successfully inserted transaction log');
 
-    // If transaction is completed, update TuzemoonPayments
-    if (requestData.transaction_status === 'completed' && requestData.transaction_signature) {
-      console.log('Transaction completed, updating TuzemoonPayments...');
-      
-      const { error: paymentError } = await supabase
-        .from('TuzemoonPayments')
-        .upsert({
-          user_id: requestData.user_id,
-          meme_id: requestData.meme_id,
-          amount: requestData.amount,
-          transaction_status: 'completed',
-          transaction_signature: requestData.transaction_signature,
-          wallet_address: requestData.wallet_address
-        })
-
-      if (paymentError) {
-        console.error('Error updating TuzemoonPayments:', {
-          error: paymentError.message,
-          code: paymentError.code,
-          details: paymentError.details
-        });
-        
-        // Log the error but don't fail the request since TransactionLog was successful
-        await supabase
-          .from('TransactionLogs')
-          .update({ 
-            error_message: `TuzemoonPayments update failed: ${paymentError.message}`,
-            transaction_status: 'error'
-          })
-          .eq('id', logData.id);
-
-        return new Response(
-          JSON.stringify({ 
-            success: false, 
-            message: 'Transaction logged but payment update failed',
-            error: paymentError.message 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-        )
-      }
-
-      console.log('Successfully updated TuzemoonPayments');
-    }
-
     return new Response(
       JSON.stringify({ 
         success: true, 
