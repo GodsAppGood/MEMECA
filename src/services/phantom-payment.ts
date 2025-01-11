@@ -34,7 +34,6 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Test RPC connection using getSlot
 const testRPCConnection = async (connection: Connection): Promise<boolean> => {
   try {
     console.log('Testing RPC connection using getSlot...');
@@ -320,6 +319,11 @@ export const sendSolPayment = async (
       throw error;
     }
 
+    // Verify wallet is still connected and has publicKey
+    if (!fromWallet.publicKey) {
+      throw new Error('Wallet connection lost or publicKey not available');
+    }
+
     const fromPubkey = new PublicKey(fromWallet.publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
     const walletAddress = fromPubkey.toString();
@@ -347,12 +351,15 @@ export const sendSolPayment = async (
 
     console.log('Got blockhash:', { blockhash, lastValidBlockHeight });
 
-    // Create transaction
+    // Create transaction with explicit lamports calculation
+    const lamports = TUZEMOON_COST * LAMPORTS_PER_SOL;
+    console.log('Creating transaction with lamports:', lamports);
+    
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey,
         toPubkey,
-        lamports: TUZEMOON_COST * LAMPORTS_PER_SOL,
+        lamports,
       })
     );
 
