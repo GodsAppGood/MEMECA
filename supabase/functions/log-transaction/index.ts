@@ -42,6 +42,15 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
+    // Validate required fields
+    if (!requestData.user_id || !requestData.meme_id || !requestData.transaction_status) {
+      console.error('Missing required fields in request');
+      return new Response(
+        JSON.stringify({ success: false, message: 'Missing required fields' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
     // Insert into TransactionLogs
     console.log('Inserting into TransactionLogs...');
     const { data: logData, error: logError } = await supabase
