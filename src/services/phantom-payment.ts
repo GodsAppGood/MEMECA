@@ -5,7 +5,8 @@ import { toast } from "@/hooks/use-toast";
 // Constants
 const TUZEMOON_COST = 0.1;
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
-const RPC_URL = "https://solana-api.projectserum.com";
+const RPC_URL = "https://lingering-radial-wildflower.solana-mainnet.quiknode.pro/2401cf6c3ba08ec561ca8b671467fedb78b2ef71";
+const WS_URL = "wss://lingering-radial-wildflower.solana-mainnet.quiknode.pro/2401cf6c3ba08ec561ca8b671467fedb78b2ef71";
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 const CONNECTION_TIMEOUT = 30000;
@@ -33,7 +34,19 @@ const corsHeaders = {
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Transaction logging with enhanced details
+// Test RPC connection using getSlot
+const testRPCConnection = async (connection: Connection): Promise<boolean> => {
+  try {
+    console.log('Testing RPC connection using getSlot...');
+    const slot = await connection.getSlot();
+    console.log('Successfully retrieved slot:', slot);
+    return true;
+  } catch (error) {
+    console.error('Failed to get slot:', error);
+    return false;
+  }
+};
+
 const logTransaction = async (transactionDetails: {
   user_id: string;
   meme_id: string;
@@ -83,6 +96,7 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
     console.log('Validating Solana connection...', {
       timestamp: new Date().toISOString(),
       rpcEndpoint: RPC_URL,
+      wsEndpoint: WS_URL,
       attempts: diagnostics.connectionAttempts + 1,
       previousStatus: diagnostics.connectionStatus,
     });
@@ -94,25 +108,30 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
       setTimeout(() => reject(new Error('Connection validation timed out')), CONNECTION_TIMEOUT);
     });
 
+    // Test basic connection and get slot
+    const isRPCWorking = await testRPCConnection(connection);
+    if (!isRPCWorking) {
+      throw new Error('RPC connection test failed');
+    }
+
     const testPromise = Promise.all([
       connection.getVersion(),
-      connection.getSlot(),
       connection.getRecentBlockhash(),
       connection.getBlockHeight()
     ]);
 
-    const [version, slot, blockhash, blockHeight] = await Promise.race([
+    const [version, blockhash, blockHeight] = await Promise.race([
       testPromise,
       timeoutPromise
-    ]) as [any, number, { blockhash: string }, number];
+    ]) as [any, { blockhash: string }, number];
 
     const connectionDetails = {
       version,
-      slot,
       blockHeight,
       blockhash: blockhash.blockhash.slice(0, 8) + '...',
       timestamp: new Date().toISOString(),
       rpcEndpoint: RPC_URL,
+      wsEndpoint: WS_URL,
       commitment: COMMITMENT_LEVEL,
       attempts: diagnostics.connectionAttempts,
     };
@@ -136,11 +155,10 @@ const validateConnection = async (connection: Connection): Promise<boolean> => {
     diagnostics.connectionStatus = 'error';
     diagnostics.lastError = error instanceof Error ? error : new Error(errorMessage);
 
-    // Check for specific error types
     if (errorMessage.includes('403')) {
       toast({
         title: "Access Error",
-        description: "Unable to access Solana network. Please try again later or contact support.",
+        description: "Unable to access Solana network. Please check QuickNode configuration.",
         variant: "destructive"
       });
     } else if (errorMessage.includes('timeout')) {
