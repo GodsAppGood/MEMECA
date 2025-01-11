@@ -1,4 +1,4 @@
-import {
+import { 
   Connection,
   PublicKey,
   Transaction,
@@ -260,26 +260,40 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
   }
 };
 
-const checkPhantomWallet = () => {
+const checkPhantomWallet = async () => {
   console.log('Checking Phantom wallet availability...');
   
-  if (!window.solana) {
+  // First check if window.solana exists
+  if (typeof window === 'undefined' || !window.solana) {
     console.error('window.solana is undefined - Phantom wallet not found');
     return false;
   }
   
+  // Then check if it's actually Phantom
   if (!window.solana.isPhantom) {
     console.error('window.solana.isPhantom is false - Not a Phantom wallet');
     return false;
   }
-  
-  console.log('Phantom wallet detected:', {
-    isPhantom: window.solana.isPhantom,
-    isConnected: window.solana.isConnected,
-    hasPublicKey: !!window.solana.publicKey
-  });
-  
-  return true;
+
+  try {
+    // Try to reconnect if already authorized
+    if (!window.solana.isConnected) {
+      await window.solana.connect({ onlyIfTrusted: true })
+        .catch(() => console.log('Not previously connected, will prompt user'));
+    }
+    
+    console.log('Phantom wallet status:', {
+      isPhantom: window.solana.isPhantom,
+      isConnected: window.solana.isConnected,
+      hasPublicKey: !!window.solana.publicKey,
+      publicKeyStr: window.solana.publicKey?.toString()
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking Phantom wallet:', error);
+    return true; // Still return true as the wallet exists, just not connected
+  }
 };
 
 export const sendSolPayment = async (
@@ -292,7 +306,7 @@ export const sendSolPayment = async (
     console.log('Starting payment process for meme:', { memeId, memeTitle });
 
     // Check for Phantom wallet first
-    if (!checkPhantomWallet()) {
+    if (!await checkPhantomWallet()) {
       console.error('Phantom wallet check failed');
       return { 
         success: false, 
@@ -328,6 +342,12 @@ export const sendSolPayment = async (
     if (!fromWallet.publicKey) {
       console.error('No public key available after connection');
       throw new Error('Wallet connection lost or publicKey not available');
+    }
+
+    // Create connection to Solana network
+    connection = await createSolanaConnection();
+    if (!connection) {
+      throw new Error('Failed to establish connection to Solana network');
     }
 
     const fromPubkey = new PublicKey(fromWallet.publicKey.toString());
