@@ -33,7 +33,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Parse request body
+    // Parse and validate request body
     const requestData: TransactionLogRequest = await req.json()
     console.log('Received transaction log request:', {
       ...requestData,
@@ -44,9 +44,23 @@ serve(async (req) => {
 
     // Validate required fields
     if (!requestData.user_id || !requestData.meme_id || !requestData.transaction_status) {
-      console.error('Missing required fields in request');
+      console.error('Missing required fields in request:', {
+        hasUserId: !!requestData.user_id,
+        hasMemeId: !!requestData.meme_id,
+        hasStatus: !!requestData.transaction_status,
+        timestamp: new Date().toISOString()
+      });
+      
       return new Response(
-        JSON.stringify({ success: false, message: 'Missing required fields' }),
+        JSON.stringify({ 
+          success: false, 
+          message: 'Missing required fields',
+          details: {
+            missingUserId: !requestData.user_id,
+            missingMemeId: !requestData.meme_id,
+            missingStatus: !requestData.transaction_status
+          }
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
@@ -76,7 +90,14 @@ serve(async (req) => {
         timestamp: new Date().toISOString()
       });
       return new Response(
-        JSON.stringify({ success: false, message: logError.message }),
+        JSON.stringify({ 
+          success: false, 
+          message: logError.message,
+          details: {
+            code: logError.code,
+            hint: logError.hint
+          }
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
