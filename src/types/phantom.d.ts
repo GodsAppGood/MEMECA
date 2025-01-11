@@ -1,7 +1,8 @@
 interface PhantomProvider {
   isPhantom?: boolean;
-  publicKey?: { toString: () => string };
-  connect: () => Promise<{ publicKey: { toString: () => string } }>;
+  publicKey: { toString: () => string } | null;
+  isConnected: boolean;
+  connect: (params?: { onlyIfTrusted?: boolean }) => Promise<{ publicKey: { toString: () => string } }>;
   disconnect: () => Promise<void>;
   signMessage: (message: Uint8Array, encoding: string) => Promise<{ signature: Uint8Array }>;
   signTransaction: (transaction: any) => Promise<any>;

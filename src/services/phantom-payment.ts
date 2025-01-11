@@ -260,6 +260,28 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
   }
 };
 
+const checkPhantomWallet = () => {
+  console.log('Checking Phantom wallet availability...');
+  
+  if (!window.solana) {
+    console.error('window.solana is undefined - Phantom wallet not found');
+    return false;
+  }
+  
+  if (!window.solana.isPhantom) {
+    console.error('window.solana.isPhantom is false - Not a Phantom wallet');
+    return false;
+  }
+  
+  console.log('Phantom wallet detected:', {
+    isPhantom: window.solana.isPhantom,
+    isConnected: window.solana.isConnected,
+    hasPublicKey: !!window.solana.publicKey
+  });
+  
+  return true;
+};
+
 export const sendSolPayment = async (
   memeId: string,
   memeTitle: string
@@ -269,45 +291,21 @@ export const sendSolPayment = async (
   try {
     console.log('Starting payment process for meme:', { memeId, memeTitle });
 
+    // Check for Phantom wallet first
+    if (!checkPhantomWallet()) {
+      console.error('Phantom wallet check failed');
+      return { 
+        success: false, 
+        error: "Phantom wallet not found. Please install Phantom wallet to continue." 
+      };
+    }
+
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.user?.id) {
       console.error('User not authenticated');
       return { 
         success: false, 
         error: "User not authenticated" 
-      };
-    }
-
-    if (!window.solana?.isPhantom) {
-      console.error('Phantom wallet not found');
-      await logTransaction({
-        user_id: session.user.id,
-        meme_id: memeId,
-        amount: TUZEMOON_COST,
-        transaction_status: 'failed',
-        error_message: 'Phantom wallet not installed'
-      });
-      return { 
-        success: false, 
-        error: "Phantom wallet is not installed" 
-      };
-    }
-
-    // Connect to Solana network with enhanced retry logic
-    connection = await createSolanaConnection();
-    if (!connection) {
-      const error = "Failed to establish connection to Solana network";
-      console.error(error);
-      await logTransaction({
-        user_id: session.user.id,
-        meme_id: memeId,
-        amount: TUZEMOON_COST,
-        transaction_status: 'failed',
-        error_message: error
-      });
-      return {
-        success: false,
-        error: "Network connection failed. Please try again."
       };
     }
 
