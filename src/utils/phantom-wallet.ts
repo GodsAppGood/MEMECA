@@ -13,6 +13,7 @@ export const connectPhantomWallet = async () => {
 
     try {
       const resp = await window.solana.connect();
+      console.log('Wallet connected successfully:', resp.publicKey.toString());
       return resp.publicKey.toString();
     } catch (err: any) {
       if (err.code === 4001) {
@@ -22,6 +23,7 @@ export const connectPhantomWallet = async () => {
           variant: "destructive",
         });
       }
+      console.error('Wallet connection error:', err);
       return null;
     }
   } catch (error) {
@@ -37,14 +39,25 @@ export const connectPhantomWallet = async () => {
 
 export const signMessage = async (message: string) => {
   try {
+    console.log('Attempting to sign message:', message);
+    
     const encodedMessage = new TextEncoder().encode(message);
+    console.log('Encoded message length:', encodedMessage.length);
+    
     const signedMessage = await window.solana.signMessage(
       encodedMessage,
       "utf8"
     );
+    
+    console.log('Message signed successfully:', {
+      signatureLength: signedMessage.length,
+      signature: Array.from(signedMessage).toString()
+    });
+    
     return signedMessage;
   } catch (error: any) {
     if (error.code === 4001) {
+      console.log('User rejected message signing');
       toast({
         title: "Signature Canceled",
         description: "Transaction canceled by user",

@@ -62,7 +62,7 @@ serve(async (req) => {
         )
       }
 
-      console.log('Nonce generated successfully');
+      console.log('Nonce generated successfully:', { nonce });
       return new Response(
         JSON.stringify({ nonce }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -91,13 +91,27 @@ serve(async (req) => {
       }
 
       try {
-        // Convert signature and verify
+        console.log('Starting signature verification process');
+        
+        // Convert signature string to Uint8Array
         const signatureArray = body.signature.split(',').map(Number);
         const signatureBytes = new Uint8Array(signatureArray);
+        
+        // Convert wallet address to public key bytes
         const publicKeyBytes = decodeBase58(body.walletAddress);
+        
+        // Convert message to bytes
         const messageBytes = new TextEncoder().encode(body.nonce);
 
+        console.log('Verification parameters:', {
+          signatureLength: signatureBytes.length,
+          publicKeyLength: publicKeyBytes.length,
+          messageLength: messageBytes.length,
+          nonce: body.nonce
+        });
+
         const isValid = await ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
+        console.log('Signature verification result:', isValid);
 
         if (!isValid) {
           console.error('Invalid signature detected');
