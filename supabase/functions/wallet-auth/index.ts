@@ -126,6 +126,9 @@ serve(async (req) => {
           publicKeyLength: publicKeyBytes.length,
           messageLength: messageBytes.length,
           nonce: body.nonce,
+          signatureArray: signatureArray.slice(0, 10) + '...',
+          publicKeyHex: Array.from(publicKeyBytes).map(b => b.toString(16).padStart(2, '0')).join(''),
+          messageHex: Array.from(messageBytes).map(b => b.toString(16).padStart(2, '0')).join(''),
           timestamp: new Date().toISOString()
         });
 
@@ -143,31 +146,11 @@ serve(async (req) => {
           )
         }
 
-        console.log('Signature verified successfully');
-
         // Mark nonce as used
         await supabaseClient
           .from('WalletNonces')
           .update({ is_used: true })
           .eq('nonce', body.nonce)
-
-        // Update user verification status
-        const { error: userError } = await supabaseClient
-          .from('Users')
-          .upsert({
-            wallet_address: body.walletAddress,
-            is_verified: true
-          }, {
-            onConflict: 'wallet_address'
-          })
-
-        if (userError) {
-          console.error('Error updating user verification:', {
-            error: userError,
-            wallet: body.walletAddress,
-            timestamp: new Date().toISOString()
-          });
-        }
 
         console.log('Wallet verification completed successfully');
         return new Response(

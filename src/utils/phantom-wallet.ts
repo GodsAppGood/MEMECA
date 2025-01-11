@@ -57,6 +57,7 @@ export const signMessage = async (message: string) => {
     console.log('Preparing to sign message:', {
       messageLength: message.length,
       message,
+      encoding: 'utf-8',
       timestamp: new Date().toISOString()
     });
     
