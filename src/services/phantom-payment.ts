@@ -1,4 +1,11 @@
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, Commitment } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  Commitment,
+} from "@solana/web3.js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -11,7 +18,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000;
 const CONNECTION_TIMEOUT = 30000;
 const WS_PING_INTERVAL = 10000;
-const COMMITMENT_LEVEL: Commitment = 'confirmed';
+const COMMITMENT_LEVEL: Commitment = "confirmed";
 
 // Enhanced diagnostics
 const diagnostics = {
@@ -185,7 +192,7 @@ const createSolanaConnection = async (retryCount = 0): Promise<Connection | null
     const connection = new Connection(RPC_URL, {
       commitment: COMMITMENT_LEVEL,
       confirmTransactionInitialTimeout: CONNECTION_TIMEOUT,
-      wsEndpoint: "wss://api.mainnet-beta.solana.com",
+      wsEndpoint: WS_URL,
       disableRetryOnRateLimit: false,
       httpHeaders: headers
     });
@@ -321,6 +328,7 @@ export const sendSolPayment = async (
 
     // Verify wallet is still connected and has publicKey
     if (!fromWallet.publicKey) {
+      console.error('No public key available after connection');
       throw new Error('Wallet connection lost or publicKey not available');
     }
 
