@@ -13,7 +13,12 @@ export const connectPhantomWallet = async () => {
 
     try {
       const resp = await window.solana.connect();
-      console.log('Wallet connected successfully:', resp.publicKey.toString());
+      console.log('Wallet connected successfully:', {
+        publicKey: resp.publicKey.toString(),
+        timestamp: new Date().toISOString(),
+        isPhantom: window.solana.isPhantom,
+        isConnected: window.solana.isConnected
+      });
       return resp.publicKey.toString();
     } catch (err: any) {
       if (err.code === 4001) {
@@ -23,11 +28,21 @@ export const connectPhantomWallet = async () => {
           variant: "destructive",
         });
       }
-      console.error('Wallet connection error:', err);
+      console.error('Wallet connection error:', {
+        error: err,
+        code: err.code,
+        message: err.message,
+        timestamp: new Date().toISOString()
+      });
       return null;
     }
   } catch (error) {
-    console.error("Error connecting to Phantom wallet:", error);
+    console.error("Error connecting to Phantom wallet:", {
+      error,
+      timestamp: new Date().toISOString(),
+      solanaExists: !!window.solana,
+      isPhantom: window?.solana?.isPhantom
+    });
     toast({
       title: "Connection Error",
       description: "Failed to connect to Phantom wallet",
@@ -39,10 +54,18 @@ export const connectPhantomWallet = async () => {
 
 export const signMessage = async (message: string) => {
   try {
-    console.log('Attempting to sign message:', message);
+    console.log('Preparing to sign message:', {
+      messageLength: message.length,
+      message,
+      timestamp: new Date().toISOString()
+    });
     
     const encodedMessage = new TextEncoder().encode(message);
-    console.log('Encoded message length:', encodedMessage.length);
+    console.log('Encoded message:', {
+      encodedLength: encodedMessage.length,
+      encodedBytes: Array.from(encodedMessage),
+      timestamp: new Date().toISOString()
+    });
     
     const signedMessage = await window.solana.signMessage(
       encodedMessage,
@@ -51,7 +74,8 @@ export const signMessage = async (message: string) => {
     
     console.log('Message signed successfully:', {
       signatureLength: signedMessage.signature.length,
-      signature: Array.from(signedMessage.signature).toString()
+      signatureBytes: Array.from(signedMessage.signature),
+      timestamp: new Date().toISOString()
     });
     
     return signedMessage.signature;
@@ -64,7 +88,12 @@ export const signMessage = async (message: string) => {
         variant: "destructive",
       });
     } else {
-      console.error("Error signing message:", error);
+      console.error("Error signing message:", {
+        error,
+        code: error.code,
+        message: error.message,
+        timestamp: new Date().toISOString()
+      });
       toast({
         title: "Signature Error",
         description: "Failed to sign the message",

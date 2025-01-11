@@ -37,7 +37,8 @@ serve(async (req) => {
       action: body.action,
       hasWalletAddress: !!body.walletAddress,
       hasSignature: !!body.signature,
-      hasNonce: !!body.nonce
+      hasNonce: !!body.nonce,
+      timestamp: new Date().toISOString()
     });
 
     // Generate nonce
@@ -55,14 +56,22 @@ serve(async (req) => {
         }])
 
       if (insertError) {
-        console.error('Error storing nonce:', insertError);
+        console.error('Error storing nonce:', {
+          error: insertError,
+          wallet: body.walletAddress,
+          timestamp: new Date().toISOString()
+        });
         return new Response(
           JSON.stringify({ error: 'Failed to generate nonce' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
       }
 
-      console.log('Nonce generated successfully:', { nonce });
+      console.log('Nonce generated successfully:', { 
+        nonce,
+        wallet: body.walletAddress,
+        timestamp: new Date().toISOString()
+      });
       return new Response(
         JSON.stringify({ nonce }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -71,7 +80,12 @@ serve(async (req) => {
 
     // Verify signature
     if (body.action === 'verify-signature' && body.signature && body.nonce && body.walletAddress) {
-      console.log('Verifying signature for wallet:', body.walletAddress);
+      console.log('Starting signature verification process:', {
+        walletAddress: body.walletAddress,
+        nonceLength: body.nonce.length,
+        signatureLength: body.signature.length,
+        timestamp: new Date().toISOString()
+      });
 
       // Verify nonce exists and hasn't expired
       const { data: nonceData, error: nonceError } = await supabaseClient
@@ -83,7 +97,11 @@ serve(async (req) => {
         .single()
 
       if (nonceError || !nonceData) {
-        console.error('Invalid or expired nonce:', nonceError);
+        console.error('Invalid or expired nonce:', {
+          error: nonceError,
+          wallet: body.walletAddress,
+          timestamp: new Date().toISOString()
+        });
         return new Response(
           JSON.stringify({ error: 'Invalid or expired nonce' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -107,11 +125,15 @@ serve(async (req) => {
           signatureLength: signatureBytes.length,
           publicKeyLength: publicKeyBytes.length,
           messageLength: messageBytes.length,
-          nonce: body.nonce
+          nonce: body.nonce,
+          timestamp: new Date().toISOString()
         });
 
         const isValid = await ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
-        console.log('Signature verification result:', isValid);
+        console.log('Signature verification result:', {
+          isValid,
+          timestamp: new Date().toISOString()
+        });
 
         if (!isValid) {
           console.error('Invalid signature detected');
@@ -140,7 +162,11 @@ serve(async (req) => {
           })
 
         if (userError) {
-          console.error('Error updating user verification:', userError);
+          console.error('Error updating user verification:', {
+            error: userError,
+            wallet: body.walletAddress,
+            timestamp: new Date().toISOString()
+          });
         }
 
         console.log('Wallet verification completed successfully');
@@ -152,7 +178,11 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } catch (error) {
-        console.error('Error verifying signature:', error);
+        console.error('Error verifying signature:', {
+          error,
+          wallet: body.walletAddress,
+          timestamp: new Date().toISOString()
+        });
         return new Response(
           JSON.stringify({ error: 'Failed to verify signature' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -166,7 +196,10 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('Unexpected error:', {
+      error,
+      timestamp: new Date().toISOString()
+    });
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
