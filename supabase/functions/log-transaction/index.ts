@@ -14,17 +14,21 @@ interface TransactionLogRequest {
   error_message?: string;
   wallet_address?: string;
   transaction_signature?: string;
+  created_at?: string;
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  console.log('Transaction logging process started:', {
+    method: req.method,
+    url: req.url,
+    timestamp: new Date().toISOString()
+  });
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    console.log('Starting transaction logging process');
-    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     const supabase = createClient(supabaseUrl, supabaseKey)
@@ -34,7 +38,8 @@ serve(async (req) => {
     console.log('Received transaction log request:', {
       ...requestData,
       user_id: requestData.user_id ? '[REDACTED]' : null,
-      wallet_address: requestData.wallet_address ? '[REDACTED]' : null
+      wallet_address: requestData.wallet_address ? '[REDACTED]' : null,
+      timestamp: new Date().toISOString()
     });
 
     // Insert into TransactionLogs
@@ -48,7 +53,8 @@ serve(async (req) => {
         transaction_status: requestData.transaction_status,
         error_message: requestData.error_message,
         wallet_address: requestData.wallet_address,
-        transaction_signature: requestData.transaction_signature
+        transaction_signature: requestData.transaction_signature,
+        created_at: requestData.created_at || new Date().toISOString()
       }])
       .select()
       .single()
@@ -57,7 +63,8 @@ serve(async (req) => {
       console.error('Error inserting transaction log:', {
         error: logError.message,
         code: logError.code,
-        details: logError.details
+        details: logError.details,
+        timestamp: new Date().toISOString()
       });
       return new Response(
         JSON.stringify({ success: false, message: logError.message }),
@@ -65,7 +72,10 @@ serve(async (req) => {
       )
     }
 
-    console.log('Successfully inserted transaction log');
+    console.log('Successfully inserted transaction log:', {
+      logId: logData?.id,
+      timestamp: new Date().toISOString()
+    });
 
     return new Response(
       JSON.stringify({ 
@@ -79,7 +89,8 @@ serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error in log-transaction function:', {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
+      timestamp: new Date().toISOString()
     });
     
     return new Response(

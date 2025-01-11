@@ -158,7 +158,7 @@ serve(async (req) => {
 
         // Log transaction after successful verification
         if (body.memeId && body.amount) {
-          console.log('Logging transaction...', {
+          console.log('Initiating transaction logging...', {
             walletAddress: body.walletAddress,
             memeId: body.memeId,
             amount: body.amount,
@@ -171,7 +171,8 @@ serve(async (req) => {
               meme_id: body.memeId,
               amount: body.amount,
               transaction_status: 'pending',
-              wallet_address: body.walletAddress
+              wallet_address: body.walletAddress,
+              created_at: new Date().toISOString()
             }
           });
 
