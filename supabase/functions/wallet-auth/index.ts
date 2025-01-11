@@ -130,9 +130,6 @@ serve(async (req) => {
           publicKeyLength: publicKeyBytes.length,
           messageLength: messageBytes.length,
           nonce: body.nonce,
-          signatureArray: signatureArray.slice(0, 10) + '...',
-          publicKeyHex: Array.from(publicKeyBytes).map(b => b.toString(16).padStart(2, '0')).join(''),
-          messageHex: Array.from(messageBytes).map(b => b.toString(16).padStart(2, '0')).join(''),
           timestamp: new Date().toISOString()
         });
 
@@ -165,15 +162,19 @@ serve(async (req) => {
             timestamp: new Date().toISOString()
           });
 
+          const transactionData = {
+            user_id: body.walletAddress,
+            meme_id: body.memeId,
+            amount: body.amount,
+            transaction_status: 'pending',
+            wallet_address: body.walletAddress,
+            created_at: new Date().toISOString()
+          };
+
+          console.log('Sending transaction data to log-transaction:', transactionData);
+
           const { data: logData, error: logError } = await supabaseClient.functions.invoke('log-transaction', {
-            body: {
-              user_id: body.walletAddress,
-              meme_id: body.memeId,
-              amount: body.amount,
-              transaction_status: 'pending',
-              wallet_address: body.walletAddress,
-              created_at: new Date().toISOString()
-            }
+            body: transactionData
           });
 
           if (logError) {
