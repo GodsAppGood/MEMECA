@@ -290,7 +290,7 @@ export const sendSolPayment = async (
     // Connect to Solana network with enhanced retry logic
     connection = await createSolanaConnection();
     if (!connection) {
-      const error = "Failed to establish connection to Solana network after multiple attempts. Please check your internet connection and try again.";
+      const error = "Failed to establish connection to Solana network";
       console.error(error);
       await logTransaction({
         user_id: session.user.id,
@@ -301,12 +301,26 @@ export const sendSolPayment = async (
       });
       return {
         success: false,
-        error: "Network connection failed. Please check your internet connection and try again."
+        error: "Network connection failed. Please try again."
       };
     }
 
     const fromWallet = window.solana;
-    const fromPubkey = new PublicKey(await (await fromWallet.connect()).publicKey.toString());
+    
+    // Ensure wallet is connected
+    try {
+      console.log('Connecting to Phantom wallet...');
+      const resp = await fromWallet.connect();
+      console.log('Wallet connected successfully:', resp.publicKey.toString());
+    } catch (error: any) {
+      console.error('Error connecting wallet:', error);
+      if (error.code === 4001) {
+        return { success: false, error: "Wallet connection rejected by user" };
+      }
+      throw error;
+    }
+
+    const fromPubkey = new PublicKey(fromWallet.publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
     const walletAddress = fromPubkey.toString();
 
@@ -326,6 +340,7 @@ export const sendSolPayment = async (
     });
 
     // Get recent blockhash with retry
+    console.log('Getting latest blockhash...');
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash({
       commitment: 'finalized'
     });
@@ -346,20 +361,25 @@ export const sendSolPayment = async (
     transaction.feePayer = fromPubkey;
 
     try {
-      // Request signature from user
+      // Request signature from user with explicit error handling
       console.log('Requesting transaction signature from user...');
       const signed = await fromWallet.signTransaction(transaction);
       console.log('Transaction signed by user');
 
-      // Send the transaction
+      if (!signed) {
+        throw new Error("Failed to sign transaction");
+      }
+
+      // Send the transaction with explicit options
       console.log('Sending transaction...');
       const signature = await connection.sendRawTransaction(signed.serialize(), {
         skipPreflight: false,
-        preflightCommitment: 'confirmed'
+        preflightCommitment: 'confirmed',
+        maxRetries: 3
       });
       console.log('Transaction sent:', signature);
       
-      // Wait for transaction confirmation
+      // Wait for transaction confirmation with detailed logging
       console.log('Waiting for transaction confirmation...');
       const confirmation = await connection.confirmTransaction({
         signature,
@@ -387,19 +407,29 @@ export const sendSolPayment = async (
     } catch (error: any) {
       console.error("Transaction error:", error);
       
+      // Enhanced error handling for Phantom-specific errors
+      let errorMessage = "Transaction failed";
+      if (error.code === 4001) {
+        errorMessage = "Transaction rejected by user";
+      } else if (error.code === 4900) {
+        errorMessage = "Wallet disconnected";
+      } else if (error.code === -32603) {
+        errorMessage = "Transaction simulation failed";
+      }
+      
       // Log failed transaction
       await logTransaction({
         user_id: session.user.id,
         meme_id: memeId,
         amount: TUZEMOON_COST,
         transaction_status: 'failed',
-        error_message: error.message,
+        error_message: errorMessage,
         wallet_address: walletAddress
       });
 
       return { 
         success: false, 
-        error: error.message || "Transaction failed" 
+        error: errorMessage
       };
     }
 
