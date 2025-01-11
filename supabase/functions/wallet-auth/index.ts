@@ -47,7 +47,6 @@ serve(async (req) => {
 
     // Generate nonce
     if (body.action === 'generate-nonce' && body.walletAddress) {
-      console.log('Generating nonce for wallet:', body.walletAddress);
       
       const nonce = crypto.randomUUID()
       
@@ -147,22 +146,16 @@ serve(async (req) => {
           )
         }
 
-        // Mark nonce as used
-        await supabaseClient
-          .from('WalletNonces')
-          .update({ is_used: true })
-          .eq('nonce', body.nonce)
-
-        // Log transaction after successful verification
+        // After successful verification, log the transaction
         if (body.memeId && body.amount) {
-          console.log('Initiating transaction logging...', {
+          console.log('Logging transaction...', {
             walletAddress: body.walletAddress,
             memeId: body.memeId,
             amount: body.amount,
             timestamp: new Date().toISOString()
           });
 
-          const transactionData = {
+          const logPayload = {
             user_id: body.walletAddress,
             meme_id: body.memeId,
             amount: body.amount,
@@ -171,25 +164,31 @@ serve(async (req) => {
             created_at: new Date().toISOString()
           };
 
-          console.log('Sending transaction data to log-transaction:', transactionData);
-
-          const { data: logData, error: logError } = await supabaseClient.functions.invoke('log-transaction', {
-            body: transactionData
+          const logResponse = await supabaseClient.functions.invoke('log-transaction', {
+            body: logPayload
           });
 
-          if (logError) {
+          console.log('Transaction logging response:', {
+            success: !logResponse.error,
+            error: logResponse.error,
+            data: logResponse.data,
+            timestamp: new Date().toISOString()
+          });
+
+          if (logResponse.error) {
             console.error('Error logging transaction:', {
-              error: logError,
-              wallet: body.walletAddress,
-              timestamp: new Date().toISOString()
-            });
-          } else {
-            console.log('Transaction logged successfully:', {
-              response: logData,
+              error: logResponse.error,
+              payload: logPayload,
               timestamp: new Date().toISOString()
             });
           }
         }
+
+        // Mark nonce as used
+        await supabaseClient
+          .from('WalletNonces')
+          .update({ is_used: true })
+          .eq('nonce', body.nonce)
 
         console.log('Wallet verification completed successfully');
         return new Response(
