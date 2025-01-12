@@ -22,19 +22,25 @@ export const sendSolPayment = async (
       throw new Error("Phantom wallet not found");
     }
 
-    // Ensure wallet is connected
-    if (!window.solana.publicKey) {
-      await window.solana.connect();
+    // Ensure wallet is connected first
+    try {
+      if (!window.solana.isConnected) {
+        console.log('Connecting to Phantom wallet...');
+        await window.solana.connect();
+        console.log('Wallet connected successfully');
+      }
+    } catch (err) {
+      console.error('Failed to connect wallet:', err);
+      throw new Error("Failed to connect to Phantom wallet");
     }
 
     const connection = new Connection(SOLANA_ENDPOINT);
     
-    // Get the sender's public key directly from Phantom and create a PublicKey instance
-    const senderPublicKeyStr = window.solana.publicKey?.toString();
-    if (!senderPublicKeyStr) {
-      throw new Error("Failed to get wallet public key");
+    // Get the sender's public key
+    if (!window.solana.publicKey) {
+      throw new Error("Wallet not connected");
     }
-    const sender = new PublicKey(senderPublicKeyStr);
+    const sender = window.solana.publicKey;
 
     // Create recipient public key from address string
     let recipient: PublicKey;
