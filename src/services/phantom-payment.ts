@@ -29,11 +29,12 @@ export const sendSolPayment = async (
 
     const connection = new Connection(SOLANA_ENDPOINT);
     
-    // Get the sender's public key directly from Phantom
-    const sender = window.solana.publicKey;
-    if (!sender) {
+    // Get the sender's public key directly from Phantom and create a PublicKey instance
+    const senderPublicKeyStr = window.solana.publicKey?.toString();
+    if (!senderPublicKeyStr) {
       throw new Error("Failed to get wallet public key");
     }
+    const sender = new PublicKey(senderPublicKeyStr);
 
     // Create recipient public key from address string
     let recipient: PublicKey;
