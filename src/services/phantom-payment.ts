@@ -36,11 +36,12 @@ export const sendSolPayment = async (
 
     const connection = new Connection(SOLANA_ENDPOINT);
     
-    // Get the sender's public key
+    // Get the sender's public key and create a proper PublicKey instance
     if (!window.solana.publicKey) {
       throw new Error("Wallet not connected");
     }
-    const sender = window.solana.publicKey;
+    const senderPublicKeyStr = window.solana.publicKey.toString();
+    const sender = new PublicKey(senderPublicKeyStr);
 
     // Create recipient public key from address string
     let recipient: PublicKey;
