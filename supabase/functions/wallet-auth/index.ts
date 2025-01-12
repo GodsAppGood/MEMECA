@@ -17,11 +17,28 @@ interface RequestBody {
   amount?: number
 }
 
+const logRequest = (action: string, details: any) => {
+  console.log(`[${new Date().toISOString()}] ${action}:`, {
+    ...details,
+    environment: Deno.env.get('ENVIRONMENT'),
+    function: 'wallet-auth'
+  });
+};
+
+const logError = (action: string, error: any, details?: any) => {
+  console.error(`[${new Date().toISOString()}] Error in ${action}:`, {
+    error: error.message || error,
+    stack: error.stack,
+    details,
+    environment: Deno.env.get('ENVIRONMENT'),
+    function: 'wallet-auth'
+  });
+};
+
 serve(async (req) => {
-  console.log('Wallet auth function called:', {
+  logRequest('Function invoked', {
     method: req.method,
     url: req.url,
-    timestamp: new Date().toISOString()
   });
 
   if (req.method === 'OPTIONS') {
@@ -35,18 +52,18 @@ serve(async (req) => {
     )
 
     const body: RequestBody = await req.json()
-    console.log('Request body:', {
+    logRequest('Request body received', {
       action: body.action,
       hasWalletAddress: !!body.walletAddress,
       hasSignature: !!body.signature,
       hasNonce: !!body.nonce,
       memeId: body.memeId,
-      amount: body.amount,
-      timestamp: new Date().toISOString()
+      amount: body.amount
     });
 
     // Generate nonce
     if (body.action === 'generate-nonce' && body.walletAddress) {
+      logRequest('Generating nonce', { walletAddress: body.walletAddress });
       
       const nonce = crypto.randomUUID()
       
@@ -59,22 +76,18 @@ serve(async (req) => {
         }])
 
       if (insertError) {
-        console.error('Error storing nonce:', {
-          error: insertError,
-          wallet: body.walletAddress,
-          timestamp: new Date().toISOString()
-        });
+        logError('Storing nonce', insertError, { walletAddress: body.walletAddress });
         return new Response(
           JSON.stringify({ error: 'Failed to generate nonce' }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
         )
       }
 
-      console.log('Nonce generated successfully:', { 
+      logRequest('Nonce generated successfully', { 
         nonce,
-        wallet: body.walletAddress,
-        timestamp: new Date().toISOString()
+        walletAddress: body.walletAddress
       });
+      
       return new Response(
         JSON.stringify({ nonce }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -83,11 +96,10 @@ serve(async (req) => {
 
     // Verify signature
     if (body.action === 'verify-signature' && body.signature && body.nonce && body.walletAddress) {
-      console.log('Starting signature verification process:', {
+      logRequest('Starting signature verification', {
         walletAddress: body.walletAddress,
         nonceLength: body.nonce.length,
-        signatureLength: body.signature.length,
-        timestamp: new Date().toISOString()
+        signatureLength: body.signature.length
       });
 
       // Verify nonce exists and hasn't expired
@@ -100,10 +112,9 @@ serve(async (req) => {
         .single()
 
       if (nonceError || !nonceData) {
-        console.error('Invalid or expired nonce:', {
-          error: nonceError,
-          wallet: body.walletAddress,
-          timestamp: new Date().toISOString()
+        logError('Invalid or expired nonce', nonceError || 'No nonce data found', {
+          walletAddress: body.walletAddress,
+          nonce: body.nonce
         });
         return new Response(
           JSON.stringify({ error: 'Invalid or expired nonce' }),
@@ -112,7 +123,10 @@ serve(async (req) => {
       }
 
       try {
-        console.log('Starting signature verification process');
+        logRequest('Verifying signature', {
+          walletAddress: body.walletAddress,
+          nonce: body.nonce
+        });
         
         // Convert signature string to Uint8Array
         const signatureArray = body.signature.split(',').map(Number);
@@ -124,22 +138,20 @@ serve(async (req) => {
         // Convert message to bytes
         const messageBytes = new TextEncoder().encode(body.nonce);
 
-        console.log('Verification parameters:', {
+        logRequest('Verification parameters prepared', {
           signatureLength: signatureBytes.length,
           publicKeyLength: publicKeyBytes.length,
           messageLength: messageBytes.length,
-          nonce: body.nonce,
-          timestamp: new Date().toISOString()
+          nonce: body.nonce
         });
 
         const isValid = await ed25519.verify(signatureBytes, messageBytes, publicKeyBytes);
-        console.log('Signature verification result:', {
-          isValid,
-          timestamp: new Date().toISOString()
-        });
+        logRequest('Signature verification result', { isValid });
 
         if (!isValid) {
-          console.error('Invalid signature detected');
+          logError('Invalid signature', 'Signature verification failed', {
+            walletAddress: body.walletAddress
+          });
           return new Response(
             JSON.stringify({ error: 'Invalid signature' }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
@@ -148,11 +160,10 @@ serve(async (req) => {
 
         // After successful verification, log the transaction
         if (body.memeId && body.amount) {
-          console.log('Logging transaction...', {
+          logRequest('Logging transaction', {
             walletAddress: body.walletAddress,
             memeId: body.memeId,
-            amount: body.amount,
-            timestamp: new Date().toISOString()
+            amount: body.amount
           });
 
           const logPayload = {
@@ -168,29 +179,36 @@ serve(async (req) => {
             body: logPayload
           });
 
-          console.log('Transaction logging response:', {
+          logRequest('Transaction logging response', {
             success: !logResponse.error,
             error: logResponse.error,
-            data: logResponse.data,
-            timestamp: new Date().toISOString()
+            data: logResponse.data
           });
 
           if (logResponse.error) {
-            console.error('Error logging transaction:', {
-              error: logResponse.error,
-              payload: logPayload,
-              timestamp: new Date().toISOString()
+            logError('Transaction logging', logResponse.error, {
+              payload: logPayload
             });
           }
         }
 
         // Mark nonce as used
-        await supabaseClient
+        const { error: updateError } = await supabaseClient
           .from('WalletNonces')
           .update({ is_used: true })
-          .eq('nonce', body.nonce)
+          .eq('nonce', body.nonce);
 
-        console.log('Wallet verification completed successfully');
+        if (updateError) {
+          logError('Marking nonce as used', updateError, {
+            nonce: body.nonce
+          });
+        }
+
+        logRequest('Wallet verification completed', {
+          success: true,
+          walletAddress: body.walletAddress
+        });
+
         return new Response(
           JSON.stringify({ 
             success: true,
@@ -199,10 +217,8 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       } catch (error) {
-        console.error('Error verifying signature:', {
-          error,
-          wallet: body.walletAddress,
-          timestamp: new Date().toISOString()
+        logError('Signature verification', error, {
+          walletAddress: body.walletAddress
         });
         return new Response(
           JSON.stringify({ error: 'Failed to verify signature' }),
@@ -211,16 +227,14 @@ serve(async (req) => {
       }
     }
 
+    logError('Invalid request', 'Missing required parameters', body);
     return new Response(
       JSON.stringify({ error: 'Invalid request' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
     )
 
   } catch (error) {
-    console.error('Unexpected error:', {
-      error,
-      timestamp: new Date().toISOString()
-    });
+    logError('Unexpected error', error);
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
