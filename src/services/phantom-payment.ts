@@ -8,6 +8,12 @@ import {
 } from "@solana/web3.js";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Buffer } from 'buffer';
+
+// Make buffer available globally for web3.js
+if (typeof window !== 'undefined') {
+  window.Buffer = Buffer;
+}
 
 // Constants
 const TUZEMOON_COST = 0.0001; // Test amount
@@ -160,7 +166,9 @@ export const sendSolPayment = async (
     // Send transaction
     try {
       console.log('Sending transaction...');
-      const signature = await connection.sendRawTransaction(signed.serialize());
+      const signature = await connection.sendRawTransaction(
+        Buffer.from(signed.serialize())
+      );
       
       console.log('Confirming transaction...');
       const confirmation = await connection.confirmTransaction({
