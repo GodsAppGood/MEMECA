@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { TuzemoonModal } from "./TuzemoonModal";
-import { connectPhantomWallet, signMessage } from "@/utils/phantom-wallet";
 import { updateTuzemoonStatus } from "@/services/tuzemoon-service";
 
 interface TuzemoonButtonProps {
@@ -26,7 +25,6 @@ export const TuzemoonButton = ({
 }: TuzemoonButtonProps) => {
   const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleSuccess = async () => {
     try {
@@ -46,44 +44,11 @@ export const TuzemoonButton = ({
         void onUpdate();
       }
     } else if (isVerified) {
-      setIsConnecting(true);
-      try {
-        // Get meme details for the signature message
-        const { data: meme, error: memeError } = await supabase
-          .from("Memes")
-          .select("title")
-          .eq("id", parseInt(memeId))
-          .single();
-
-        if (memeError) throw memeError;
-
-        // Connect wallet
-        const publicKey = await connectPhantomWallet();
-        if (!publicKey) {
-          setIsConnecting(false);
-          return;
-        }
-
-        // Sign message
-        const message = `Sign this message to confirm your Tuzemoon transaction for ${meme.title}`;
-        const signature = await signMessage(message);
-        if (!signature) {
-          setIsConnecting(false);
-          return;
-        }
-
-        // If signature successful, show payment modal
-        setIsModalOpen(true);
-      } catch (error) {
-        console.error("Error in Tuzemoon process:", error);
-        toast({
-          title: "Error",
-          description: "Failed to process Tuzemoon request",
-          variant: "destructive",
-        });
-      } finally {
-        setIsConnecting(false);
-      }
+      toast({
+        title: "Feature Unavailable",
+        description: "Tuzemoon feature is being updated",
+        variant: "destructive",
+      });
     } else {
       toast({
         title: "Verification Required",
@@ -101,10 +66,9 @@ export const TuzemoonButton = ({
         variant="outline"
         onClick={handleTuzemoonClick}
         className={`group ${isFeatured ? 'text-yellow-500' : ''}`}
-        disabled={isConnecting}
       >
         <Moon className={`h-5 w-5 mr-2 ${isFeatured ? 'fill-current' : ''}`} />
-        {isConnecting ? 'Connecting...' : (isFeatured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon')}
+        {isFeatured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
       </Button>
 
       <TuzemoonModal
