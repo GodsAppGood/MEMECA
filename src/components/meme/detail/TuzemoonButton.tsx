@@ -25,11 +25,18 @@ export const TuzemoonButton = ({
 }: TuzemoonButtonProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   const handlePayment = async () => {
     setIsProcessing(true);
     try {
+      console.log('Starting payment process:', {
+        memeId,
+        memeTitle,
+        timestamp: new Date().toISOString()
+      });
+
       // Connect wallet first
       const walletAddress = await connectPhantomWallet();
       if (!walletAddress) {
@@ -43,19 +50,46 @@ export const TuzemoonButton = ({
         throw new Error(error || "Payment failed");
       }
 
+      console.log('Payment successful:', {
+        signature,
+        memeId,
+        timestamp: new Date().toISOString()
+      });
+
       toast({
         title: "Payment Successful",
-        description: "Your transaction has been confirmed",
+        description: `Your transaction has been confirmed. Signature: ${signature.slice(0, 8)}...`,
       });
 
       setIsModalOpen(false);
       await onUpdate();
+      setRetryCount(0); // Reset retry count on success
     } catch (error: any) {
-      toast({
-        title: "Payment Failed",
-        description: error.message || "Something went wrong",
-        variant: "destructive",
+      console.error('Payment process error:', {
+        error: error.message,
+        memeId,
+        retryCount,
+        timestamp: new Date().toISOString()
       });
+
+      const errorMessage = error.message || "Something went wrong";
+      
+      if (retryCount < 2) { // Max 3 attempts (0, 1, 2)
+        setRetryCount(prev => prev + 1);
+        toast({
+          title: "Payment Failed - Retrying",
+          description: `${errorMessage}. Attempt ${retryCount + 1} of 3...`,
+          variant: "destructive",
+        });
+        handlePayment(); // Retry
+      } else {
+        toast({
+          title: "Payment Failed",
+          description: `${errorMessage}. Maximum retry attempts reached. Please try again later.`,
+          variant: "destructive",
+        });
+        setRetryCount(0); // Reset retry count
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -79,7 +113,10 @@ export const TuzemoonButton = ({
 
       <TuzemoonModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          setRetryCount(0); // Reset retry count when modal is closed
+        }}
         onConfirm={handlePayment}
         isProcessing={isProcessing}
       />
