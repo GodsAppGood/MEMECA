@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      buffer: 'buffer',
     },
   },
   build: {
@@ -28,7 +29,8 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     'process.env': {},
-    global: {},
+    global: 'globalThis',
+    'process.env.NODE_DEBUG': JSON.stringify(''),
   },
   optimizeDeps: {
     esbuildOptions: {
