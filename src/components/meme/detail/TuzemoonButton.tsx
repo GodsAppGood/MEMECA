@@ -37,8 +37,21 @@ export const TuzemoonButton = ({
         timestamp: new Date().toISOString()
       });
 
+      // First check if Phantom is installed
+      if (!window.solana || !window.solana.isPhantom) {
+        toast({
+          title: "Wallet Not Found",
+          description: "Please install Phantom Wallet to proceed with the payment",
+          variant: "destructive",
+        });
+        window.open('https://phantom.app/', '_blank');
+        return;
+      }
+
       // Connect wallet first
       const walletAddress = await connectPhantomWallet();
+      console.log('Wallet connection attempt:', { walletAddress });
+      
       if (!walletAddress) {
         throw new Error("Failed to connect wallet");
       }

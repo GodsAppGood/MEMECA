@@ -1,30 +1,59 @@
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { createPaymentTransaction, signAndSendTransaction } from "@/utils/phantom-wallet";
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
-const RECIPIENT_WALLET = "YOUR_RECIPIENT_WALLET_ADDRESS"; // Replace with actual wallet address
+const SOLANA_NETWORK = 'devnet';
+const SOLANA_ENDPOINT = `https://api.${SOLANA_NETWORK}.solana.com`;
+const RECIPIENT_WALLET = process.env.VITE_TUZEMOON_WALLET_ADDRESS || "YOUR_RECIPIENT_WALLET_ADDRESS";
 
 export const sendSolPayment = async (
   memeId: string,
   memeTitle: string,
-  amount: number = 0.1 // Default amount in SOL
+  amount: number = 0.1
 ): Promise<{ success: boolean; signature?: string; error?: string }> => {
   try {
-    // Create transaction
-    const transaction = await createPaymentTransaction(
-      amount,
-      RECIPIENT_WALLET
-    );
-
-    if (!transaction) {
-      throw new Error("Failed to create transaction");
+    if (!window.solana?.isPhantom) {
+      throw new Error("Phantom wallet not found");
     }
 
-    // Sign and send transaction
-    const signature = await signAndSendTransaction(transaction);
+    const connection = new Connection(SOLANA_ENDPOINT);
+    
+    // Get the sender's public key
+    const sender = new PublicKey(window.solana.publicKey.toString());
+    const recipient = new PublicKey(RECIPIENT_WALLET);
 
-    if (!signature) {
-      throw new Error("Transaction failed");
+    // Check balance
+    const balance = await connection.getBalance(sender);
+    const requiredAmount = amount * LAMPORTS_PER_SOL;
+    
+    if (balance < requiredAmount) {
+      throw new Error(`Insufficient balance. Required: ${amount} SOL`);
+    }
+
+    // Create transaction
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: sender,
+        toPubkey: recipient,
+        lamports: requiredAmount,
+      })
+    );
+
+    // Get latest blockhash
+    const { blockhash } = await connection.getLatestBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = sender;
+
+    // Sign transaction
+    const signedTransaction = await window.solana.signTransaction(transaction);
+    
+    // Send transaction
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+    
+    // Wait for confirmation
+    const confirmation = await connection.confirmTransaction(signature);
+    
+    if (confirmation.value.err) {
+      throw new Error("Transaction failed to confirm");
     }
 
     // Log successful transaction
@@ -36,6 +65,7 @@ export const sendSolPayment = async (
         transaction_status: 'completed',
         amount: amount,
         transaction_signature: signature,
+        wallet_address: sender.toString(),
       });
 
     if (logError) {
@@ -57,6 +87,7 @@ export const sendSolPayment = async (
         meme_id: parseInt(memeId),
         transaction_status: 'failed',
         error_message: error.message,
+        wallet_address: window.solana?.publicKey?.toString(),
       });
 
     if (logError) {
