@@ -37,6 +37,8 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       const resp = await window.solana.connect();
       publicKey = resp.publicKey;
       
+      console.log('Connected to wallet:', publicKey.toString());
+      
       toast({
         title: "Wallet Connected",
         description: "Your Phantom wallet is now connected",
@@ -54,12 +56,25 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     // Create connection to Solana
     const connection = new Connection(ENDPOINT);
 
+    // Check balance
+    const balance = await connection.getBalance(publicKey);
+    console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+    
+    if (balance < AMOUNT * LAMPORTS_PER_SOL) {
+      toast({
+        title: "Insufficient Balance",
+        description: `You need at least ${AMOUNT} SOL plus gas fees`,
+        variant: "destructive",
+      });
+      return { success: false, error: "Insufficient balance" };
+    }
+
     // Create transaction
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: publicKey,
         toPubkey: new PublicKey(RECIPIENT_ADDRESS),
-        lamports: AMOUNT * LAMPORTS_PER_SOL
+        lamports: AMOUNT * LAMPORTS_PER_SOL // Convert SOL to lamports
       })
     );
 
@@ -68,15 +83,26 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = publicKey;
 
+    console.log('Transaction created:', {
+      amount: AMOUNT,
+      recipient: RECIPIENT_ADDRESS,
+      network: NETWORK
+    });
+
     // Request signature from user
     try {
       const signed = await window.solana.signTransaction(transaction);
+      console.log('Transaction signed, sending...');
+      
       const signature = await connection.sendRawTransaction(signed.serialize());
+      console.log('Transaction sent:', signature);
+      
       await connection.confirmTransaction(signature);
+      console.log('Transaction confirmed:', signature);
 
       // Log successful transaction
       await supabase.from("TransactionLogs").update({
-        transaction_status: "completed",
+        transaction_status: "success",
         transaction_signature: signature
       }).eq('user_id', user.data.user?.id)
         .eq('meme_id', parseInt(memeId))
