@@ -2,46 +2,63 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: () => Promise<void>;
-  memeId: string;
-  memeTitle: string;
+  onConfirm: () => void;
+  isProcessing: boolean;
 }
 
 export const TuzemoonModal = ({
   isOpen,
   onClose,
+  onConfirm,
+  isProcessing
 }: TuzemoonModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-2xl font-serif">
-            Feature Unavailable
-          </DialogTitle>
-          <DialogDescription className="space-y-4 pt-4">
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                The Tuzemoon feature is currently being updated. Please check back later.
-              </AlertDescription>
-            </Alert>
+          <DialogTitle>Confirm Tuzemoon Payment</DialogTitle>
+          <DialogDescription>
+            This will feature your meme on the Tuzemoon page. The cost is 0.1 SOL.
+            Make sure you have Phantom Wallet installed and sufficient SOL balance.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-4 pt-4">
-          <Button onClick={onClose} className="w-full" size="lg">
-            Close
-          </Button>
+
+        <div className="space-y-4">
+          <div className="rounded-lg bg-secondary p-4">
+            <p className="text-sm font-medium">Payment Details:</p>
+            <ul className="mt-2 space-y-2 text-sm">
+              <li>Amount: 0.1 SOL</li>
+              <li>Network: Solana (Devnet)</li>
+              <li>Wallet: Phantom</li>
+            </ul>
+          </div>
         </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+            Cancel
+          </Button>
+          <Button onClick={onConfirm} disabled={isProcessing}>
+            {isProcessing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Confirm Payment"
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
-import { Moon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Rocket } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { connectPhantomWallet } from "@/utils/phantom-wallet";
+import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
-import { updateTuzemoonStatus } from "@/services/tuzemoon-service";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -12,71 +12,76 @@ interface TuzemoonButtonProps {
   isFeatured: boolean;
   isAdmin: boolean;
   isVerified: boolean;
-  onUpdate: () => Promise<void>;
+  onUpdate: () => Promise<any>;
 }
 
-export const TuzemoonButton = ({ 
-  memeId, 
+export const TuzemoonButton = ({
+  memeId,
   memeTitle,
-  isFeatured, 
-  isAdmin, 
+  isFeatured,
+  isAdmin,
   isVerified,
-  onUpdate 
+  onUpdate
 }: TuzemoonButtonProps) => {
-  const { toast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { toast } = useToast();
 
-  const handleSuccess = async () => {
+  const handlePayment = async () => {
+    setIsProcessing(true);
     try {
-      const result = await updateTuzemoonStatus(memeId, false);
-      if (result) {
-        void onUpdate();
+      // Connect wallet first
+      const walletAddress = await connectPhantomWallet();
+      if (!walletAddress) {
+        throw new Error("Failed to connect wallet");
       }
-    } catch (error) {
-      console.error("Error in handleSuccess:", error);
+
+      // Process payment
+      const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
+
+      if (!success || !signature) {
+        throw new Error(error || "Payment failed");
+      }
+
+      toast({
+        title: "Payment Successful",
+        description: "Your transaction has been confirmed",
+      });
+
+      setIsModalOpen(false);
+      await onUpdate();
+    } catch (error: any) {
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const handleTuzemoonClick = async () => {
-    if (isAdmin) {
-      const result = await updateTuzemoonStatus(memeId, isFeatured);
-      if (result) {
-        void onUpdate();
-      }
-    } else if (isVerified) {
-      toast({
-        title: "Feature Unavailable",
-        description: "Tuzemoon feature is being updated",
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Verification Required",
-        description: "Only verified users can use Tuzemoon",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (!isAdmin && !isVerified) return null;
+  if (!isVerified && !isAdmin) {
+    return null;
+  }
 
   return (
     <>
       <Button
-        variant="outline"
-        onClick={handleTuzemoonClick}
-        className={`group ${isFeatured ? 'text-yellow-500' : ''}`}
+        onClick={() => setIsModalOpen(true)}
+        variant={isFeatured ? "secondary" : "default"}
+        className="flex items-center gap-2"
+        disabled={isProcessing}
       >
-        <Moon className={`h-5 w-5 mr-2 ${isFeatured ? 'fill-current' : ''}`} />
-        {isFeatured ? 'Remove from Tuzemoon' : 'Add to Tuzemoon'}
+        <Rocket className="h-4 w-4" />
+        {isFeatured ? "Featured" : "Tuzemoon"}
       </Button>
 
       <TuzemoonModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={handleSuccess}
-        memeId={memeId}
-        memeTitle={memeTitle}
+        onConfirm={handlePayment}
+        isProcessing={isProcessing}
       />
     </>
   );
