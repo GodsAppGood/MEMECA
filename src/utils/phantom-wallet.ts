@@ -107,7 +107,7 @@ export const createPaymentTransaction = async (
     }
 
     const connection = new Connection(SOLANA_ENDPOINT);
-    const sender = window.solana.publicKey;
+    const sender = new PublicKey(window.solana.publicKey.toString());
     const recipient = new PublicKey(recipientAddress);
 
     // Validate balance
