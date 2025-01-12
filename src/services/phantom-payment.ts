@@ -13,8 +13,7 @@ export const sendSolPayment = async (
     // Create transaction
     const transaction = await createPaymentTransaction(
       amount,
-      RECIPIENT_WALLET,
-      `Payment for ${memeTitle}`
+      RECIPIENT_WALLET
     );
 
     if (!transaction) {
