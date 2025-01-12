@@ -14,9 +14,10 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     solanaPayUrl.searchParams.append("redirect_url", `${window.location.origin}/dashboard`);
 
     // Log the transaction attempt
+    const user = await supabase.auth.getUser();
     await supabase.from("TransactionLogs").insert({
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      meme_id: memeId,
+      user_id: user.data.user?.id,
+      meme_id: parseInt(memeId), // Convert string to number
       transaction_status: "pending",
       amount: AMOUNT,
       wallet_address: RECIPIENT_ADDRESS
@@ -33,9 +34,10 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     console.error("Solana Pay error:", error);
 
     // Log the failed transaction
+    const user = await supabase.auth.getUser();
     await supabase.from("TransactionLogs").insert({
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      meme_id: memeId,
+      user_id: user.data.user?.id,
+      meme_id: parseInt(memeId), // Convert string to number
       transaction_status: "failed",
       amount: AMOUNT,
       error_message: error.message,
