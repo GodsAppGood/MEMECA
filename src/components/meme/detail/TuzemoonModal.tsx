@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -24,27 +25,37 @@ export const TuzemoonModal = ({
 }: TuzemoonModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Confirm Tuzemoon Payment</DialogTitle>
           <DialogDescription>
-            This will feature your meme on the Tuzemoon page. The cost is 0.1 SOL.
-            Make sure you have Phantom Wallet installed and sufficient SOL balance.
+            Feature your meme on the Tuzemoon page by completing a payment of 0.1 SOL.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="rounded-lg bg-secondary p-4">
-            <p className="text-sm font-medium">Payment Details:</p>
-            <ul className="mt-2 space-y-2 text-sm">
-              <li>Amount: 0.1 SOL</li>
-              <li>Network: Solana (Devnet)</li>
-              <li>Wallet: Phantom</li>
+            <p className="text-sm font-medium mb-2">Payment Details:</p>
+            <ul className="space-y-2 text-sm">
+              <li>• Amount: 0.1 SOL</li>
+              <li>• Network: Solana (Devnet)</li>
+              <li>• Wallet: Phantom</li>
             </ul>
           </div>
+
+          <Alert>
+            <AlertDescription>
+              <p className="font-medium mb-2">Before proceeding, please ensure:</p>
+              <ul className="list-disc pl-4 space-y-1 text-sm">
+                <li>Phantom Wallet is installed and unlocked</li>
+                <li>You have sufficient SOL balance (0.1 SOL + gas fees)</li>
+                <li>Your wallet is connected to the correct network (Devnet)</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button variant="outline" onClick={onClose} disabled={isProcessing}>
             Cancel
           </Button>
