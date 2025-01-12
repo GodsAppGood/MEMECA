@@ -75,6 +75,53 @@ const checkPhantomWallet = async () => {
   }
 };
 
+const verifyRecipientAccount = async (
+  connection: Connection,
+  recipientPubkey: PublicKey
+) => {
+  try {
+    console.log('Verifying recipient account:', recipientPubkey.toString());
+    const accountInfo = await connection.getAccountInfo(recipientPubkey);
+    
+    if (!accountInfo) {
+      console.error('Recipient account not found');
+      return false;
+    }
+    
+    console.log('Recipient account verified:', {
+      lamports: accountInfo.lamports,
+      owner: accountInfo.owner.toString(),
+      executable: accountInfo.executable
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error verifying recipient account:', error);
+    return false;
+  }
+};
+
+const simulateTransaction = async (
+  connection: Connection,
+  transaction: Transaction
+) => {
+  try {
+    console.log('Simulating transaction...');
+    const simulation = await connection.simulateTransaction(transaction);
+    
+    console.log('Transaction simulation result:', {
+      err: simulation.value.err,
+      logs: simulation.value.logs,
+      unitsConsumed: simulation.value.unitsConsumed
+    });
+    
+    return !simulation.value.err;
+  } catch (error) {
+    console.error('Transaction simulation failed:', error);
+    return false;
+  }
+};
+
 const createAndSignTransaction = async (
   fromPubkey: PublicKey,
   toPubkey: PublicKey,
@@ -111,6 +158,12 @@ const createAndSignTransaction = async (
       })
     )
   );
+
+  // Simulate transaction before signing
+  const isSimulationSuccessful = await simulateTransaction(connection, transaction);
+  if (!isSimulationSuccessful) {
+    throw new Error('Transaction simulation failed');
+  }
 
   if (!window.solana) {
     throw new Error('Phantom wallet not found');
@@ -171,9 +224,17 @@ export const sendSolPayment = async (
       confirmTransactionInitialTimeout: 60000
     });
 
+    // Verify recipient account
+    const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
+    if (!await verifyRecipientAccount(connection, toPubkey)) {
+      return {
+        success: false,
+        error: "Invalid recipient account"
+      };
+    }
+
     // Prepare transaction
     const fromPubkey = new PublicKey(walletResponse.publicKey.toString());
-    const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
     const lamports = TUZEMOON_COST * LAMPORTS_PER_SOL;
 
     // Create and sign transaction
