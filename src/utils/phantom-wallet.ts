@@ -17,8 +17,9 @@ export const connectPhantomWallet = async () => {
     }
 
     const response = await window.solana.connect();
-    console.log('Wallet connected:', response.publicKey.toString());
-    return response.publicKey.toString();
+    const publicKeyString = response.publicKey.toString();
+    console.log('Wallet connected:', publicKeyString);
+    return publicKeyString;
   } catch (error) {
     console.error('Error connecting wallet:', error);
     toast({
@@ -41,12 +42,13 @@ export const createPaymentTransaction = async (
     }
 
     const connection = new Connection(SOLANA_ENDPOINT);
-    const sender = window.solana.publicKey;
-    const recipient = new PublicKey(recipientAddress);
-
-    if (!sender) {
+    
+    // Convert the wallet's public key to a proper Solana PublicKey object
+    if (!window.solana.publicKey) {
       throw new Error("Wallet not connected");
     }
+    const sender = new PublicKey(window.solana.publicKey.toString());
+    const recipient = new PublicKey(recipientAddress);
 
     // Create transaction
     const transaction = new Transaction().add(
