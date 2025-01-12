@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { connectPhantomWallet } from "@/utils/phantom-wallet";
 import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
 
@@ -44,9 +43,11 @@ export const TuzemoonButton = ({
         return;
       }
 
-      // Request wallet connection first
+      // Connect to wallet first
       try {
-        await window.solana.connect();
+        console.log('Connecting to Phantom wallet...');
+        const response = await window.solana.connect();
+        console.log('Wallet connected:', response.publicKey.toString());
       } catch (err) {
         console.error('Failed to connect wallet:', err);
         toast({
@@ -58,6 +59,7 @@ export const TuzemoonButton = ({
       }
 
       // Proceed with payment
+      console.log('Starting payment process...');
       const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
 
       if (!success || !signature) {

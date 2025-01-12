@@ -1,5 +1,5 @@
-import { supabase } from "@/integrations/supabase/client";
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { supabase } from "@/integrations/supabase/client";
 
 const SOLANA_NETWORK = 'devnet';
 const SOLANA_ENDPOINT = `https://api.${SOLANA_NETWORK}.solana.com`;
@@ -11,19 +11,38 @@ export const sendSolPayment = async (
   amount: number = 0.1
 ): Promise<{ success: boolean; signature?: string; error?: string }> => {
   try {
+    console.log('Starting payment process...', {
+      memeId,
+      memeTitle,
+      amount,
+      timestamp: new Date().toISOString()
+    });
+
     if (!window.solana?.isPhantom) {
       throw new Error("Phantom wallet not found");
     }
 
+    // Ensure wallet is connected
     if (!window.solana.publicKey) {
-      throw new Error("Wallet not connected");
+      await window.solana.connect();
     }
 
     const connection = new Connection(SOLANA_ENDPOINT);
     
-    // Get the sender's public key
-    const sender = new PublicKey(window.solana.publicKey.toString());
-    const recipient = new PublicKey(RECIPIENT_WALLET);
+    // Get the sender's public key directly from Phantom
+    const sender = window.solana.publicKey;
+    if (!sender) {
+      throw new Error("Failed to get wallet public key");
+    }
+
+    // Create recipient public key from address string
+    let recipient: PublicKey;
+    try {
+      recipient = new PublicKey(RECIPIENT_WALLET);
+    } catch (error) {
+      console.error('Invalid recipient address:', error);
+      throw new Error("Invalid recipient wallet address");
+    }
 
     // Check balance
     const balance = await connection.getBalance(sender);
@@ -53,7 +72,7 @@ export const sendSolPayment = async (
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = sender;
 
-    console.log('Requesting signature...');
+    console.log('Requesting signature from Phantom...');
     
     // Request signature from user
     const signedTransaction = await window.solana.signTransaction(transaction);
