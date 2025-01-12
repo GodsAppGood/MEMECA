@@ -4,6 +4,7 @@ import { Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -26,6 +27,44 @@ export const TuzemoonButton = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
+
+  const handleAdminTuzemoon = async () => {
+    setIsProcessing(true);
+    try {
+      console.log('Admin updating Tuzemoon status for meme:', memeId);
+      
+      const tuzemoonUntil = !isFeatured ? 
+        new Date(Date.now() + 24 * 60 * 60 * 1000) : // 24 hours from now
+        null;
+
+      const { error } = await supabase
+        .from('Memes')
+        .update({ 
+          is_featured: !isFeatured,
+          tuzemoon_until: tuzemoonUntil
+        })
+        .eq('id', memeId);
+
+      if (error) throw error;
+
+      await onUpdate();
+      
+      toast({
+        title: !isFeatured ? "Tuzemoon Activated" : "Tuzemoon Deactivated",
+        description: `Successfully ${!isFeatured ? 'added to' : 'removed from'} Tuzemoon`,
+      });
+
+    } catch (error: any) {
+      console.error('Admin Tuzemoon update error:', error);
+      toast({
+        title: "Update Failed",
+        description: error.message || "Failed to update Tuzemoon status",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handlePayment = async () => {
     if (isProcessing) return;
@@ -111,6 +150,14 @@ export const TuzemoonButton = ({
     }
   };
 
+  const handleClick = () => {
+    if (isAdmin) {
+      handleAdminTuzemoon();
+    } else {
+      setIsModalOpen(true);
+    }
+  };
+
   if (!isVerified && !isAdmin) {
     return null;
   }
@@ -118,7 +165,7 @@ export const TuzemoonButton = ({
   return (
     <>
       <Button
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleClick}
         variant={isFeatured ? "secondary" : "default"}
         className="flex items-center gap-2"
         disabled={isProcessing}
@@ -127,15 +174,17 @@ export const TuzemoonButton = ({
         {isFeatured ? "Featured" : "Tuzemoon"}
       </Button>
 
-      <TuzemoonModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setRetryCount(0);
-        }}
-        onConfirm={handlePayment}
-        isProcessing={isProcessing}
-      />
+      {!isAdmin && (
+        <TuzemoonModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setRetryCount(0);
+          }}
+          onConfirm={handlePayment}
+          isProcessing={isProcessing}
+        />
+      )}
     </>
   );
 };
