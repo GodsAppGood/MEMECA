@@ -21,6 +21,16 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       return { success: false, error: "Phantom wallet not installed" };
     }
 
+    // Log transaction attempt
+    const user = await supabase.auth.getUser();
+    await supabase.from("TransactionLogs").insert({
+      user_id: user.data.user?.id,
+      meme_id: parseInt(memeId),
+      transaction_status: "pending",
+      amount: AMOUNT,
+      wallet_address: RECIPIENT_ADDRESS
+    });
+
     // Connect to wallet
     let publicKey;
     try {
@@ -40,16 +50,6 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       });
       return { success: false, error: "Failed to connect wallet" };
     }
-
-    // Log transaction attempt
-    const user = await supabase.auth.getUser();
-    await supabase.from("TransactionLogs").insert({
-      user_id: user.data.user?.id,
-      meme_id: parseInt(memeId),
-      transaction_status: "pending",
-      amount: AMOUNT,
-      wallet_address: publicKey.toString()
-    });
 
     // Create connection to Solana
     const connection = new Connection(ENDPOINT);
@@ -88,7 +88,7 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       });
 
       return { success: true, signature };
-    } catch (err) {
+    } catch (err: any) {
       console.error('Transaction failed:', err);
       
       // Log failed transaction
