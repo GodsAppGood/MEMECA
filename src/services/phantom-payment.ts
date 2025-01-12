@@ -30,18 +30,31 @@ const checkPhantomWallet = async () => {
     return false;
   }
 
+  // Check if Phantom is installed
   if (!window.solana) {
-    console.error('window.solana is undefined');
+    console.error('Phantom wallet not found. Please install Phantom wallet.');
+    toast({
+      title: "Wallet Not Found",
+      description: "Please install Phantom wallet to continue",
+      variant: "destructive",
+    });
     return false;
   }
 
+  // Check if it's actually Phantom
   if (!window.solana.isPhantom) {
     console.error('Not a Phantom wallet');
+    toast({
+      title: "Invalid Wallet",
+      description: "Please use Phantom wallet to continue",
+      variant: "destructive",
+    });
     return false;
   }
 
   try {
     console.log('Attempting to connect to Phantom wallet...');
+    // Only try to connect if not already connected
     if (!window.solana.isConnected) {
       await window.solana.connect({ onlyIfTrusted: true })
         .catch(() => console.log('Not previously connected'));
@@ -99,6 +112,10 @@ const createAndSignTransaction = async (
     )
   );
 
+  if (!window.solana) {
+    throw new Error('Phantom wallet not found');
+  }
+
   console.log('Requesting transaction signature...');
   const signed = await window.solana.signTransaction(transaction);
   
@@ -130,12 +147,16 @@ export const sendSolPayment = async (
     }
 
     // Connect wallet
+    if (!window.solana) {
+      throw new Error('Phantom wallet not available');
+    }
+
     let walletResponse;
     try {
       console.log('Connecting to wallet...');
       walletResponse = await window.solana.connect();
       console.log('Wallet connected:', walletResponse.publicKey.toString());
-    } catch (error) {
+    } catch (error: any) {
       console.error('Wallet connection error:', error);
       return { 
         success: false, 
@@ -200,7 +221,7 @@ export const sendSolPayment = async (
       }
 
       return { success: true, signature };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Transaction error:', error);
       
       // Log failed transaction
@@ -220,7 +241,7 @@ export const sendSolPayment = async (
         error: error.message || "Transaction failed" 
       };
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Payment process error:', error);
     return { 
       success: false, 
