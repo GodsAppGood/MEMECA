@@ -29,15 +29,11 @@ export const TuzemoonButton = ({
   const { toast } = useToast();
 
   const handlePayment = async () => {
+    if (isProcessing) return;
+    
     setIsProcessing(true);
     try {
-      console.log('Starting payment process:', {
-        memeId,
-        memeTitle,
-        timestamp: new Date().toISOString()
-      });
-
-      // First check if Phantom is installed
+      // Check if Phantom is installed
       if (!window.solana || !window.solana.isPhantom) {
         toast({
           title: "Wallet Not Found",
@@ -48,15 +44,20 @@ export const TuzemoonButton = ({
         return;
       }
 
-      // Connect wallet first
-      const walletAddress = await connectPhantomWallet();
-      console.log('Wallet connection attempt:', { walletAddress });
-      
-      if (!walletAddress) {
-        throw new Error("Failed to connect wallet");
+      // Request wallet connection first
+      try {
+        await window.solana.connect();
+      } catch (err) {
+        console.error('Failed to connect wallet:', err);
+        toast({
+          title: "Connection Failed",
+          description: "Failed to connect to Phantom wallet. Please try again.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      // Process payment
+      // Proceed with payment
       const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
 
       if (!success || !signature) {
@@ -76,7 +77,7 @@ export const TuzemoonButton = ({
 
       setIsModalOpen(false);
       await onUpdate();
-      setRetryCount(0); // Reset retry count on success
+      setRetryCount(0);
     } catch (error: any) {
       console.error('Payment process error:', {
         error: error.message,
@@ -87,21 +88,21 @@ export const TuzemoonButton = ({
 
       const errorMessage = error.message || "Something went wrong";
       
-      if (retryCount < 2) { // Max 3 attempts (0, 1, 2)
+      if (retryCount < 2) {
         setRetryCount(prev => prev + 1);
         toast({
           title: "Payment Failed - Retrying",
           description: `${errorMessage}. Attempt ${retryCount + 1} of 3...`,
           variant: "destructive",
         });
-        handlePayment(); // Retry
+        await handlePayment();
       } else {
         toast({
           title: "Payment Failed",
           description: `${errorMessage}. Maximum retry attempts reached. Please try again later.`,
           variant: "destructive",
         });
-        setRetryCount(0); // Reset retry count
+        setRetryCount(0);
       }
     } finally {
       setIsProcessing(false);
@@ -128,7 +129,7 @@ export const TuzemoonButton = ({
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
-          setRetryCount(0); // Reset retry count when modal is closed
+          setRetryCount(0);
         }}
         onConfirm={handlePayment}
         isProcessing={isProcessing}

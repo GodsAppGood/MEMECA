@@ -15,6 +15,10 @@ export const sendSolPayment = async (
       throw new Error("Phantom wallet not found");
     }
 
+    if (!window.solana.publicKey) {
+      throw new Error("Wallet not connected");
+    }
+
     const connection = new Connection(SOLANA_ENDPOINT);
     
     // Get the sender's public key
@@ -28,6 +32,12 @@ export const sendSolPayment = async (
     if (balance < requiredAmount) {
       throw new Error(`Insufficient balance. Required: ${amount} SOL`);
     }
+
+    console.log('Creating transaction:', {
+      sender: sender.toString(),
+      recipient: recipient.toString(),
+      amount: requiredAmount,
+    });
 
     // Create transaction
     const transaction = new Transaction().add(
@@ -43,11 +53,17 @@ export const sendSolPayment = async (
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = sender;
 
-    // Sign transaction
+    console.log('Requesting signature...');
+    
+    // Request signature from user
     const signedTransaction = await window.solana.signTransaction(transaction);
+    
+    console.log('Transaction signed, sending to network...');
     
     // Send transaction
     const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+    
+    console.log('Waiting for confirmation...');
     
     // Wait for confirmation
     const confirmation = await connection.confirmTransaction(signature);
@@ -55,6 +71,8 @@ export const sendSolPayment = async (
     if (confirmation.value.err) {
       throw new Error("Transaction failed to confirm");
     }
+
+    console.log('Transaction confirmed:', signature);
 
     // Log successful transaction
     const { error: logError } = await supabase
@@ -77,7 +95,11 @@ export const sendSolPayment = async (
       signature 
     };
   } catch (error: any) {
-    console.error('Payment error:', error);
+    console.error('Payment error:', {
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
     
     // Log failed transaction
     const { error: logError } = await supabase
