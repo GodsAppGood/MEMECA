@@ -10,14 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 // Constants
-const TUZEMOON_COST = 0.0001; // Changed from 0.1 to 0.0001 for testing
+const TUZEMOON_COST = 0.0001; // Test amount
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const RPC_URL = "https://lingering-radial-wildflower.solana-mainnet.quiknode.pro/2401cf6c3ba08ec561ca8b671467fedb78b2ef71";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -61,57 +56,47 @@ const checkPhantomWallet = async () => {
   }
 };
 
-const authenticateWallet = async (walletAddress: string) => {
-  try {
-    console.log('Starting wallet authentication for:', walletAddress);
-    
-    // Generate nonce
-    const { data: nonceData, error: nonceError } = await supabase.functions.invoke('wallet-auth', {
-      body: { 
-        walletAddress,
-        action: 'generate-nonce'
-      }
-    });
+const createAndSignTransaction = async (
+  fromPubkey: PublicKey,
+  toPubkey: PublicKey,
+  lamports: number,
+  connection: Connection
+) => {
+  console.log('Creating transaction with params:', {
+    from: fromPubkey.toString(),
+    to: toPubkey.toString(),
+    amount: lamports / LAMPORTS_PER_SOL,
+    timestamp: new Date().toISOString()
+  });
 
-    if (nonceError || !nonceData?.nonce) {
-      console.error('Failed to generate nonce:', nonceError);
-      return { success: false, error: 'Failed to generate nonce' };
-    }
+  const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+  
+  const transaction = new Transaction().add(
+    SystemProgram.transfer({
+      fromPubkey,
+      toPubkey,
+      lamports,
+    })
+  );
 
-    console.log('Nonce generated successfully');
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPubkey;
 
-    // Sign message
-    const message = new TextEncoder().encode(nonceData.nonce);
-    let signature;
-    try {
-      signature = await window.solana.signMessage(message, 'utf8');
-      console.log('Message signed successfully');
-    } catch (error) {
-      console.error('Failed to sign message:', error);
-      return { success: false, error: 'Failed to sign message' };
-    }
+  // Add a memo to make the transaction more descriptive in the wallet
+  transaction.add(
+    new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey,
+        toPubkey,
+        lamports: 0, // No additional transfer
+      })
+    )
+  );
 
-    // Verify signature
-    const { data: verifyData, error: verifyError } = await supabase.functions.invoke('wallet-auth', {
-      body: {
-        walletAddress,
-        signature: Array.from(signature).toString(),
-        nonce: nonceData.nonce,
-        action: 'verify-signature'
-      }
-    });
-
-    if (verifyError || !verifyData?.session) {
-      console.error('Failed to verify signature:', verifyError);
-      return { success: false, error: 'Failed to verify signature' };
-    }
-
-    console.log('Wallet authentication successful');
-    return { success: true };
-  } catch (error) {
-    console.error('Error in wallet authentication:', error);
-    return { success: false, error: 'Authentication failed' };
-  }
+  console.log('Requesting transaction signature...');
+  const signed = await window.solana.signTransaction(transaction);
+  
+  return { signed, blockhash, lastValidBlockHeight };
 };
 
 export const sendSolPayment = async (
@@ -152,46 +137,28 @@ export const sendSolPayment = async (
       };
     }
 
-    // Authenticate wallet
-    const authResult = await authenticateWallet(walletResponse.publicKey.toString());
-    if (!authResult.success) {
-      return { 
-        success: false, 
-        error: authResult.error || "Wallet authentication failed" 
-      };
-    }
-
     // Create connection
     console.log('Creating Solana connection...');
     const connection = new Connection(RPC_URL, {
-      commitment: 'confirmed',
+      commitment: 'confirmed' as Commitment,
       confirmTransactionInitialTimeout: 60000
     });
 
     // Prepare transaction
-    console.log('Preparing transaction...');
     const fromPubkey = new PublicKey(walletResponse.publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
     const lamports = TUZEMOON_COST * LAMPORTS_PER_SOL;
 
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
-    
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey,
-        toPubkey,
-        lamports,
-      })
+    // Create and sign transaction
+    const { signed, blockhash, lastValidBlockHeight } = await createAndSignTransaction(
+      fromPubkey,
+      toPubkey,
+      lamports,
+      connection
     );
 
-    transaction.recentBlockhash = blockhash;
-    transaction.feePayer = fromPubkey;
-
-    // Sign and send transaction
+    // Send transaction
     try {
-      console.log('Requesting transaction signature...');
-      const signed = await window.solana.signTransaction(transaction);
-      
       console.log('Sending transaction...');
       const signature = await connection.sendRawTransaction(signed.serialize());
       
@@ -209,7 +176,7 @@ export const sendSolPayment = async (
       console.log('Transaction confirmed:', signature);
 
       // Log successful transaction
-      await supabase.functions.invoke('log-transaction', {
+      const logResponse = await supabase.functions.invoke('log-transaction', {
         body: {
           user_id: session.user.id,
           meme_id: memeId,
@@ -219,6 +186,10 @@ export const sendSolPayment = async (
           transaction_signature: signature
         }
       });
+
+      if (logResponse.error) {
+        console.error('Error logging transaction:', logResponse.error);
+      }
 
       return { success: true, signature };
     } catch (error) {
