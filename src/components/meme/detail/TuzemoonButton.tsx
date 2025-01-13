@@ -85,8 +85,7 @@ export const TuzemoonButton = ({
       // Connect to wallet first
       try {
         console.log('Connecting to Phantom wallet...');
-        const response = await window.solana.connect();
-        console.log('Wallet connected:', response.publicKey.toString());
+        await window.solana.connect();
       } catch (err) {
         console.error('Failed to connect wallet:', err);
         toast({
