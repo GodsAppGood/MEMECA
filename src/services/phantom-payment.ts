@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 // Constants
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const AMOUNT = 0.1;
-const NETWORK = 'devnet';
+const NETWORK = 'mainnet-beta';
 const ENDPOINT = `https://api.${NETWORK}.solana.com`;
 
 export const sendSolPayment = async (memeId: string, memeTitle: string) => {

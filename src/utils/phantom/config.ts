@@ -1,8 +1,8 @@
 import { ConnectionConfig } from './types';
 
 export const WALLET_CONFIG: ConnectionConfig = {
-  network: 'devnet',
-  endpoint: `https://api.devnet.solana.com`,
+  network: 'mainnet-beta',
+  endpoint: `https://api.mainnet-beta.solana.com`,
   maxRetries: 3,
   retryDelay: 2000,
 };
