@@ -68,7 +68,12 @@ export const TuzemoonButton = ({
 
   const verifyAndActivateTuzemoon = async (signature: string) => {
     try {
-      // First, verify the payment in TuzemoonPayments
+      console.log('Starting Tuzemoon verification for signature:', signature);
+
+      // First, wait a short time to ensure the payment record has been created
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Verify the payment in TuzemoonPayments
       const { data: paymentData, error: paymentError } = await supabase
         .from('TuzemoonPayments')
         .select('*')
@@ -76,12 +81,19 @@ export const TuzemoonButton = ({
         .eq('transaction_status', 'success')
         .single();
 
-      if (paymentError || !paymentData) {
-        console.error('Payment verification failed:', paymentError);
-        return false;
+      if (paymentError) {
+        console.error('Payment verification query error:', paymentError);
+        return { success: false, error: 'Payment verification failed' };
       }
 
-      // If payment is verified, activate Tuzemoon
+      if (!paymentData) {
+        console.error('Payment record not found');
+        return { success: false, error: 'Payment record not found' };
+      }
+
+      console.log('Payment verified successfully:', paymentData);
+
+      // Activate Tuzemoon
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
       const { error: updateError } = await supabase
@@ -94,13 +106,14 @@ export const TuzemoonButton = ({
 
       if (updateError) {
         console.error('Tuzemoon activation failed:', updateError);
-        return false;
+        return { success: false, error: 'Failed to activate Tuzemoon status' };
       }
 
-      return true;
+      console.log('Tuzemoon activated successfully');
+      return { success: true };
     } catch (error) {
       console.error('Error in verifyAndActivateTuzemoon:', error);
-      return false;
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
     }
   };
 
@@ -140,7 +153,7 @@ export const TuzemoonButton = ({
       }
 
       console.log('Payment successful, verifying and activating Tuzemoon...');
-      const activationSuccess = await verifyAndActivateTuzemoon(signature);
+      const { success: activationSuccess, error: activationError } = await verifyAndActivateTuzemoon(signature);
 
       if (activationSuccess) {
         toast({
@@ -150,9 +163,10 @@ export const TuzemoonButton = ({
         setIsModalOpen(false);
         await onUpdate();
       } else {
+        console.error('Activation error:', activationError);
         toast({
           title: "Activation Failed",
-          description: "Payment successful but Tuzemoon activation failed. Please contact support.",
+          description: `Payment successful but Tuzemoon activation failed: ${activationError}. Please contact support with transaction ID: ${signature.slice(0, 8)}...`,
           variant: "destructive",
         });
       }
