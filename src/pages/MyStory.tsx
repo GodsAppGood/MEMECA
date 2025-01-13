@@ -114,33 +114,53 @@ const MyStory = () => {
           <div className="prose prose-lg max-w-4xl mx-auto">
             <ol className="list-decimal space-y-6">
               <li className="font-semibold">
+                Strategic Collaborations and Fundraising
+                <p className="font-normal mt-2">
+                  We plan to establish strategic partnerships with other projects to enhance the ecosystem and create mutually beneficial opportunities. Additionally, we will raise funds to bolster the liquidity pool through:
+                </p>
+                <ul className="list-disc ml-6 mt-2">
+                  <li>Additional fundraising rounds focused on expanding liquidity and project stability.</li>
+                  <li>MemecaWheel fundraising campaign, where 100% of the collected funds will directly support the liquidity pool.</li>
+                </ul>
+              </li>
+              <li className="font-semibold">
                 Listing on Dexscreener
                 <p className="font-normal mt-2">
-                  Immediately after launch, the token will be listed on Dexscreener with liquidity pool support, allowing investors to easily track its price and trading volumes.
+                  Immediately following the token launch, Tuzemoon will be listed on Dexscreener. With liquidity pool support in place, investors will be able to effortlessly track price movements and trading volumes.
                 </p>
               </li>
               <li className="font-semibold">
                 Regular Platform Updates
                 <p className="font-normal mt-2">
-                  The platform will be regularly updated to improve functionality and design. Our goal is to make the website user-friendly and valuable for all users.
-                </p>
-              </li>
-              <li className="font-semibold">
-                Integration of an AI Assistant
-                <p className="font-normal mt-2">
-                  We plan to integrate our own AI assistant, which will:
+                  Our commitment to innovation and usability will be reflected in regular platform updates. These updates will focus on enhancing:
                 </p>
                 <ul className="list-disc ml-6 mt-2">
-                  <li>Analyze tokens, providing detailed insights into their potential.</li>
-                  <li>Evaluate new blockchain-based projects.</li>
-                  <li>Offer trading recommendations and guidance on adding tokens to portfolios.</li>
+                  <li>Functionality for a smoother user experience.</li>
+                  <li>Design improvements to ensure an intuitive and visually appealing interface.</li>
+                  <li>Features that provide added value to all platform users.</li>
+                </ul>
+              </li>
+              <li className="font-semibold">
+                AI Assistant Integration
+                <p className="font-normal mt-2">
+                  We aim to integrate a powerful AI assistant into the Tuzemoon ecosystem. This assistant will:
+                </p>
+                <ul className="list-disc ml-6 mt-2">
+                  <li>Analyze tokens and offer detailed insights into their potential and performance.</li>
+                  <li>Evaluate new blockchain projects and provide assessments for investors.</li>
+                  <li>Deliver personalized trading recommendations and guidance for portfolio management.</li>
                 </ul>
               </li>
               <li className="font-semibold">
                 Fully Automated Platform
                 <p className="font-normal mt-2">
-                  In the future, we aim to make the platform completely automated for seamless user experience and efficiency.
+                  Looking ahead, our ultimate goal is to transform the platform into a fully automated system. This will ensure:
                 </p>
+                <ul className="list-disc ml-6 mt-2">
+                  <li>A seamless and efficient user experience.</li>
+                  <li>Reduced manual intervention for core processes.</li>
+                  <li>Enhanced scalability to support our growing community.</li>
+                </ul>
               </li>
             </ol>
           </div>
