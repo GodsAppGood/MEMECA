@@ -49,7 +49,8 @@ export const TuzemoonButton = ({
             user_id: userId,
             transaction_signature: signature,
             amount: 0.1,
-            transaction_status: 'success'
+            transaction_status: 'success',
+            wallet_address: window.solana?.publicKey?.toString()
           }]);
 
         if (paymentError) {
