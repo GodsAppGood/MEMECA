@@ -34,7 +34,7 @@ export const TuzemoonButton = ({
       console.log('Admin updating Tuzemoon status for meme:', memeId);
       
       const tuzemoonUntil = !isFeatured ? 
-        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : // Convert Date to ISO string
+        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : 
         null;
 
       const { error } = await supabase
@@ -43,7 +43,7 @@ export const TuzemoonButton = ({
           is_featured: !isFeatured,
           tuzemoon_until: tuzemoonUntil
         })
-        .eq('id', parseInt(memeId)); // Convert string ID to number
+        .eq('id', parseInt(memeId));
 
       if (error) throw error;
 
@@ -66,12 +66,49 @@ export const TuzemoonButton = ({
     }
   };
 
+  const verifyAndActivateTuzemoon = async (signature: string) => {
+    try {
+      // First, verify the payment in TuzemoonPayments
+      const { data: paymentData, error: paymentError } = await supabase
+        .from('TuzemoonPayments')
+        .select('*')
+        .eq('transaction_signature', signature)
+        .eq('transaction_status', 'success')
+        .single();
+
+      if (paymentError || !paymentData) {
+        console.error('Payment verification failed:', paymentError);
+        return false;
+      }
+
+      // If payment is verified, activate Tuzemoon
+      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error: updateError } = await supabase
+        .from('Memes')
+        .update({
+          is_featured: true,
+          tuzemoon_until: tuzemoonUntil
+        })
+        .eq('id', parseInt(memeId));
+
+      if (updateError) {
+        console.error('Tuzemoon activation failed:', updateError);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error in verifyAndActivateTuzemoon:', error);
+      return false;
+    }
+  };
+
   const handlePayment = async () => {
     if (isProcessing) return;
     
     setIsProcessing(true);
     try {
-      // Check if Phantom is installed
       if (!window.solana || !window.solana.isPhantom) {
         toast({
           title: "Wallet Not Found",
@@ -82,7 +119,6 @@ export const TuzemoonButton = ({
         return;
       }
 
-      // Connect to wallet first
       try {
         console.log('Connecting to Phantom wallet...');
         await window.solana.connect();
@@ -96,7 +132,6 @@ export const TuzemoonButton = ({
         return;
       }
 
-      // Proceed with payment
       console.log('Starting payment process...');
       const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
 
@@ -104,19 +139,24 @@ export const TuzemoonButton = ({
         throw new Error(error || "Payment failed");
       }
 
-      console.log('Payment successful:', {
-        signature,
-        memeId,
-        timestamp: new Date().toISOString()
-      });
+      console.log('Payment successful, verifying and activating Tuzemoon...');
+      const activationSuccess = await verifyAndActivateTuzemoon(signature);
 
-      toast({
-        title: "Payment Successful",
-        description: `Your transaction has been confirmed. Signature: ${signature.slice(0, 8)}...`,
-      });
+      if (activationSuccess) {
+        toast({
+          title: "Tuzemoon Activated",
+          description: "Payment confirmed and Tuzemoon status activated!",
+        });
+        setIsModalOpen(false);
+        await onUpdate();
+      } else {
+        toast({
+          title: "Activation Failed",
+          description: "Payment successful but Tuzemoon activation failed. Please contact support.",
+          variant: "destructive",
+        });
+      }
 
-      setIsModalOpen(false);
-      await onUpdate();
       setRetryCount(0);
     } catch (error: any) {
       console.error('Payment process error:', {
