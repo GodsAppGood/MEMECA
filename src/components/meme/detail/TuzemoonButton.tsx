@@ -66,91 +66,46 @@ export const TuzemoonButton = ({
     }
   };
 
-  const verifyAndActivateTuzemoon = async (signature: string) => {
+  const activateTuzemoon = async (signature: string, userId: string) => {
     try {
-      console.log('Starting Tuzemoon verification for signature:', signature);
+      console.log('Activating Tuzemoon for signature:', signature);
+      
+      // Create TuzemoonPayment record
+      const { error: paymentError } = await supabase
+        .from('TuzemoonPayments')
+        .insert([{
+          meme_id: parseInt(memeId),
+          user_id: userId,
+          transaction_signature: signature,
+          amount: 0.1,
+          transaction_status: 'success',
+          wallet_address: null // Will be updated by the transaction log
+        }]);
 
-      // Initial delay to ensure transaction is processed
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
-      // Wait for the payment record to be properly created and processed
-      for (let attempt = 0; attempt < 8; attempt++) {
-        console.log(`Verification attempt ${attempt + 1} of 8`);
-
-        // First verify the transaction is recorded
-        const { data: transactionData, error: transactionError } = await supabase
-          .from('TransactionLogs')
-          .select('*')
-          .eq('transaction_signature', signature)
-          .eq('transaction_status', 'success')
-          .single();
-
-        if (transactionError || !transactionData) {
-          console.log(`Transaction verification pending... (attempt ${attempt + 1})`);
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          continue;
-        }
-
-        console.log('Transaction verified:', transactionData);
-
-        // Then verify the Tuzemoon payment
-        const { data: paymentData, error: paymentError } = await supabase
-          .from('TuzemoonPayments')
-          .select('*')
-          .eq('transaction_signature', signature)
-          .single();
-
-        if (paymentError || !paymentData) {
-          console.log(`Payment record pending... (attempt ${attempt + 1})`);
-          
-          // Create TuzemoonPayment record if it doesn't exist
-          const { error: insertError } = await supabase
-            .from('TuzemoonPayments')
-            .insert([{
-              meme_id: parseInt(memeId),
-              user_id: transactionData.user_id,
-              transaction_signature: signature,
-              amount: transactionData.amount,
-              transaction_status: 'success',
-              wallet_address: transactionData.wallet_address
-            }]);
-
-          if (insertError) {
-            console.error('Failed to create TuzemoonPayment record:', insertError);
-          }
-
-          await new Promise(resolve => setTimeout(resolve, 3000));
-          continue;
-        }
-
-        console.log('Payment record verified:', paymentData);
-
-        // Activate Tuzemoon
-        const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-        
-        const { error: updateError } = await supabase
-          .from('Memes')
-          .update({
-            is_featured: true,
-            tuzemoon_until: tuzemoonUntil
-          })
-          .eq('id', parseInt(memeId));
-
-        if (updateError) {
-          console.error('Tuzemoon activation failed:', updateError);
-          return { success: false, error: 'Failed to activate Tuzemoon status' };
-        }
-
-        console.log('Tuzemoon activated successfully');
-        return { success: true };
+      if (paymentError) {
+        console.error('Failed to create TuzemoonPayment record:', paymentError);
+        throw new Error('Failed to record payment');
       }
 
-      return { 
-        success: false, 
-        error: 'Payment verification timeout - please try refreshing the page or contact support if the issue persists.' 
-      };
+      // Activate Tuzemoon status
+      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
+      const { error: updateError } = await supabase
+        .from('Memes')
+        .update({
+          is_featured: true,
+          tuzemoon_until: tuzemoonUntil
+        })
+        .eq('id', parseInt(memeId));
+
+      if (updateError) {
+        console.error('Tuzemoon activation failed:', updateError);
+        throw new Error('Failed to activate Tuzemoon status');
+      }
+
+      return { success: true };
     } catch (error) {
-      console.error('Error in verifyAndActivateTuzemoon:', error);
+      console.error('Error in activateTuzemoon:', error);
       return { 
         success: false, 
         error: error instanceof Error ? error.message : 'Unknown error occurred' 
@@ -193,8 +148,14 @@ export const TuzemoonButton = ({
         throw new Error(error || "Payment failed");
       }
 
-      console.log('Payment successful, verifying and activating Tuzemoon...');
-      const { success: activationSuccess, error: activationError } = await verifyAndActivateTuzemoon(signature);
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      console.log('Payment successful, activating Tuzemoon...');
+      const { success: activationSuccess, error: activationError } = await activateTuzemoon(signature, user.id);
 
       if (activationSuccess) {
         toast({
@@ -221,24 +182,12 @@ export const TuzemoonButton = ({
         timestamp: new Date().toISOString()
       });
 
-      const errorMessage = error.message || "Something went wrong";
-      
-      if (retryCount < 2) {
-        setRetryCount(prev => prev + 1);
-        toast({
-          title: "Payment Failed - Retrying",
-          description: `${errorMessage}. Attempt ${retryCount + 1} of 3...`,
-          variant: "destructive",
-        });
-        await handlePayment();
-      } else {
-        toast({
-          title: "Payment Failed",
-          description: `${errorMessage}. Maximum retry attempts reached. Please try again later.`,
-          variant: "destructive",
-        });
-        setRetryCount(0);
-      }
+      toast({
+        title: "Payment Failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+      setRetryCount(0);
     } finally {
       setIsProcessing(false);
     }
