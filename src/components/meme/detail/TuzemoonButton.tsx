@@ -34,7 +34,7 @@ export const TuzemoonButton = ({
       console.log('Admin updating Tuzemoon status for meme:', memeId);
       
       const tuzemoonUntil = !isFeatured ? 
-        new Date(Date.now() + 24 * 60 * 60 * 1000) : // 24 hours from now
+        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : // Convert Date to ISO string
         null;
 
       const { error } = await supabase
@@ -43,7 +43,7 @@ export const TuzemoonButton = ({
           is_featured: !isFeatured,
           tuzemoon_until: tuzemoonUntil
         })
-        .eq('id', memeId);
+        .eq('id', parseInt(memeId)); // Convert string ID to number
 
       if (error) throw error;
 
