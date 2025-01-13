@@ -1,47 +1,28 @@
 import { Twitter, Send } from "lucide-react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 export const Footer = () => {
   return (
     <footer className="bg-black text-white py-4 w-full mt-auto relative">
-      {/* Legal Button in bottom left */}
-      <div className="absolute left-0 bottom-0 p-4">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              variant="ghost" 
-              className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105"
-            >
-              Legal
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            className="w-40 bg-black border border-gray-800"
-            side="top"
-            align="start"
+      {/* Legal links in bottom left */}
+      <div className="absolute left-0 bottom-0 p-4 flex gap-4">
+        <Link to="/privacy">
+          <Button 
+            variant="ghost" 
+            className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105 active:text-[#FFB74D] touch-action-manipulation"
           >
-            <DropdownMenuGroup className="p-2 space-y-2">
-              <Link to="/privacy" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105 active:text-[#FFB74D] touch-action-manipulation">
-                  Privacy Policy
-                </DropdownMenuItem>
-              </Link>
-              <Link to="/terms" className="block">
-                <DropdownMenuItem className="cursor-pointer text-white hover:text-[#FFB74D] transition-all duration-300 hover:scale-105 active:text-[#FFB74D] touch-action-manipulation">
-                  Terms of Service
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            Privacy Policy
+          </Button>
+        </Link>
+        <Link to="/terms">
+          <Button 
+            variant="ghost" 
+            className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105 active:text-[#FFB74D] touch-action-manipulation"
+          >
+            Terms of Service
+          </Button>
+        </Link>
       </div>
 
       {/* Center content */}
