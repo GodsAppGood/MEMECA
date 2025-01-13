@@ -11,14 +11,6 @@ const NotFound = () => {
         <p className="text-lg mb-8">
           Looks like you've stumbled upon a black hole in the meme galaxy. Let's get you back on track!
         </p>
-        <div className="my-8">
-          <img 
-            src="/lovable-uploads/fe326afe-8ae8-4f57-9ce1-a69eaca23ce2.png"
-            alt="404 Meme Cat"
-            className="max-w-full h-auto mx-auto rounded-lg"
-            style={{ maxHeight: '400px' }}
-          />
-        </div>
         <Link to="/">
           <Button variant="default">
             <Home className="mr-2 h-4 w-4" />
