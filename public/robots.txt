@@ -3,3 +3,5 @@ Allow: /
 
 # Primary domain
 Host: https://memecatlandar.io
+
+Sitemap: https://memecatlandar.io/sitemap.xml
