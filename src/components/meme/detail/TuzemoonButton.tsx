@@ -29,33 +29,40 @@ export const TuzemoonButton = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const activateTuzemoon = async (signature: string, userId: string) => {
+  const activateTuzemoon = async (userId: string, signature?: string) => {
     try {
-      console.log('Starting Tuzemoon activation for signature:', signature);
+      console.log('Starting Tuzemoon activation:', {
+        memeId,
+        userId,
+        signature,
+        isAdmin
+      });
       
-      // Create TuzemoonPayment record
-      const { error: paymentError } = await supabase
-        .from('TuzemoonPayments')
-        .insert([{
-          meme_id: parseInt(memeId),
-          user_id: userId,
-          transaction_signature: signature,
-          amount: 0.1,
-          transaction_status: 'success'
-        }]);
+      // Create payment record if signature exists (paid activation)
+      if (signature) {
+        const { error: paymentError } = await supabase
+          .from('TuzemoonPayments')
+          .insert([{
+            meme_id: parseInt(memeId),
+            user_id: userId,
+            transaction_signature: signature,
+            amount: 0.1,
+            transaction_status: 'success'
+          }]);
 
-      if (paymentError) {
-        console.error('Failed to create payment record:', paymentError);
-        throw new Error('Failed to record payment');
+        if (paymentError) {
+          console.error('Failed to create payment record:', paymentError);
+          throw new Error('Failed to record payment');
+        }
       }
 
-      // Update meme status
+      // Update meme status (same for both admin and paid activation)
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
-          is_featured: true,
-          tuzemoon_until: tuzemoonUntil
+          is_featured: !isFeatured,
+          tuzemoon_until: !isFeatured ? tuzemoonUntil : null
         })
         .eq('id', parseInt(memeId));
 
@@ -71,21 +78,30 @@ export const TuzemoonButton = ({
         .eq('id', parseInt(memeId))
         .single();
 
-      if (verifyError || !meme || !meme.is_featured) {
+      if (verifyError || !meme) {
         console.error('Verification failed:', { verifyError, meme });
         throw new Error('Failed to verify Tuzemoon activation');
       }
 
+      // Invalidate queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
+      await onUpdate();
 
-      return { success: true };
-    } catch (error) {
+      toast({
+        title: !isFeatured ? "Tuzemoon Activated" : "Tuzemoon Deactivated",
+        description: `Successfully ${!isFeatured ? 'activated' : 'deactivated'} Tuzemoon status for this meme`,
+      });
+
+      return true;
+    } catch (error: any) {
       console.error('Error in activateTuzemoon:', error);
-      return { 
-        success: false, 
-        error: error instanceof Error ? error.message : 'Failed to activate Tuzemoon' 
-      };
+      toast({
+        title: "Activation Failed",
+        description: error.message || "Failed to update Tuzemoon status",
+        variant: "destructive",
+      });
+      return false;
     }
   };
 
@@ -94,26 +110,9 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
-      if (!window.solana || !window.solana.isPhantom) {
-        toast({
-          title: "Wallet Not Found",
-          description: "Please install Phantom Wallet to proceed with the payment",
-          variant: "destructive",
-        });
-        window.open('https://phantom.app/', '_blank');
-        return;
-      }
-
-      try {
-        await window.solana.connect();
-      } catch (err) {
-        console.error('Failed to connect wallet:', err);
-        toast({
-          title: "Connection Failed",
-          description: "Failed to connect to Phantom wallet. Please try again.",
-          variant: "destructive",
-        });
-        return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
       }
 
       const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
@@ -122,38 +121,16 @@ export const TuzemoonButton = ({
         throw new Error(error || "Payment failed");
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
-
-      const { success: activationSuccess, error: activationError } = await activateTuzemoon(signature, user.id);
+      const activationSuccess = await activateTuzemoon(user.id, signature);
 
       if (activationSuccess) {
-        toast({
-          title: "Success!",
-          description: "Payment confirmed and Tuzemoon status activated",
-        });
         setIsModalOpen(false);
-        await onUpdate();
-      } else {
-        console.error('Activation error:', activationError);
-        toast({
-          title: "Activation Failed",
-          description: `Payment successful but Tuzemoon activation failed. Please contact support.`,
-          variant: "destructive",
-        });
       }
     } catch (error: any) {
-      console.error('Payment process error:', {
-        error: error.message,
-        memeId,
-        timestamp: new Date().toISOString()
-      });
-
+      console.error('Payment/activation error:', error);
       toast({
-        title: "Payment Failed",
-        description: error.message || "Network error occurred. Please try again later.",
+        title: "Process Failed",
+        description: error.message || "Failed to complete the process",
         variant: "destructive",
       });
     } finally {
@@ -161,39 +138,15 @@ export const TuzemoonButton = ({
     }
   };
 
-  const handleAdminTuzemoon = async () => {
+  const handleAdminActivation = async () => {
     setIsProcessing(true);
     try {
-      const tuzemoonUntil = !isFeatured ? 
-        new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : 
-        null;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
 
-      const { error } = await supabase
-        .from('Memes')
-        .update({ 
-          is_featured: !isFeatured,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq('id', parseInt(memeId));
-
-      if (error) throw error;
-
-      await queryClient.invalidateQueries({ queryKey: ['memes'] });
-      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
-      await onUpdate();
-      
-      toast({
-        title: !isFeatured ? "Tuzemoon Activated" : "Tuzemoon Deactivated",
-        description: `Successfully ${!isFeatured ? 'added to' : 'removed from'} Tuzemoon`,
-      });
-
-    } catch (error: any) {
-      console.error('Admin Tuzemoon update error:', error);
-      toast({
-        title: "Update Failed",
-        description: error.message || "Failed to update Tuzemoon status",
-        variant: "destructive",
-      });
+      await activateTuzemoon(user.id);
     } finally {
       setIsProcessing(false);
     }
@@ -201,7 +154,7 @@ export const TuzemoonButton = ({
 
   const handleClick = () => {
     if (isAdmin) {
-      handleAdminTuzemoon();
+      handleAdminActivation();
     } else {
       setIsModalOpen(true);
     }
