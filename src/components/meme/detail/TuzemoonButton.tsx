@@ -25,7 +25,6 @@ export const TuzemoonButton = ({
 }: TuzemoonButtonProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
 
   const handleAdminTuzemoon = async () => {
@@ -68,38 +67,61 @@ export const TuzemoonButton = ({
 
   const activateTuzemoon = async (signature: string, userId: string) => {
     try {
-      console.log('Activating Tuzemoon for signature:', signature);
+      console.log('Starting Tuzemoon activation for signature:', signature);
       
-      // Create TuzemoonPayment record
-      const { error: paymentError } = await supabase
-        .from('TuzemoonPayments')
-        .insert([{
-          meme_id: parseInt(memeId),
-          user_id: userId,
-          transaction_signature: signature,
-          amount: 0.1,
-          transaction_status: 'success',
-          wallet_address: null // Will be updated by the transaction log
-        }]);
+      // Create TuzemoonPayment record with retry logic
+      const maxRetries = 3;
+      let paymentError = null;
+      
+      for (let i = 0; i < maxRetries; i++) {
+        const { error } = await supabase
+          .from('TuzemoonPayments')
+          .insert([{
+            meme_id: parseInt(memeId),
+            user_id: userId,
+            transaction_signature: signature,
+            amount: 0.1,
+            transaction_status: 'success'
+          }]);
+
+        if (!error) {
+          paymentError = null;
+          break;
+        }
+
+        paymentError = error;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
       if (paymentError) {
-        console.error('Failed to create TuzemoonPayment record:', paymentError);
+        console.error('Failed to create TuzemoonPayment record after retries:', paymentError);
         throw new Error('Failed to record payment');
       }
 
-      // Activate Tuzemoon status
+      // Activate Tuzemoon status with retry logic
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      let updateError = null;
       
-      const { error: updateError } = await supabase
-        .from('Memes')
-        .update({
-          is_featured: true,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq('id', parseInt(memeId));
+      for (let i = 0; i < maxRetries; i++) {
+        const { error } = await supabase
+          .from('Memes')
+          .update({
+            is_featured: true,
+            tuzemoon_until: tuzemoonUntil
+          })
+          .eq('id', parseInt(memeId));
+
+        if (!error) {
+          updateError = null;
+          break;
+        }
+
+        updateError = error;
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
 
       if (updateError) {
-        console.error('Tuzemoon activation failed:', updateError);
+        console.error('Tuzemoon activation failed after retries:', updateError);
         throw new Error('Failed to activate Tuzemoon status');
       }
 
@@ -108,7 +130,7 @@ export const TuzemoonButton = ({
       console.error('Error in activateTuzemoon:', error);
       return { 
         success: false, 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        error: error instanceof Error ? error.message : 'Network error occurred' 
       };
     }
   };
@@ -148,7 +170,6 @@ export const TuzemoonButton = ({
         throw new Error(error || "Payment failed");
       }
 
-      // Get current user ID
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("User not authenticated");
@@ -168,26 +189,22 @@ export const TuzemoonButton = ({
         console.error('Activation error:', activationError);
         toast({
           title: "Activation Failed",
-          description: `Payment successful but Tuzemoon activation failed: ${activationError}`,
+          description: `Payment successful but Tuzemoon activation failed. Please contact support.`,
           variant: "destructive",
         });
       }
-
-      setRetryCount(0);
     } catch (error: any) {
       console.error('Payment process error:', {
         error: error.message,
         memeId,
-        retryCount,
         timestamp: new Date().toISOString()
       });
 
       toast({
         title: "Payment Failed",
-        description: error.message || "An unexpected error occurred",
+        description: "Network error occurred. Please try again later.",
         variant: "destructive",
       });
-      setRetryCount(0);
     } finally {
       setIsProcessing(false);
     }
@@ -220,10 +237,7 @@ export const TuzemoonButton = ({
       {!isAdmin && (
         <TuzemoonModal
           isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setRetryCount(0);
-          }}
+          onClose={() => setIsModalOpen(false)}
           onConfirm={handlePayment}
           isProcessing={isProcessing}
         />
