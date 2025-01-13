@@ -28,13 +28,13 @@ export default defineConfig(({ mode }) => ({
     },
     outDir: 'dist',
     assetsDir: 'assets',
-    sourcemap: true,
-    minify: 'terser',
-    terserOptions: {
+    sourcemap: mode === 'development',
+    minify: mode === 'production' ? 'terser' : false,
+    terserOptions: mode === 'production' ? {
       compress: {
         drop_console: true,
       },
-    },
+    } : undefined,
   },
   define: {
     'process.env': {},
