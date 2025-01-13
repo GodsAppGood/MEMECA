@@ -38,7 +38,8 @@ export const TuzemoonModal = ({
             <p className="text-sm font-medium mb-2">Payment Details:</p>
             <ul className="space-y-2 text-sm">
               <li>• Amount: 0.1 SOL</li>
-              <li>• Network: Solana (Devnet)</li>
+              <li>• Network: Solana (Mainnet)</li>
+              <li>• Duration: 24 hours featured placement</li>
               <li>• Wallet: Phantom</li>
             </ul>
           </div>
@@ -49,7 +50,8 @@ export const TuzemoonModal = ({
               <ul className="list-disc pl-4 space-y-1 text-sm">
                 <li>Phantom Wallet is installed and unlocked</li>
                 <li>You have sufficient SOL balance (0.1 SOL + gas fees)</li>
-                <li>Your wallet is connected to the correct network (Devnet)</li>
+                <li>Your wallet is connected to the correct network (Mainnet)</li>
+                <li>You understand this will feature your meme for 24 hours</li>
               </ul>
             </AlertDescription>
           </Alert>
