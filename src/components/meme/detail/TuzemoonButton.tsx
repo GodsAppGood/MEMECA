@@ -38,6 +38,8 @@ export const TuzemoonButton = ({
         isAdmin
       });
       
+      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      
       // Create payment record if signature exists (paid activation)
       if (signature) {
         const { error: paymentError } = await supabase
@@ -57,7 +59,6 @@ export const TuzemoonButton = ({
       }
 
       // Update meme status (same for both admin and paid activation)
-      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
