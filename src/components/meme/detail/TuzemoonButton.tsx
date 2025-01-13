@@ -70,28 +70,14 @@ export const TuzemoonButton = ({
     try {
       console.log('Starting Tuzemoon verification for signature:', signature);
 
+      // Initial delay to ensure transaction is processed
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
       // Wait for the payment record to be properly created and processed
-      for (let attempt = 0; attempt < 5; attempt++) { // Increased attempts
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Increased delay
+      for (let attempt = 0; attempt < 8; attempt++) {
+        console.log(`Verification attempt ${attempt + 1} of 8`);
 
-        // First check TuzemoonPayments
-        const { data: paymentData, error: paymentError } = await supabase
-          .from('TuzemoonPayments')
-          .select('*')
-          .eq('transaction_signature', signature)
-          .single();
-
-        if (paymentError) {
-          console.log(`Attempt ${attempt + 1}: Payment verification query error:`, paymentError);
-          continue;
-        }
-
-        if (!paymentData) {
-          console.log(`Attempt ${attempt + 1}: Payment record not found yet`);
-          continue;
-        }
-
-        // Then check TransactionLogs for confirmation
+        // First verify the transaction is recorded
         const { data: transactionData, error: transactionError } = await supabase
           .from('TransactionLogs')
           .select('*')
@@ -100,14 +86,44 @@ export const TuzemoonButton = ({
           .single();
 
         if (transactionError || !transactionData) {
-          console.log(`Attempt ${attempt + 1}: Transaction verification pending...`);
+          console.log(`Transaction verification pending... (attempt ${attempt + 1})`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
           continue;
         }
 
-        console.log('Payment fully verified:', {
-          paymentData,
-          transactionData
-        });
+        console.log('Transaction verified:', transactionData);
+
+        // Then verify the Tuzemoon payment
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('TuzemoonPayments')
+          .select('*')
+          .eq('transaction_signature', signature)
+          .single();
+
+        if (paymentError || !paymentData) {
+          console.log(`Payment record pending... (attempt ${attempt + 1})`);
+          
+          // Create TuzemoonPayment record if it doesn't exist
+          const { error: insertError } = await supabase
+            .from('TuzemoonPayments')
+            .insert([{
+              meme_id: parseInt(memeId),
+              user_id: transactionData.user_id,
+              transaction_signature: signature,
+              amount: transactionData.amount,
+              transaction_status: 'success',
+              wallet_address: transactionData.wallet_address
+            }]);
+
+          if (insertError) {
+            console.error('Failed to create TuzemoonPayment record:', insertError);
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          continue;
+        }
+
+        console.log('Payment record verified:', paymentData);
 
         // Activate Tuzemoon
         const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -131,7 +147,7 @@ export const TuzemoonButton = ({
 
       return { 
         success: false, 
-        error: 'Payment verification timeout - please contact support with transaction ID: ' + signature 
+        error: 'Payment verification timeout - please try refreshing the page or contact support if the issue persists.' 
       };
     } catch (error) {
       console.error('Error in verifyAndActivateTuzemoon:', error);
