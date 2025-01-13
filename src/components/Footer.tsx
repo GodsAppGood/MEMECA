@@ -7,7 +7,7 @@ export const Footer = () => {
     <footer className="bg-black text-white py-4 w-full mt-auto relative">
       {/* Legal links - mobile: top corners, desktop: bottom left */}
       <div className="absolute md:bottom-0 md:left-0 w-full md:w-auto p-4 flex flex-row justify-between md:justify-start md:gap-4">
-        <Link to="/privacy" className="absolute md:relative left-4 top-0 md:left-auto md:top-auto">
+        <Link to="/privacy" className="absolute md:relative left-2 top-0 md:left-auto md:top-auto">
           <Button 
             variant="ghost" 
             className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105 active:text-[#FFB74D] touch-action-manipulation"
@@ -15,7 +15,7 @@ export const Footer = () => {
             Privacy Policy
           </Button>
         </Link>
-        <Link to="/terms" className="absolute md:relative right-4 top-0 md:right-auto md:top-auto">
+        <Link to="/terms" className="absolute md:relative right-2 top-0 md:right-auto md:top-auto">
           <Button 
             variant="ghost" 
             className="transition-all duration-300 hover:bg-gray-800 hover:text-[#FFB74D] hover:scale-105 active:text-[#FFB74D] touch-action-manipulation"
@@ -28,7 +28,7 @@ export const Footer = () => {
       {/* Center content */}
       <div className="container mx-auto px-4 flex flex-col items-center">
         {/* Social buttons */}
-        <div className="flex justify-center gap-4 mb-4">
+        <div className="flex justify-center gap-2 md:gap-4 mb-4">
           <Button 
             variant="ghost" 
             size="icon" 
