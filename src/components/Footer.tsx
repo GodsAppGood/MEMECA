@@ -6,7 +6,7 @@ export const Footer = () => {
   return (
     <footer className="bg-black text-white py-4 w-full mt-auto relative">
       {/* Legal links in bottom left */}
-      <div className="absolute left-0 bottom-0 p-4 flex flex-col md:flex-row gap-2 md:gap-4">
+      <div className="absolute bottom-0 p-4 w-full flex flex-row justify-between md:justify-start md:w-auto md:gap-4">
         <Link to="/privacy">
           <Button 
             variant="ghost" 
