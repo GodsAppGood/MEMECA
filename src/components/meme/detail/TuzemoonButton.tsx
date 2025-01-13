@@ -70,47 +70,56 @@ export const TuzemoonButton = ({
     try {
       console.log('Starting Tuzemoon verification for signature:', signature);
 
-      // First, wait a short time to ensure the payment record has been created
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Wait for the payment record to be properly created and processed
+      for (let attempt = 0; attempt < 3; attempt++) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Verify the payment in TuzemoonPayments
-      const { data: paymentData, error: paymentError } = await supabase
-        .from('TuzemoonPayments')
-        .select('*')
-        .eq('transaction_signature', signature)
-        .eq('transaction_status', 'success')
-        .single();
+        const { data: paymentData, error: paymentError } = await supabase
+          .from('TuzemoonPayments')
+          .select('*')
+          .eq('transaction_signature', signature)
+          .eq('transaction_status', 'success')
+          .single();
 
-      if (paymentError) {
-        console.error('Payment verification query error:', paymentError);
-        return { success: false, error: 'Payment verification failed' };
+        if (paymentError) {
+          console.log(`Attempt ${attempt + 1}: Payment verification query error:`, paymentError);
+          if (attempt === 2) {
+            return { success: false, error: 'Payment verification failed after multiple attempts' };
+          }
+          continue;
+        }
+
+        if (!paymentData) {
+          console.log(`Attempt ${attempt + 1}: Payment record not found yet`);
+          if (attempt === 2) {
+            return { success: false, error: 'Payment record not found after multiple attempts' };
+          }
+          continue;
+        }
+
+        console.log('Payment verified successfully:', paymentData);
+
+        // Activate Tuzemoon
+        const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        
+        const { error: updateError } = await supabase
+          .from('Memes')
+          .update({
+            is_featured: true,
+            tuzemoon_until: tuzemoonUntil
+          })
+          .eq('id', parseInt(memeId));
+
+        if (updateError) {
+          console.error('Tuzemoon activation failed:', updateError);
+          return { success: false, error: 'Failed to activate Tuzemoon status' };
+        }
+
+        console.log('Tuzemoon activated successfully');
+        return { success: true };
       }
 
-      if (!paymentData) {
-        console.error('Payment record not found');
-        return { success: false, error: 'Payment record not found' };
-      }
-
-      console.log('Payment verified successfully:', paymentData);
-
-      // Activate Tuzemoon
-      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      
-      const { error: updateError } = await supabase
-        .from('Memes')
-        .update({
-          is_featured: true,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq('id', parseInt(memeId));
-
-      if (updateError) {
-        console.error('Tuzemoon activation failed:', updateError);
-        return { success: false, error: 'Failed to activate Tuzemoon status' };
-      }
-
-      console.log('Tuzemoon activated successfully');
-      return { success: true };
+      return { success: false, error: 'Verification timeout' };
     } catch (error) {
       console.error('Error in verifyAndActivateTuzemoon:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error occurred' };
