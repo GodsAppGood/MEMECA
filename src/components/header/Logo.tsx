@@ -5,7 +5,7 @@ export const Logo = () => {
   const [imageError, setImageError] = useState(false);
 
   return (
-    <Link to="/" className="flex items-center">
+    <Link to="/" className="flex items-center -ml-[3%] md:ml-0">
       {!imageError ? (
         <img 
           src="/lovable-uploads/c661ea44-1063-4bd5-8bff-b611ed66e4ba.png" 
