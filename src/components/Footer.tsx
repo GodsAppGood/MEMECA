@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 
 export const Footer = () => {
   return (
-    <footer className="bg-black text-white py-4 w-full mt-auto relative">
-      {/* Legal links - mobile: top corners, desktop: bottom left */}
+    <footer className="bg-black text-white py-8 md:py-4 w-full mt-auto relative">
+      {/* Legal links - mobile: top row, desktop: bottom left */}
       <div className="absolute md:bottom-0 md:left-0 w-full md:w-auto p-4 flex flex-row justify-between md:justify-start md:gap-4">
         <Link to="/privacy" className="absolute md:relative left-2 top-0 md:left-auto md:top-auto">
           <Button 
@@ -27,8 +27,11 @@ export const Footer = () => {
 
       {/* Center content */}
       <div className="container mx-auto px-4 flex flex-col items-center">
-        {/* Social buttons */}
-        <div className="flex justify-center gap-2 md:gap-4 mb-4">
+        {/* Empty space for mobile top row */}
+        <div className="h-12 md:h-0" />
+        
+        {/* Social buttons - moved down on mobile */}
+        <div className="flex justify-center gap-2 md:gap-4 mb-4 mt-8 md:mt-0">
           <Button 
             variant="ghost" 
             size="icon" 
@@ -46,7 +49,7 @@ export const Footer = () => {
         </div>
 
         {/* Copyright text */}
-        <div className="text-center font-serif text-sm text-white/60">
+        <div className="text-center font-serif text-sm text-white/60 mt-4 md:mt-0">
           © 2024 MemeCatlandar.io
         </div>
       </div>
