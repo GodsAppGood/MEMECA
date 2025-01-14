@@ -66,6 +66,8 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       return;
     }
 
+    // Изменена логика проверки прав на удаление:
+    // Теперь сначала проверяем, является ли пользователь админом
     if (!isAdmin && userId !== meme.created_by) {
       toast({
         variant: "destructive",
@@ -119,7 +121,8 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  // Only show delete button for admin users or the meme creator
+  // Изменена логика отображения кнопки:
+  // Показываем кнопку админам или создателю мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
