@@ -172,6 +172,7 @@ export type Database = {
           created_at: string
           id: number
           meme_id: number
+          meme_metadata: Json | null
           transaction_signature: string | null
           transaction_status: string | null
           user_id: string
@@ -182,6 +183,7 @@ export type Database = {
           created_at?: string
           id?: never
           meme_id: number
+          meme_metadata?: Json | null
           transaction_signature?: string | null
           transaction_status?: string | null
           user_id: string
@@ -192,6 +194,7 @@ export type Database = {
           created_at?: string
           id?: never
           meme_id?: number
+          meme_metadata?: Json | null
           transaction_signature?: string | null
           transaction_status?: string | null
           user_id?: string
