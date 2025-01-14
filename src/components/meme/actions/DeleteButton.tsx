@@ -49,7 +49,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         return false;
       }
 
-      console.log('Admin check result:', data);
       return data?.is_admin || false;
     },
     enabled: !!userId,
