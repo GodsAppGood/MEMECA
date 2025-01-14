@@ -79,19 +79,21 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     try {
       setIsDeleting(true);
       
-      const { error } = await supabase
+      // Обновляем запись, устанавливая is_deleted в true
+      const { error: updateError } = await supabase
         .from('Memes')
         .update({ 
           is_deleted: true,
+          updated_at: new Date().toISOString()
         })
         .eq('id', parseInt(meme.id));
 
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
+      if (updateError) {
+        console.error('Delete error:', updateError);
+        throw updateError;
       }
 
-      // Invalidate all related queries to ensure UI updates
+      // Инвалидируем все связанные запросы для обновления UI
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
@@ -107,7 +109,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
       setIsOpen(false);
 
-      // Redirect to home if we're on the meme detail page
+      // Перенаправляем на главную, если мы на странице деталей мема
       if (window.location.pathname.includes('/meme/')) {
         navigate('/');
       }
@@ -124,7 +126,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  // Only show delete button for admins or meme owners
+  // Показываем кнопку удаления только для админов или владельцев мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
