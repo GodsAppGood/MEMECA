@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { MemeWheelWidget } from "@/components/MemeWheelWidget";
 
 const MyMemes = () => {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ const MyMemes = () => {
       </main>
       <Support />
       <Footer />
+      <MemeWheelWidget />
     </div>
   );
 };

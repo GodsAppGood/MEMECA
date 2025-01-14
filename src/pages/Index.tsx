@@ -7,6 +7,7 @@ import { TestRunnerComponent } from "@/components/testing/TestRunner";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { useSearchParams } from "react-router-dom";
+import { MemeWheelWidget } from "@/components/MemeWheelWidget";
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +63,7 @@ const Index = () => {
         </ErrorBoundary>
       </div>
       <AdminButton />
+      <MemeWheelWidget />
     </MainLayout>
   );
 };
