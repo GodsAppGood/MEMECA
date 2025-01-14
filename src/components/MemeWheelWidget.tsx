@@ -21,17 +21,16 @@ export const MemeWheelWidget = () => {
 
   useEffect(() => {
     const loadScript = () => {
-      return new Promise<void>((resolve, reject) => {
-        if (document.querySelector('script[src*="memecawheel.xyz"]')) {
-          console.log('MemeWheel script already exists');
-          resolve();
-          return;
-        }
+      const existingScript = document.querySelector('script[src*="memecawheel.xyz"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
 
+      return new Promise<void>((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://www.memecawheel.xyz/widget/meme-widget.js';
-        script.async = true;
-        script.defer = true;
+        script.type = 'text/javascript';
+        script.async = false;
         
         script.onload = () => {
           console.log('MemeWheel script loaded successfully');
@@ -43,7 +42,7 @@ export const MemeWheelWidget = () => {
           reject(new Error('Failed to load widget script'));
         };
 
-        document.body.appendChild(script);
+        document.head.appendChild(script);
       });
     };
 
@@ -51,30 +50,33 @@ export const MemeWheelWidget = () => {
       try {
         await loadScript();
         
-        if (!window.MemeWheel) {
-          throw new Error('MemeWheel not found in window object');
-        }
-
-        if (!containerRef.current) {
-          throw new Error('Widget container not found');
-        }
-
-        window.MemeWheel.init({
-          container: 'meme-wheel-widget',
-          theme: 'light',
-          onLoad: () => {
-            console.log('MemeWheel widget initialized successfully');
-            setIsLoaded(true);
-          },
-          onError: (err) => {
-            console.error('MemeWheel initialization error:', err);
-            toast({
-              variant: "destructive",
-              title: "Widget Error",
-              description: "Failed to initialize MemeWheel widget"
-            });
+        // Добавляем задержку для уверенности, что скрипт полностью загрузился
+        setTimeout(() => {
+          if (!window.MemeWheel) {
+            throw new Error('MemeWheel not found in window object');
           }
-        });
+
+          if (!containerRef.current) {
+            throw new Error('Widget container not found');
+          }
+
+          window.MemeWheel.init({
+            container: 'meme-wheel-widget',
+            theme: 'light',
+            onLoad: () => {
+              console.log('MemeWheel widget initialized successfully');
+              setIsLoaded(true);
+            },
+            onError: (err) => {
+              console.error('MemeWheel initialization error:', err);
+              toast({
+                variant: "destructive",
+                title: "Widget Error",
+                description: "Failed to initialize MemeWheel widget"
+              });
+            }
+          });
+        }, 1000);
       } catch (error) {
         console.error('Error setting up MemeWheel:', error);
         toast({
