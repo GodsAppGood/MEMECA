@@ -50,7 +50,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       return data?.is_admin || false;
     },
     enabled: !!userId,
-    staleTime: 30000, // Cache admin status for 30 seconds
+    staleTime: 30000,
   });
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -66,8 +66,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       return;
     }
 
-    // Проверяем права на удаление:
-    // Админ может удалять любые мемы, пользователь - только свои
     if (!isAdmin && userId !== meme.created_by) {
       toast({
         variant: "destructive",
@@ -79,16 +77,17 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
-      console.log('Attempting to delete meme:', {
+      console.log('Attempting to soft delete meme:', {
         memeId: meme.id,
         userId,
         isAdmin,
         createdBy: meme.created_by
       });
       
+      // Используем soft delete вместо физического удаления
       const { error } = await supabase
         .from('Memes')
-        .delete()
+        .update({ is_deleted: true })
         .eq('id', parseInt(meme.id));
 
       if (error) {
@@ -120,7 +119,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  // Показываем кнопку если пользователь админ ИЛИ является создателем мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
@@ -131,12 +129,12 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
           size="icon"
           className="hover:text-red-500"
           disabled={isDeleting}
-          onClick={(e) => e.stopPropagation()} // Prevent navigation
+          onClick={(e) => e.stopPropagation()}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}> {/* Prevent navigation */}
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Meme</AlertDialogTitle>
           <AlertDialogDescription>

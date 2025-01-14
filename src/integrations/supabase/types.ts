@@ -46,6 +46,7 @@ export type Database = {
           description: string | null
           id: number
           image_url: string | null
+          is_deleted: boolean | null
           is_featured: boolean | null
           likes: number | null
           telegram_link: string | null
@@ -62,6 +63,7 @@ export type Database = {
           description?: string | null
           id?: never
           image_url?: string | null
+          is_deleted?: boolean | null
           is_featured?: boolean | null
           likes?: number | null
           telegram_link?: string | null
@@ -78,6 +80,7 @@ export type Database = {
           description?: string | null
           id?: never
           image_url?: string | null
+          is_deleted?: boolean | null
           is_featured?: boolean | null
           likes?: number | null
           telegram_link?: string | null
