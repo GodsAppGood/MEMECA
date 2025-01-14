@@ -66,8 +66,8 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       return;
     }
 
-    // Изменена логика проверки прав на удаление:
-    // Теперь сначала проверяем, является ли пользователь админом
+    // Проверяем права на удаление:
+    // Админ может удалять любые мемы, пользователь - только свои
     if (!isAdmin && userId !== meme.created_by) {
       toast({
         variant: "destructive",
@@ -96,7 +96,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         throw error;
       }
 
-      // Only update UI after successful deletion
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
@@ -121,8 +120,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  // Изменена логика отображения кнопки:
-  // Показываем кнопку админам или создателю мема
+  // Показываем кнопку если пользователь админ ИЛИ является создателем мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
