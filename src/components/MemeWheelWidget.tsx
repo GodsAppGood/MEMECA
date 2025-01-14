@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from "@/hooks/use-toast";
 
 declare global {
   interface Window {
@@ -15,73 +16,83 @@ declare global {
 
 export const MemeWheelWidget = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const scriptRef = useRef<HTMLScriptElement | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
-    const loadWidget = () => {
-      if (!containerRef.current) {
-        console.error('Widget container not found');
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://www.memecawheel.xyz/widget/meme-widget.js';
-      script.async = true;
-      script.crossOrigin = 'anonymous';
-      scriptRef.current = script;
-
-      script.onload = () => {
-        console.log('MemeWheel script loaded successfully');
-        if (window.MemeWheel) {
-          try {
-            window.MemeWheel.init({
-              container: 'meme-wheel-widget',
-              theme: 'light',
-              onLoad: () => {
-                console.log('MemeWheel widget initialized successfully');
-                setIsLoaded(true);
-              },
-              onError: (err) => {
-                console.error('MemeWheel initialization error:', err);
-                setError('Failed to initialize widget');
-              }
-            });
-          } catch (err) {
-            console.error('Error initializing MemeWheel:', err);
-            setError('Widget initialization failed');
-          }
-        } else {
-          console.error('MemeWheel not found in window object');
-          setError('Widget script loaded but initialization failed');
+    const loadScript = () => {
+      return new Promise<void>((resolve, reject) => {
+        if (document.querySelector('script[src*="memecawheel.xyz"]')) {
+          console.log('MemeWheel script already exists');
+          resolve();
+          return;
         }
-      };
 
-      script.onerror = (err) => {
-        console.error('Failed to load MemeWheel script:', err);
-        setError('Failed to load widget script');
-      };
+        const script = document.createElement('script');
+        script.src = 'https://www.memecawheel.xyz/widget/meme-widget.js';
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+          console.log('MemeWheel script loaded successfully');
+          resolve();
+        };
+        
+        script.onerror = (err) => {
+          console.error('Failed to load MemeWheel script:', err);
+          reject(new Error('Failed to load widget script'));
+        };
 
-      document.body.appendChild(script);
+        document.body.appendChild(script);
+      });
     };
 
-    loadWidget();
+    const initializeWidget = async () => {
+      try {
+        await loadScript();
+        
+        if (!window.MemeWheel) {
+          throw new Error('MemeWheel not found in window object');
+        }
+
+        if (!containerRef.current) {
+          throw new Error('Widget container not found');
+        }
+
+        window.MemeWheel.init({
+          container: 'meme-wheel-widget',
+          theme: 'light',
+          onLoad: () => {
+            console.log('MemeWheel widget initialized successfully');
+            setIsLoaded(true);
+          },
+          onError: (err) => {
+            console.error('MemeWheel initialization error:', err);
+            toast({
+              variant: "destructive",
+              title: "Widget Error",
+              description: "Failed to initialize MemeWheel widget"
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Error setting up MemeWheel:', error);
+        toast({
+          variant: "destructive",
+          title: "Widget Error",
+          description: error instanceof Error ? error.message : "Failed to setup widget"
+        });
+      }
+    };
+
+    initializeWidget();
 
     return () => {
-      if (scriptRef.current) {
-        scriptRef.current.remove();
-      }
-      // Cleanup any existing scripts to prevent duplicates
       const scripts = document.querySelectorAll('script[src*="memecawheel.xyz"]');
       scripts.forEach(script => script.remove());
+      setIsLoaded(false);
     };
-  }, []);
-
-  if (error) {
-    console.error('MemeWheel widget error:', error);
-    return null; // Hide widget on error
-  }
+  }, [toast]);
 
   return (
     <div 
