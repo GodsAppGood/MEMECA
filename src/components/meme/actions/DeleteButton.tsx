@@ -15,6 +15,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface DeleteButtonProps {
   meme: {
@@ -27,7 +28,9 @@ interface DeleteButtonProps {
 export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
@@ -84,7 +87,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         createdBy: meme.created_by
       });
       
-      // Используем soft delete вместо физического удаления
       const { error } = await supabase
         .from('Memes')
         .update({ is_deleted: true })
@@ -95,17 +97,27 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         throw error;
       }
 
+      // Инвалидируем все связанные запросы
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
         queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["top-memes"] })
       ]);
 
       toast({
         title: "Success",
         description: "Meme deleted successfully",
       });
+
+      // Закрываем диалог
+      setIsOpen(false);
+
+      // Если мы на странице деталей мема, перенаправляем на главную
+      if (window.location.pathname.includes('/meme/')) {
+        navigate('/');
+      }
     } catch (error: any) {
       console.error('Error deleting meme:', error);
       
@@ -122,7 +134,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
-    <AlertDialog>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
         <Button
           variant="ghost"
@@ -142,7 +154,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={() => setIsOpen(false)}>Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleDelete} 
             className="bg-red-500 hover:bg-red-600"
