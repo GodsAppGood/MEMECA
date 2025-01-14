@@ -33,6 +33,8 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
       if (!userId) return false;
+      
+      console.log('Checking admin status for user:', userId);
       const { data, error } = await supabase
         .from("Users")
         .select("is_admin")
@@ -43,9 +45,12 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         console.error("Error checking admin status:", error);
         return false;
       }
+
+      console.log('Admin check result:', data);
       return data?.is_admin || false;
     },
-    enabled: !!userId
+    enabled: !!userId,
+    staleTime: 30000, // Cache admin status for 30 seconds
   });
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -72,22 +77,24 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
-      console.log('Attempting to delete meme:', meme.id);
-      
-      // Optimistically update UI
-      queryClient.setQueryData(["memes"], (oldData: any) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.filter((m: any) => m.id !== meme.id);
+      console.log('Attempting to delete meme:', {
+        memeId: meme.id,
+        userId,
+        isAdmin,
+        createdBy: meme.created_by
       });
-
+      
       const { error } = await supabase
         .from('Memes')
         .delete()
         .eq('id', parseInt(meme.id));
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
 
-      // Invalidate relevant queries
+      // Only update UI after successful deletion
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
@@ -101,14 +108,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       });
     } catch (error: any) {
       console.error('Error deleting meme:', error);
-      
-      // Revert optimistic update by refetching data
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
-      ]);
       
       toast({
         variant: "destructive",
