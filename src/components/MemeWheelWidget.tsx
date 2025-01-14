@@ -35,11 +35,15 @@ export const MemeWheelWidget = () => {
         } catch (error) {
           console.error('Error initializing MemeWheel widget:', error);
         }
+      } else {
+        console.error('MemeWheel not found in window object or widget container not found');
       }
     };
 
     script.onerror = (error) => {
       console.error('Error loading MemeWheel widget script:', error);
+      console.log('Script src:', script.src);
+      console.log('Script status:', script.readyState);
     };
 
     document.body.appendChild(script);
@@ -54,8 +58,8 @@ export const MemeWheelWidget = () => {
   }, []);
 
   return (
-    <div ref={widgetRef}>
-      <div id="meme-wheel-widget"></div>
+    <div className="fixed bottom-4 left-4 z-50" ref={widgetRef}>
+      <div id="meme-wheel-widget" className="w-[300px] h-[300px]"></div>
     </div>
   );
 };
