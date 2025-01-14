@@ -18,6 +18,7 @@ export const MemeWheelWidget = () => {
     const script = document.createElement('script');
     script.src = 'https://www.memecawheel.xyz/widget/meme-widget.js';
     script.crossOrigin = "anonymous";
+    script.async = true;
     
     scriptRef.current = script;
 
@@ -53,7 +54,7 @@ export const MemeWheelWidget = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-4 left-4 z-50" ref={widgetRef}>
+    <div ref={widgetRef}>
       <div id="meme-wheel-widget"></div>
     </div>
   );
