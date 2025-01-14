@@ -55,6 +55,7 @@ export type Database = {
           trade_link: string | null
           tuzemoon_until: string | null
           twitter_link: string | null
+          updated_at: string | null
         }
         Insert: {
           blockchain?: string | null
@@ -72,6 +73,7 @@ export type Database = {
           trade_link?: string | null
           tuzemoon_until?: string | null
           twitter_link?: string | null
+          updated_at?: string | null
         }
         Update: {
           blockchain?: string | null
@@ -89,6 +91,7 @@ export type Database = {
           trade_link?: string | null
           tuzemoon_until?: string | null
           twitter_link?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

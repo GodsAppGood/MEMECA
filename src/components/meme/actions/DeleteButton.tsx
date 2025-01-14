@@ -37,7 +37,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     queryFn: async () => {
       if (!userId) return false;
       
-      console.log('Checking admin status for user:', userId);
       const { data, error } = await supabase
         .from("Users")
         .select("is_admin")
@@ -79,19 +78,11 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
-      console.log('Attempting to soft delete meme:', {
-        memeId: meme.id,
-        userId,
-        isAdmin,
-        createdBy: meme.created_by
-      });
       
       const { error } = await supabase
         .from('Memes')
         .update({ 
           is_deleted: true,
-          // Add a timestamp to track when it was deleted
-          updated_at: new Date().toISOString()
         })
         .eq('id', parseInt(meme.id));
 
