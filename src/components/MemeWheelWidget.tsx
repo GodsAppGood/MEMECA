@@ -43,7 +43,7 @@ export const MemeWheelWidget = () => {
     script.onerror = (error) => {
       console.error('Error loading MemeWheel widget script:', error);
       console.log('Script src:', script.src);
-      console.log('Script status:', script.readyState);
+      console.log('Script loading failed - check network tab for details');
     };
 
     document.body.appendChild(script);
