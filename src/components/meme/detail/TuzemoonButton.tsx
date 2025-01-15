@@ -111,7 +111,7 @@ export const TuzemoonButton = ({
         throw new Error("Please sign in to continue");
       }
 
-      // Connect to wallet and show connection popup if needed
+      // Connect to wallet
       if (!window.solana.isConnected) {
         toast({
           title: "Connecting Wallet",
@@ -124,30 +124,19 @@ export const TuzemoonButton = ({
         throw new Error("Wallet connection failed");
       }
 
-      // Create connection using clusterApiUrl for better reliability
+      // Create connection
       const connection = new Connection(clusterApiUrl('mainnet-beta'), {
-        commitment: 'confirmed',
-        confirmTransactionInitialTimeout: 60000
+        commitment: 'confirmed'
       });
-      
+
       const fromPubkey = new PublicKey(window.solana.publicKey.toString());
       const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
+
+      // Check balance
+      const balance = await connection.getBalance(fromPubkey);
+      console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
       
-      // Check balance with retries
-      let balance;
-      for (let i = 0; i < 3; i++) {
-        try {
-          balance = await connection.getBalance(fromPubkey);
-          console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
-          break;
-        } catch (error) {
-          console.error(`Balance check attempt ${i + 1} failed:`, error);
-          if (i === 2) throw new Error("Failed to check wallet balance. Please try again.");
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-      
-      if (!balance || balance < 0.1 * LAMPORTS_PER_SOL) {
+      if (balance < 0.1 * LAMPORTS_PER_SOL) {
         throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
       }
 
@@ -160,20 +149,7 @@ export const TuzemoonButton = ({
         })
       );
 
-      // Get latest blockhash with retries
-      let blockhash;
-      for (let i = 0; i < 3; i++) {
-        try {
-          const { blockhash: latestBlockhash } = await connection.getLatestBlockhash('confirmed');
-          blockhash = latestBlockhash;
-          break;
-        } catch (error) {
-          console.error(`Blockhash fetch attempt ${i + 1} failed:`, error);
-          if (i === 2) throw new Error("Failed to prepare transaction. Please try again.");
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-
+      const { blockhash } = await connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = fromPubkey;
 
@@ -185,8 +161,8 @@ export const TuzemoonButton = ({
       console.log('Sending transaction...');
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
-      // Confirm transaction
-      console.log('Confirming transaction...');
+      // Wait for confirmation
+      console.log('Waiting for confirmation...');
       const confirmation = await connection.confirmTransaction(signature, 'confirmed');
       
       if (confirmation.value.err) {
@@ -194,6 +170,12 @@ export const TuzemoonButton = ({
       }
 
       console.log('Transaction confirmed:', signature);
+      toast({
+        title: "Payment Successful",
+        description: "Transaction confirmed, activating Tuzemoon status...",
+      });
+
+      // Only activate Tuzemoon after successful payment confirmation
       const activationSuccess = await activateTuzemoon(user.id, signature);
 
       if (activationSuccess) {
