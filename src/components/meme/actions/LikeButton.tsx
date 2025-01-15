@@ -22,7 +22,6 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
         hover:scale-110
         active:scale-95
         ${isLiked ? 'text-red-500' : 'hover:text-red-500'}
-        ${disabled ? 'cursor-not-allowed opacity-50' : ''}
       `}
     >
       {disabled ? (
@@ -32,7 +31,7 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
           className={`
             h-4 w-4 
             transition-all duration-300
-            group-hover:animate-bounce-rotate
+            group-hover:animate-bounce
             ${isLiked ? 'fill-current animate-scale-in' : ''}
           `} 
         />

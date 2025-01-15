@@ -25,11 +25,10 @@ export const MemeCardActions = ({
   className = ""
 }: MemeCardActionsProps) => {
   const { toast } = useToast();
-  const [isLiking, setIsLiking] = useState(false);
-  const { handleLike, handleUnlike, isProcessing } = useLikeActions(meme.id.toString(), userId);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { handleLike, handleUnlike } = useLikeActions(meme.id.toString(), userId);
   const isLiked = userLikes?.includes(meme.id.toString());
 
-  // Subscribe to real-time updates
   useRealtimeLikes(meme.id);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
@@ -45,21 +44,13 @@ export const MemeCardActions = ({
       return;
     }
 
-    if (isLiking || isProcessing) {
-      console.log("Already processing like action");
+    if (isProcessing) {
       return;
     }
 
     try {
-      console.log("Starting like action:", {
-        memeId: meme.id,
-        isLiked,
-        userPoints,
-        userId
-      });
-
-      setIsLiking(true);
-
+      setIsProcessing(true);
+      
       if (isLiked) {
         await handleUnlike();
       } else {
@@ -73,8 +64,6 @@ export const MemeCardActions = ({
         }
         await handleLike();
       }
-
-      console.log("Like action completed successfully");
     } catch (error: any) {
       console.error("Like action failed:", error);
       toast({
@@ -83,8 +72,7 @@ export const MemeCardActions = ({
         variant: "destructive"
       });
     } finally {
-      console.log("Resetting like state");
-      setIsLiking(false);
+      setIsProcessing(false);
     }
   };
 
@@ -94,7 +82,7 @@ export const MemeCardActions = ({
         <LikeButton
           isLiked={isLiked}
           onClick={handleLikeClick}
-          disabled={isLiking || isProcessing}
+          disabled={isProcessing}
           likesCount={meme.likes}
         />
         <span className="text-sm font-medium transition-all duration-200">
