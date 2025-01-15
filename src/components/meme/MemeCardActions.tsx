@@ -6,6 +6,8 @@ import { useLikeActions } from "@/hooks/useLikeActions";
 import { useRealtimeLikes } from "@/hooks/useRealtimeLikes";
 import { formatNumber } from "@/utils/formatNumber";
 import { Meme } from "@/types/meme";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MemeCardActionsProps {
   meme: Pick<Meme, 'id' | 'is_featured' | 'created_by' | 'title' | 'likes'>;
@@ -29,6 +31,26 @@ export const MemeCardActions = ({
   const { handleLike, handleUnlike } = useLikeActions(meme.id.toString(), userId);
   const isLiked = userLikes?.includes(meme.id.toString());
 
+  // Check if user is verified
+  const { data: userData } = useQuery({
+    queryKey: ['user-verification', userId],
+    queryFn: async () => {
+      if (!userId) return null;
+      const { data, error } = await supabase
+        .from('Users')
+        .select('is_verified')
+        .eq('auth_id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error checking user verification:', error);
+        return null;
+      }
+      return data;
+    },
+    enabled: !!userId
+  });
+
   // Subscribe to realtime likes updates
   useRealtimeLikes(meme.id);
 
@@ -45,13 +67,27 @@ export const MemeCardActions = ({
       return;
     }
 
+    if (!userData?.is_verified) {
+      toast({
+        title: "Verification Required",
+        description: "Your account needs to be verified to like memes",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (isProcessing) {
       return;
     }
 
     try {
       setIsProcessing(true);
-      console.log('Processing like action:', { memeId: meme.id, userId, isLiked });
+      console.log('Processing like action:', { 
+        memeId: meme.id, 
+        userId, 
+        isLiked,
+        userVerified: userData?.is_verified 
+      });
       
       if (isLiked) {
         await handleUnlike();
@@ -86,7 +122,7 @@ export const MemeCardActions = ({
         <LikeButton
           isLiked={isLiked}
           onClick={handleLikeClick}
-          disabled={isProcessing}
+          disabled={isProcessing || !userData?.is_verified}
           likesCount={meme.likes}
         />
         <span className="text-sm font-medium transition-all duration-200">

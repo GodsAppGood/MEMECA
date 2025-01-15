@@ -15,6 +15,22 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
     console.log('Attempting to like meme:', { memeId, userId });
 
     try {
+      // First check if user is verified
+      const { data: userData, error: userError } = await supabase
+        .from('Users')
+        .select('is_verified')
+        .eq('auth_id', userId)
+        .single();
+
+      if (userError || !userData) {
+        console.error('Error checking user verification:', userError);
+        throw new Error("Could not verify user status");
+      }
+
+      if (!userData.is_verified) {
+        throw new Error("Your account needs to be verified to like memes");
+      }
+
       const { error: insertError } = await supabase
         .from('Likes')
         .insert([{ 
