@@ -10,6 +10,7 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
   try {
     console.log('Starting payment process...', { memeId, memeTitle });
 
+    // Check if Phantom is installed
     if (!window.solana?.isPhantom) {
       console.error('Phantom wallet not found');
       window.open('https://phantom.app/', '_blank');
@@ -21,11 +22,17 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       return { success: false, error: "Phantom wallet not installed" };
     }
 
+    // Show payment confirmation toast
+    toast({
+      title: "Payment Required",
+      description: "Please confirm the payment in your Phantom wallet",
+    });
+
     // Connect to wallet if not connected
     if (!window.solana.isConnected) {
       try {
-        await window.solana.connect();
-        console.log('Connected to Phantom wallet');
+        const resp = await window.solana.connect();
+        console.log('Connected to Phantom wallet:', resp);
       } catch (err) {
         console.error('Failed to connect wallet:', err);
         toast({
@@ -89,17 +96,20 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       })
     );
 
+    // Get latest blockhash
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = fromPubkey;
 
-    // Sign and send transaction
+    // Request signature from user
     console.log('Requesting signature...');
-    const signed = await window.solana.signTransaction(transaction);
+    const signedTransaction = await window.solana.signTransaction(transaction);
     
+    // Send transaction
     console.log('Sending transaction...');
-    const signature = await connection.sendRawTransaction(signed.serialize());
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
     
+    // Confirm transaction
     console.log('Confirming transaction...');
     const confirmation = await connection.confirmTransaction(signature);
     
