@@ -14,7 +14,7 @@ export const Support = () => {
     <Sheet>
       <SheetTrigger asChild>
         <Button
-          className="fixed bottom-4 right-4 z-50 p-2 h-12 w-12"
+          className="fixed bottom-4 right-4 z-50 p-4 h-24 w-24"
           size="icon"
         >
           <img 
