@@ -91,7 +91,6 @@ export const MemeCardActions = ({
       
       if (isLiked) {
         await handleUnlike();
-        console.log('Successfully unliked meme:', meme.id);
       } else {
         if (userPoints < 1) {
           toast({
@@ -102,7 +101,6 @@ export const MemeCardActions = ({
           return;
         }
         await handleLike();
-        console.log('Successfully liked meme:', meme.id);
       }
     } catch (error: any) {
       console.error("Like action failed:", error);

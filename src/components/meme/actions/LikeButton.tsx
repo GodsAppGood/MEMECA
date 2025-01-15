@@ -22,10 +22,10 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
         hover:scale-110
         active:scale-95
         ${isLiked ? 'text-red-500' : 'hover:text-red-500'}
-        ${disabled ? 'cursor-not-allowed opacity-50' : ''}
+        ${disabled && !isLiked ? 'cursor-not-allowed opacity-50' : ''}
       `}
       aria-label={isLiked ? 'Unlike' : 'Like'}
-      title={disabled ? 'Please verify your account to like memes' : `${likesCount} ${likesCount === 1 ? 'like' : 'likes'}`}
+      title={disabled && !isLiked ? 'Please verify your account to like memes' : `${likesCount} ${likesCount === 1 ? 'like' : 'likes'}`}
     >
       {disabled && !isLiked ? (
         <Loader2 className="h-4 w-4 animate-spin" />
