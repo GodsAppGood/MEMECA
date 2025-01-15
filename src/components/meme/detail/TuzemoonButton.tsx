@@ -6,6 +6,7 @@ import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
+import { Connection } from "@solana/web3.js";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -119,7 +120,7 @@ export const TuzemoonButton = ({
       }
 
       // Get the current balance before proceeding
-      const connection = new window.solana.Connection("https://api.mainnet-beta.solana.com");
+      const connection = new Connection("https://api.mainnet-beta.solana.com");
       const balance = await connection.getBalance(window.solana.publicKey);
       const requiredAmount = 0.1 * 1000000000; // 0.1 SOL in lamports
 
