@@ -13,7 +13,7 @@ interface TuzemoonButtonProps {
   isFeatured: boolean;
   isAdmin: boolean;
   isVerified: boolean;
-  onUpdate: () => Promise<any>;
+  onUpdate: () => Promise<void>;
 }
 
 export const TuzemoonButton = ({
@@ -71,17 +71,6 @@ export const TuzemoonButton = ({
       if (updateError) {
         console.error('Failed to update meme status:', updateError);
         throw new Error('Failed to activate Tuzemoon status');
-      }
-
-      const { data: meme, error: verifyError } = await supabase
-        .from('Memes')
-        .select('is_featured, tuzemoon_until')
-        .eq('id', parseInt(memeId))
-        .single();
-
-      if (verifyError || !meme) {
-        console.error('Verification failed:', { verifyError, meme });
-        throw new Error('Failed to verify Tuzemoon activation');
       }
 
       await queryClient.invalidateQueries({ queryKey: ['memes'] });

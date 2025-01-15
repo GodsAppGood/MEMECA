@@ -9,7 +9,7 @@ const ENDPOINT = 'https://api.mainnet-beta.solana.com';
 
 export const sendSolPayment = async (memeId: string, memeTitle: string) => {
   try {
-    console.log('Initiating SOL payment process...');
+    console.log('Initiating SOL payment process...', { memeId, memeTitle });
     
     if (!window.solana || !window.solana.isPhantom) {
       console.error('Phantom wallet not found');
@@ -22,7 +22,6 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       return { success: false, error: "Phantom wallet not installed" };
     }
 
-    console.log('Connecting to wallet...');
     let publicKey;
     try {
       const resp = await window.solana.connect();
@@ -38,75 +37,56 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       return { success: false, error: "Failed to connect wallet" };
     }
 
-    console.log('Creating Solana connection...');
     const connection = new Connection(ENDPOINT, {
       commitment: 'confirmed',
       confirmTransactionInitialTimeout: 60000
     });
 
-    console.log('Checking balance...');
-    try {
-      const balance = await connection.getBalance(publicKey);
-      console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
-      
-      if (balance < AMOUNT * LAMPORTS_PER_SOL) {
-        toast({
-          title: "Insufficient Balance",
-          description: `You need at least ${AMOUNT} SOL plus gas fees`,
-          variant: "destructive",
-        });
-        return { success: false, error: "Insufficient balance" };
-      }
-    } catch (err: any) {
-      console.error('Balance check failed:', err);
+    const balance = await connection.getBalance(publicKey);
+    console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+    
+    if (balance < AMOUNT * LAMPORTS_PER_SOL) {
       toast({
-        title: "Balance Check Failed",
-        description: "Could not verify wallet balance",
+        title: "Insufficient Balance",
+        description: `You need at least ${AMOUNT} SOL plus gas fees`,
         variant: "destructive",
       });
-      return { success: false, error: "Failed to check balance" };
+      return { success: false, error: "Insufficient balance" };
     }
 
-    console.log('Creating transaction...');
-    try {
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(RECIPIENT_ADDRESS),
-          lamports: AMOUNT * LAMPORTS_PER_SOL
-        })
-      );
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: new PublicKey(RECIPIENT_ADDRESS),
+        lamports: AMOUNT * LAMPORTS_PER_SOL
+      })
+    );
 
-      const { blockhash } = await connection.getLatestBlockhash('confirmed');
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
+    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = publicKey;
 
-      console.log('Requesting signature...');
-      const signed = await window.solana.signTransaction(transaction);
-      
-      console.log('Sending transaction...');
-      const signature = await connection.sendRawTransaction(signed.serialize());
-      
-      console.log('Confirming transaction...');
-      await connection.confirmTransaction(signature);
-      
-      console.log('Transaction confirmed:', signature);
-
-      toast({
-        title: "Payment Successful",
-        description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
-      });
-
-      return { success: true, signature };
-    } catch (err: any) {
-      console.error('Transaction failed:', err);
-      toast({
-        title: "Transaction Failed",
-        description: err.message || "Failed to complete transaction",
-        variant: "destructive",
-      });
-      return { success: false, error: err.message };
+    console.log('Requesting signature...');
+    const signed = await window.solana.signTransaction(transaction);
+    
+    console.log('Sending transaction...');
+    const signature = await connection.sendRawTransaction(signed.serialize());
+    
+    console.log('Confirming transaction...');
+    const confirmation = await connection.confirmTransaction(signature);
+    
+    if (confirmation.value.err) {
+      throw new Error("Transaction failed to confirm");
     }
+
+    console.log('Transaction confirmed:', signature);
+
+    toast({
+      title: "Payment Successful",
+      description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
+    });
+
+    return { success: true, signature };
   } catch (error: any) {
     console.error("Payment processing error:", error);
     toast({
