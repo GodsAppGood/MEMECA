@@ -3,14 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-interface UseLikeMutationProps {
-  memeId: string;
-  currentLikes: number;
-  userId: string | null;
-  userLikes: string[];
-  userPoints: number;
-}
-
 export const useLikeActions = (memeId: string, userId: string | null) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
