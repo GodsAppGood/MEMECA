@@ -28,6 +28,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
 
     try {
       setIsProcessing(true);
+      console.log("Adding like for meme:", id, "by user:", userId);
 
       const { error: insertError } = await supabase
         .from("Likes")
@@ -37,6 +38,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         }]);
 
       if (insertError) {
+        console.error("Error adding like:", insertError);
         if (insertError.code === '23505') {
           toast({
             title: "Already liked",
@@ -93,6 +95,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
 
     try {
       setIsProcessing(true);
+      console.log("Removing like for meme:", id, "by user:", userId);
 
       const { error: deleteError } = await supabase
         .from("Likes")
@@ -100,7 +103,10 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         .eq("user_id", userId)
         .eq("meme_id", id);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error("Error removing like:", deleteError);
+        throw deleteError;
+      }
       
       // Invalidate relevant queries to trigger updates
       await Promise.all([
