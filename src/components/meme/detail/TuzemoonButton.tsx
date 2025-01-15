@@ -6,7 +6,7 @@ import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Connection } from "@solana/web3.js";
+import { Connection, PublicKey } from "@solana/web3.js";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -119,9 +119,14 @@ export const TuzemoonButton = ({
         await window.solana.connect();
       }
 
+      if (!window.solana.publicKey) {
+        throw new Error("Wallet connection failed");
+      }
+
       // Get the current balance before proceeding
       const connection = new Connection("https://api.mainnet-beta.solana.com");
-      const balance = await connection.getBalance(window.solana.publicKey);
+      const publicKey = new PublicKey(window.solana.publicKey.toString());
+      const balance = await connection.getBalance(publicKey);
       const requiredAmount = 0.1 * 1000000000; // 0.1 SOL in lamports
 
       if (balance < requiredAmount) {
