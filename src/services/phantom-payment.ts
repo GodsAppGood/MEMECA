@@ -1,5 +1,4 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
@@ -9,31 +8,22 @@ const ENDPOINT = 'https://api.mainnet-beta.solana.com';
 
 export const sendSolPayment = async (memeId: string, memeTitle: string) => {
   try {
-    console.log('Initiating SOL payment process...', { memeId, memeTitle });
-    
-    if (!window.solana || !window.solana.isPhantom) {
+    console.log('Starting payment process...', { memeId, memeTitle });
+
+    if (!window.solana?.isPhantom) {
       console.error('Phantom wallet not found');
-      toast({
-        title: "Wallet Not Found",
-        description: "Please install Phantom Wallet to proceed",
-        variant: "destructive",
-      });
       window.open('https://phantom.app/', '_blank');
-      return { success: false, error: "Phantom wallet not installed" };
+      return { success: false, error: "Please install Phantom wallet" };
     }
 
-    let publicKey;
+    // Connect to wallet
     try {
-      const resp = await window.solana.connect();
-      publicKey = resp.publicKey;
-      console.log('Connected to wallet:', publicKey.toString());
+      if (!window.solana.isConnected) {
+        const resp = await window.solana.connect();
+        console.log('Connected to wallet:', resp.publicKey.toString());
+      }
     } catch (err: any) {
-      console.error('Failed to connect wallet:', err);
-      toast({
-        title: "Connection Failed",
-        description: err.message || "Could not connect to Phantom wallet",
-        variant: "destructive",
-      });
+      console.error('Wallet connection failed:', err);
       return { success: false, error: "Failed to connect wallet" };
     }
 
@@ -42,8 +32,9 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       confirmTransactionInitialTimeout: 60000
     });
 
-    const balance = await connection.getBalance(publicKey);
-    console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+    // Check balance
+    const balance = await connection.getBalance(window.solana.publicKey);
+    console.log('Wallet balance:', balance / LAMPORTS_PER_SOL, 'SOL');
     
     if (balance < AMOUNT * LAMPORTS_PER_SOL) {
       toast({
@@ -54,9 +45,10 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
       return { success: false, error: "Insufficient balance" };
     }
 
+    // Create transaction
     const transaction = new Transaction().add(
       SystemProgram.transfer({
-        fromPubkey: publicKey,
+        fromPubkey: window.solana.publicKey,
         toPubkey: new PublicKey(RECIPIENT_ADDRESS),
         lamports: AMOUNT * LAMPORTS_PER_SOL
       })
@@ -64,8 +56,9 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
 
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
     transaction.recentBlockhash = blockhash;
-    transaction.feePayer = publicKey;
+    transaction.feePayer = window.solana.publicKey;
 
+    // Sign and send transaction
     console.log('Requesting signature...');
     const signed = await window.solana.signTransaction(transaction);
     
@@ -80,7 +73,6 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     }
 
     console.log('Transaction confirmed:', signature);
-
     toast({
       title: "Payment Successful",
       description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
@@ -88,10 +80,10 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
 
     return { success: true, signature };
   } catch (error: any) {
-    console.error("Payment processing error:", error);
+    console.error('Payment error:', error);
     toast({
       title: "Payment Failed",
-      description: error.message || "An unexpected error occurred",
+      description: error.message || "Transaction failed",
       variant: "destructive",
     });
     return { success: false, error: error.message };

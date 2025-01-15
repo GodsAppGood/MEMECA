@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Rocket } from "lucide-react";
+import { Rocket, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
@@ -37,11 +37,12 @@ export const TuzemoonButton = ({
         signature,
         isAdmin
       });
-      
+
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      
+
+      // Create payment record if signature exists
       if (signature) {
-        console.log('Creating payment record with signature:', signature);
+        console.log('Recording payment with signature:', signature);
         const { error: paymentError } = await supabase
           .from('TuzemoonPayments')
           .insert([{
@@ -54,12 +55,13 @@ export const TuzemoonButton = ({
           }]);
 
         if (paymentError) {
-          console.error('Failed to create payment record:', paymentError);
+          console.error('Payment record creation failed:', paymentError);
           throw new Error('Failed to record payment');
         }
       }
 
-      console.log('Updating meme status...');
+      // Update meme status
+      console.log('Updating meme Tuzemoon status...');
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -69,10 +71,11 @@ export const TuzemoonButton = ({
         .eq('id', parseInt(memeId));
 
       if (updateError) {
-        console.error('Failed to update meme status:', updateError);
+        console.error('Meme status update failed:', updateError);
         throw new Error('Failed to activate Tuzemoon status');
       }
 
+      // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await onUpdate();
@@ -84,7 +87,7 @@ export const TuzemoonButton = ({
 
       return true;
     } catch (error: any) {
-      console.error('Error in activateTuzemoon:', error);
+      console.error('Tuzemoon activation error:', error);
       toast({
         title: "Activation Failed",
         description: error.message || "Failed to update Tuzemoon status",
@@ -99,13 +102,23 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
-      console.log('Starting payment process...');
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
+      // Check if Phantom is installed
+      if (!window.solana?.isPhantom) {
+        throw new Error("Please install Phantom wallet");
       }
 
-      console.log('Initiating SOL payment...');
+      // Get user session
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Please sign in to continue");
+      }
+
+      // Connect to wallet if not connected
+      if (!window.solana.isConnected) {
+        await window.solana.connect();
+      }
+
+      console.log('Processing payment...');
       const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
 
       if (!success || !signature) {
@@ -164,7 +177,11 @@ export const TuzemoonButton = ({
         className="flex items-center gap-2"
         disabled={isProcessing}
       >
-        <Rocket className="h-4 w-4" />
+        {isProcessing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Rocket className="h-4 w-4" />
+        )}
         {isFeatured ? "Featured" : "Tuzemoon"}
       </Button>
 
