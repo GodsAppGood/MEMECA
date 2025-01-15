@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TuzemoonModal } from "./TuzemoonModal";
-import { connectWallet, sendPayment } from "@/services/phantom-wallet";
+import { sendPayment } from "@/services/phantom-wallet";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TuzemoonButtonProps {
@@ -46,7 +46,7 @@ export const TuzemoonButton = ({
         description: `Transaction confirmed: ${payment.signature?.slice(0, 8)}...`,
       });
     } catch (error: any) {
-      console.error('Payment/activation error:', error);
+      console.error('Payment error:', error);
       toast({
         title: "Payment Failed",
         description: error.message || "Transaction failed",
@@ -61,9 +61,7 @@ export const TuzemoonButton = ({
     setIsProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("User not authenticated");
-      }
+      if (!user) throw new Error("User not authenticated");
 
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
@@ -75,9 +73,7 @@ export const TuzemoonButton = ({
         })
         .eq('id', parseInt(memeId));
 
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       await onUpdate();
       
@@ -97,14 +93,6 @@ export const TuzemoonButton = ({
     }
   };
 
-  const handleClick = () => {
-    if (isAdmin) {
-      handleAdminActivation();
-    } else {
-      setIsModalOpen(true);
-    }
-  };
-
   if (!isVerified && !isAdmin) {
     return null;
   }
@@ -112,7 +100,7 @@ export const TuzemoonButton = ({
   return (
     <>
       <Button
-        onClick={handleClick}
+        onClick={isAdmin ? handleAdminActivation : () => setIsModalOpen(true)}
         variant={isFeatured ? "secondary" : "default"}
         className="flex items-center gap-2"
         disabled={isProcessing}

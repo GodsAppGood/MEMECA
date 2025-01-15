@@ -9,9 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { connectWallet } from "@/services/phantom-wallet";
-import { toast } from "@/hooks/use-toast";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -28,40 +27,12 @@ export const TuzemoonModal = ({
 }: TuzemoonModalProps) => {
   const [walletConnected, setWalletConnected] = useState(false);
 
-  useEffect(() => {
-    const checkWalletConnection = async () => {
-      if (window.solana?.isPhantom) {
-        try {
-          const response = await connectWallet();
-          if (response.success) {
-            setWalletConnected(true);
-            toast({
-              title: "Wallet Connected",
-              description: "Your Phantom wallet is now connected",
-            });
-          }
-        } catch (error) {
-          console.error("Failed to connect wallet:", error);
-          toast({
-            title: "Connection Failed",
-            description: "Could not connect to Phantom wallet",
-            variant: "destructive",
-          });
-        }
-      } else {
-        toast({
-          title: "Wallet Not Found",
-          description: "Please install Phantom wallet to continue",
-          variant: "destructive",
-        });
-        window.open("https://phantom.app/", "_blank");
-      }
-    };
-
-    if (isOpen) {
-      checkWalletConnection();
+  const handleConnect = async () => {
+    const response = await connectWallet();
+    if (response.success) {
+      setWalletConnected(true);
     }
-  }, [isOpen]);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -80,21 +51,24 @@ export const TuzemoonModal = ({
               <li>• Amount: 0.1 SOL</li>
               <li>• Network: Solana (Mainnet)</li>
               <li>• Duration: 24 hours featured placement</li>
-              <li>• Wallet: Phantom {walletConnected && "✓"}</li>
             </ul>
           </div>
 
           <Alert>
             <AlertDescription>
-              <p className="font-medium mb-2">Before proceeding, please ensure:</p>
-              <ul className="list-disc pl-4 space-y-1 text-sm">
-                <li className={walletConnected ? "text-green-500" : ""}>
-                  Phantom Wallet is installed and unlocked
-                </li>
-                <li>You have sufficient SOL balance (0.1 SOL + gas fees)</li>
-                <li>Your wallet is connected to the correct network (Mainnet)</li>
-                <li>You understand this will feature your meme for 24 hours</li>
-              </ul>
+              <p className="text-sm">
+                {!walletConnected ? (
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto font-normal text-sm text-blue-500"
+                    onClick={handleConnect}
+                  >
+                    Connect Phantom Wallet
+                  </Button>
+                ) : (
+                  "✓ Wallet Connected"
+                )}
+              </p>
             </AlertDescription>
           </Alert>
         </div>
