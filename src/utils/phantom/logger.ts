@@ -1,4 +1,8 @@
-export const logWalletAction = (action: string, details: Record<string, any>) => {
+interface WalletLogDetails {
+  [key: string]: any;
+}
+
+export const logWalletAction = (action: string, details: WalletLogDetails) => {
   console.log(`Phantom Wallet - ${action}:`, {
     timestamp: new Date().toISOString(),
     ...details,
@@ -6,7 +10,7 @@ export const logWalletAction = (action: string, details: Record<string, any>) =>
   });
 };
 
-export const logWalletError = (action: string, error: any, details?: Record<string, any>) => {
+export const logWalletError = (action: string, error: any, details?: WalletLogDetails) => {
   console.error(`Phantom Wallet Error - ${action}:`, {
     error: error?.message || error,
     stack: error?.stack,
