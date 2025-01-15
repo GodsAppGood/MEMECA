@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Rocket, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { sendSolPayment } from "@/services/phantom-payment";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
@@ -126,10 +125,15 @@ export const TuzemoonButton = ({
       }
 
       // Create connection and check balance
-      const connection = new Connection("https://api.mainnet-beta.solana.com");
+      const connection = new Connection("https://api.mainnet-beta.solana.com", {
+        commitment: 'confirmed',
+        confirmTransactionInitialTimeout: 60000
+      });
+      
       const fromPubkey = new PublicKey(window.solana.publicKey.toString());
       const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
       
+      // Check balance
       const balance = await connection.getBalance(fromPubkey);
       console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
       
@@ -137,7 +141,7 @@ export const TuzemoonButton = ({
         throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
       }
 
-      // Create and prepare transaction
+      // Create transaction
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey,
@@ -146,7 +150,8 @@ export const TuzemoonButton = ({
         })
       );
 
-      const { blockhash } = await connection.getLatestBlockhash();
+      // Get latest blockhash
+      const { blockhash } = await connection.getLatestBlockhash('confirmed');
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = fromPubkey;
 
@@ -154,12 +159,13 @@ export const TuzemoonButton = ({
       console.log('Requesting signature...');
       const signedTransaction = await window.solana.signTransaction(transaction);
       
-      // Send and confirm transaction
+      // Send transaction
       console.log('Sending transaction...');
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
+      // Confirm transaction
       console.log('Confirming transaction...');
-      const confirmation = await connection.confirmTransaction(signature);
+      const confirmation = await connection.confirmTransaction(signature, 'confirmed');
       
       if (confirmation.value.err) {
         throw new Error("Transaction failed to confirm");
