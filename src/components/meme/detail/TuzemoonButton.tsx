@@ -38,9 +38,22 @@ export const TuzemoonButton = ({
         isAdmin
       });
       
+      // Проверяем статус верификации пользователя
+      if (!isAdmin) {
+        const { data: userData, error: userError } = await supabase
+          .from("Users")
+          .select("is_verified")
+          .eq("auth_id", userId)
+          .single();
+
+        if (userError || !userData?.is_verified) {
+          throw new Error("User verification check failed");
+        }
+      }
+      
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
-      // Create payment record if signature exists (paid activation)
+      // Создаем запись о платеже, если есть подпись (платная активация)
       if (signature) {
         const { error: paymentError } = await supabase
           .from('TuzemoonPayments')
@@ -59,7 +72,7 @@ export const TuzemoonButton = ({
         }
       }
 
-      // Update meme status (same for both admin and paid activation)
+      // Обновляем статус мема
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -73,7 +86,7 @@ export const TuzemoonButton = ({
         throw new Error('Failed to activate Tuzemoon status');
       }
 
-      // Verify the update was successful
+      // Проверяем успешность обновления
       const { data: meme, error: verifyError } = await supabase
         .from('Memes')
         .select('is_featured, tuzemoon_until')
@@ -85,7 +98,7 @@ export const TuzemoonButton = ({
         throw new Error('Failed to verify Tuzemoon activation');
       }
 
-      // Invalidate queries to refresh UI
+      // Инвалидируем запросы для обновления UI
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await onUpdate();

@@ -30,6 +30,26 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       setIsProcessing(true);
       console.log("Adding like for meme:", id, "by user:", userId);
 
+      // Проверяем статус верификации пользователя
+      const { data: userData, error: userError } = await supabase
+        .from("Users")
+        .select("is_verified")
+        .eq("auth_id", userId)
+        .single();
+
+      if (userError) {
+        throw new Error("Failed to check user verification status");
+      }
+
+      if (!userData?.is_verified) {
+        toast({
+          title: "Verification required",
+          description: "Only verified users can like memes",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error: insertError } = await supabase
         .from("Likes")
         .insert([{ 
@@ -50,7 +70,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         throw insertError;
       }
       
-      // Invalidate relevant queries to trigger updates
+      // Инвалидируем все связанные запросы
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
@@ -108,7 +128,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         throw deleteError;
       }
       
-      // Invalidate relevant queries to trigger updates
+      // Инвалидируем все связанные запросы
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
