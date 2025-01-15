@@ -51,6 +51,13 @@ export const MemeCardActions = ({
     }
 
     try {
+      console.log("Starting like action:", {
+        memeId: meme.id,
+        isLiked,
+        userPoints,
+        userId
+      });
+
       setIsLiking(true);
 
       if (isLiked) {
@@ -66,6 +73,8 @@ export const MemeCardActions = ({
         }
         await handleLike();
       }
+
+      console.log("Like action completed successfully");
     } catch (error: any) {
       console.error("Like action failed:", error);
       toast({
@@ -74,6 +83,7 @@ export const MemeCardActions = ({
         variant: "destructive"
       });
     } finally {
+      console.log("Resetting like state");
       setIsLiking(false);
     }
   };

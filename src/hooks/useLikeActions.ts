@@ -1,21 +1,24 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 
-export const useLikeActions = (memeId: string | number, userId: string | null) => {
+interface UseLikeMutationProps {
+  memeId: string;
+  currentLikes: number;
+  userId: string | null;
+  userLikes: string[];
+  userPoints: number;
+}
+
+export const useLikeActions = (memeId: string, userId: string | null) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleLike = async () => {
     if (!userId) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to like memes",
-        variant: "destructive",
-      });
-      return;
+      console.log("No user ID provided");
+      throw new Error("Please login to like memes");
     }
 
     if (isProcessing) {
@@ -23,75 +26,47 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       return;
     }
 
-    const id = typeof memeId === 'string' ? parseInt(memeId) : memeId;
-    if (isNaN(id)) {
-      console.error("Invalid meme ID:", memeId);
-      return;
-    }
-
     try {
       setIsProcessing(true);
-      console.log("Adding like for meme:", id, "by user:", userId);
+      console.log("Adding like for meme:", memeId, "by user:", userId);
 
-      const { data: userData, error: userError } = await supabase
-        .from("Users")
-        .select("is_verified")
-        .eq("auth_id", userId)
-        .single();
+      const { data: existingLike, error: checkError } = await supabase
+        .from('Likes')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('meme_id', Number(memeId))
+        .maybeSingle();
 
-      if (userError) {
-        console.error("Error checking user verification:", userError);
-        throw new Error("Failed to check user verification status");
+      if (checkError) {
+        console.error("Error checking existing like:", checkError);
+        throw checkError;
       }
 
-      if (!userData?.is_verified) {
-        toast({
-          title: "Verification required",
-          description: "Only verified users can like memes",
-          variant: "destructive",
-        });
+      if (existingLike) {
+        console.log("Meme already liked");
         return;
       }
 
       const { error: insertError } = await supabase
-        .from("Likes")
+        .from('Likes')
         .insert([{ 
           user_id: userId, 
-          meme_id: id 
+          meme_id: Number(memeId)
         }]);
 
       if (insertError) {
         console.error("Error adding like:", insertError);
-        if (insertError.code === '23505') {
-          toast({
-            title: "Already liked",
-            description: "You have already liked this meme",
-            variant: "destructive",
-          });
-          return;
-        }
         throw insertError;
       }
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["featured-memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-likes"] })
       ]);
 
-      toast({
-        title: "Success",
-        description: "Meme liked successfully",
-      });
+      console.log("Like added successfully");
     } catch (error: any) {
-      console.error("Error liking meme:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to like meme",
-        variant: "destructive",
-      });
+      console.error("Error in handleLike:", error);
       throw error;
     } finally {
       setIsProcessing(false);
@@ -100,12 +75,8 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
 
   const handleUnlike = async () => {
     if (!userId) {
-      toast({
-        title: "Authentication required",
-        description: "Please log in to unlike memes",
-        variant: "destructive",
-      });
-      return;
+      console.log("No user ID provided");
+      throw new Error("Please login to unlike memes");
     }
 
     if (isProcessing) {
@@ -113,21 +84,15 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       return;
     }
 
-    const id = typeof memeId === 'string' ? parseInt(memeId) : memeId;
-    if (isNaN(id)) {
-      console.error("Invalid meme ID:", memeId);
-      return;
-    }
-
     try {
       setIsProcessing(true);
-      console.log("Removing like for meme:", id, "by user:", userId);
+      console.log("Removing like for meme:", memeId, "by user:", userId);
 
       const { error: deleteError } = await supabase
-        .from("Likes")
+        .from('Likes')
         .delete()
-        .eq("user_id", userId)
-        .eq("meme_id", id);
+        .eq('user_id', userId)
+        .eq('meme_id', Number(memeId));
 
       if (deleteError) {
         console.error("Error removing like:", deleteError);
@@ -136,23 +101,12 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["featured-memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-likes"] })
       ]);
 
-      toast({
-        title: "Success",
-        description: "Like removed successfully",
-      });
+      console.log("Like removed successfully");
     } catch (error: any) {
-      console.error("Error unliking meme:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to unlike meme",
-        variant: "destructive",
-      });
+      console.error("Error in handleUnlike:", error);
       throw error;
     } finally {
       setIsProcessing(false);
