@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Rocket, Loader2 } from "lucide-react";
+import { Loader2, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, clusterApiUrl } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const SOLANA_RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
@@ -30,7 +29,6 @@ export const TuzemoonButton = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const activateTuzemoon = async (userId: string, signature?: string) => {
     try {
@@ -76,8 +74,6 @@ export const TuzemoonButton = ({
         throw new Error('Failed to activate Tuzemoon status');
       }
 
-      await queryClient.invalidateQueries({ queryKey: ['memes'] });
-      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await onUpdate();
 
       toast({
@@ -102,7 +98,13 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
-      console.log('Starting payment process...');
+      console.log('Starting payment process...', {
+        memeId,
+        memeTitle,
+        walletInstalled: !!window.solana?.isPhantom,
+        walletConnected: window.solana?.isConnected,
+        environment: import.meta.env.MODE
+      });
       
       if (!window.solana?.isPhantom) {
         window.open("https://phantom.app/", "_blank");
@@ -114,7 +116,6 @@ export const TuzemoonButton = ({
         throw new Error("Please sign in to continue");
       }
 
-      // Connect to wallet
       if (!window.solana.isConnected) {
         toast({
           title: "Connecting Wallet",
@@ -134,11 +135,16 @@ export const TuzemoonButton = ({
       const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
 
       console.log('Checking wallet balance...');
-      const balance = await connection.getBalance(fromPubkey);
-      console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
-      
-      if (balance < 0.1 * LAMPORTS_PER_SOL) {
-        throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
+      try {
+        const balance = await connection.getBalance(fromPubkey);
+        console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+        
+        if (balance < 0.1 * LAMPORTS_PER_SOL) {
+          throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
+        }
+      } catch (error: any) {
+        console.error('Balance check failed:', error);
+        throw new Error('Failed to check wallet balance. Please try again.');
       }
 
       console.log('Creating transaction...');
@@ -151,9 +157,14 @@ export const TuzemoonButton = ({
       );
 
       console.log('Getting latest blockhash...');
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = fromPubkey;
+      try {
+        const { blockhash } = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = fromPubkey;
+      } catch (error: any) {
+        console.error('Blockhash fetch failed:', error);
+        throw new Error('Network error. Please try again.');
+      }
 
       console.log('Requesting signature...');
       const signedTransaction = await window.solana.signTransaction(transaction);
@@ -170,7 +181,6 @@ export const TuzemoonButton = ({
 
       console.log('Transaction confirmed:', signature);
       
-      // Only activate Tuzemoon after successful payment confirmation
       const activationSuccess = await activateTuzemoon(user.id, signature);
       
       if (activationSuccess) {
@@ -178,7 +188,12 @@ export const TuzemoonButton = ({
       }
 
     } catch (error: any) {
-      console.error('Payment/activation error:', error);
+      console.error('Payment/activation error:', {
+        error: error.message,
+        code: error.code,
+        name: error.name,
+        stack: error.stack
+      });
       toast({
         title: "Payment Failed",
         description: error.message || "Transaction failed",
