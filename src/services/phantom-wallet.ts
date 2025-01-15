@@ -95,10 +95,10 @@ export const sendPayment = async (amount: number, memeId: string) => {
       connection.confirmTransaction(signature) as Promise<TransactionConfirmation>,
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Transaction confirmation timeout')), 30000)
-      )
-    ]);
+      ) as Promise<never>
+    ]) as TransactionConfirmation;
 
-    if ('value' in confirmation && confirmation.value.err) {
+    if (confirmation.value.err) {
       throw new Error('Transaction failed to confirm');
     }
 
