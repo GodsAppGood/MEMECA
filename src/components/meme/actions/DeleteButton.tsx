@@ -15,7 +15,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 interface DeleteButtonProps {
   meme: {
@@ -28,15 +27,12 @@ interface DeleteButtonProps {
 export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
       if (!userId) return false;
-      
       const { data, error } = await supabase
         .from("Users")
         .select("is_admin")
@@ -47,11 +43,9 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         console.error("Error checking admin status:", error);
         return false;
       }
-
       return data?.is_admin || false;
     },
-    enabled: !!userId,
-    staleTime: 30000,
+    enabled: !!userId
   });
 
   const handleDelete = async (e: React.MouseEvent) => {
@@ -80,66 +74,69 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       setIsDeleting(true);
       console.log('Attempting to delete meme:', meme.id);
       
-      const { error: deleteError } = await supabase
+      // Optimistically update UI
+      queryClient.setQueryData(["memes"], (oldData: any) => {
+        if (!Array.isArray(oldData)) return oldData;
+        return oldData.filter((m: any) => m.id !== meme.id);
+      });
+
+      const { error } = await supabase
         .from('Memes')
         .delete()
         .eq('id', parseInt(meme.id));
 
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
-        throw deleteError;
-      }
+      if (error) throw error;
 
-      // Инвалидируем все связанные запросы для обновления UI
+      // Invalidate relevant queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
         queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["featured-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["top-memes"] })
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
       ]);
 
       toast({
         title: "Success",
         description: "Meme deleted successfully",
       });
-
-      setIsOpen(false);
-
-      // Перенаправляем на главную, если мы на странице деталей мема
-      if (window.location.pathname.includes('/meme/')) {
-        navigate('/');
-      }
     } catch (error: any) {
       console.error('Error deleting meme:', error);
+      
+      // Revert optimistic update by refetching data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
+        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
+      ]);
       
       toast({
         variant: "destructive",
         title: "Error",
-        description: error.message || "Failed to delete meme. Please try again.",
+        description: "Failed to delete meme. Please try again.",
       });
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Показываем кнопку удаления только для админов или владельцев мема
+  // Only show delete button for admin users or the meme creator
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
-    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+    <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
           className="hover:text-red-500"
           disabled={isDeleting}
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()} // Prevent navigation
         >
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}> {/* Prevent navigation */}
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Meme</AlertDialogTitle>
           <AlertDialogDescription>
@@ -147,7 +144,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setIsOpen(false)}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction 
             onClick={handleDelete} 
             className="bg-red-500 hover:bg-red-600"

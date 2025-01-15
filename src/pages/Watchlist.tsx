@@ -2,7 +2,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { Watchlist as WatchlistContent } from "@/components/dashboard/Watchlist";
-import { MemeWheelWidget } from "@/components/MemeWheelWidget";
 
 const Watchlist = () => {
   return (
@@ -13,7 +12,6 @@ const Watchlist = () => {
       </main>
       <Support />
       <Footer />
-      <MemeWheelWidget />
     </div>
   );
 };

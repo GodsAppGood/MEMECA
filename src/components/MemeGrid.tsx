@@ -55,15 +55,13 @@ export const MemeGrid = ({
     }
   }, [error]);
 
-  // Subscribe to both Memes and Likes tables for real-time updates
   useRealtimeSubscription(
     [
       { name: 'Memes' },
-      { name: 'Likes' },
       { name: 'Watchlist' }
     ],
     () => {
-      console.log("Realtime update received in MemeGrid, refetching data...");
+      console.log("Realtime update received, refetching data...");
       void refetch();
       void refetchLikes();
     }
@@ -98,20 +96,14 @@ export const MemeGrid = ({
     return <MemeGridError error={error} />;
   }
 
-  const filteredMemes = memes.filter(meme => {
-    if (!meme.is_deleted) return true;
-    if (userId && meme.created_by === userId) return true;
-    return false;
-  });
-
-  if (!filteredMemes || filteredMemes.length === 0) {
+  if (!memes || memes.length === 0) {
     return <EmptyMemeState isUserOnly={userOnly} />;
   }
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredMemes.map((meme: any) => (
+        {memes.map((meme: any) => (
           <UnifiedMemeCard
             key={meme.id}
             meme={meme}

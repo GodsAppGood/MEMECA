@@ -2,7 +2,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { Tuzemoon as TuzemoonContent } from "@/components/dashboard/Tuzemoon";
-import { MemeWheelWidget } from "@/components/MemeWheelWidget";
 
 const Tuzemoon = () => {
   return (
@@ -13,7 +12,6 @@ const Tuzemoon = () => {
       </main>
       <Support />
       <Footer />
-      <MemeWheelWidget />
     </div>
   );
 };

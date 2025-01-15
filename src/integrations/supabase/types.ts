@@ -46,7 +46,6 @@ export type Database = {
           description: string | null
           id: number
           image_url: string | null
-          is_deleted: boolean | null
           is_featured: boolean | null
           likes: number | null
           telegram_link: string | null
@@ -55,7 +54,6 @@ export type Database = {
           trade_link: string | null
           tuzemoon_until: string | null
           twitter_link: string | null
-          updated_at: string | null
         }
         Insert: {
           blockchain?: string | null
@@ -64,7 +62,6 @@ export type Database = {
           description?: string | null
           id?: never
           image_url?: string | null
-          is_deleted?: boolean | null
           is_featured?: boolean | null
           likes?: number | null
           telegram_link?: string | null
@@ -73,7 +70,6 @@ export type Database = {
           trade_link?: string | null
           tuzemoon_until?: string | null
           twitter_link?: string | null
-          updated_at?: string | null
         }
         Update: {
           blockchain?: string | null
@@ -82,7 +78,6 @@ export type Database = {
           description?: string | null
           id?: never
           image_url?: string | null
-          is_deleted?: boolean | null
           is_featured?: boolean | null
           likes?: number | null
           telegram_link?: string | null
@@ -91,7 +86,6 @@ export type Database = {
           trade_link?: string | null
           tuzemoon_until?: string | null
           twitter_link?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -125,8 +119,7 @@ export type Database = {
           created_at: string | null
           error_message: string | null
           id: number
-          meme_id: number | null
-          meme_metadata: Json | null
+          meme_id: number
           transaction_signature: string | null
           transaction_status: string
           user_id: string
@@ -137,8 +130,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: number
-          meme_id?: number | null
-          meme_metadata?: Json | null
+          meme_id: number
           transaction_signature?: string | null
           transaction_status: string
           user_id: string
@@ -149,8 +141,7 @@ export type Database = {
           created_at?: string | null
           error_message?: string | null
           id?: number
-          meme_id?: number | null
-          meme_metadata?: Json | null
+          meme_id?: number
           transaction_signature?: string | null
           transaction_status?: string
           user_id?: string
@@ -171,8 +162,7 @@ export type Database = {
           amount: number
           created_at: string
           id: number
-          meme_id: number | null
-          meme_metadata: Json | null
+          meme_id: number
           transaction_signature: string | null
           transaction_status: string | null
           user_id: string
@@ -182,8 +172,7 @@ export type Database = {
           amount: number
           created_at?: string
           id?: never
-          meme_id?: number | null
-          meme_metadata?: Json | null
+          meme_id: number
           transaction_signature?: string | null
           transaction_status?: string | null
           user_id: string
@@ -193,8 +182,7 @@ export type Database = {
           amount?: number
           created_at?: string
           id?: never
-          meme_id?: number | null
-          meme_metadata?: Json | null
+          meme_id?: number
           transaction_signature?: string | null
           transaction_status?: string | null
           user_id?: string
