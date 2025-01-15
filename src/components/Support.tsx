@@ -1,46 +1,36 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Button } from "@/components/ui/button";
+import { AIChat } from "@/components/AIChat";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export const Support = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
-    <>
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 w-16 h-16 z-50 transition-transform hover:scale-110"
-      >
-        <img
-          src="/lovable-uploads/a9ff8038-20e7-4068-a542-5e51c2a168d8.png"
-          alt="24/7 Support"
-          className="w-full h-full"
-        />
-      </button>
-
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Chat with AI Support</DialogTitle>
-          </DialogHeader>
-          <div className="h-[400px] overflow-y-auto p-4 space-y-4 bg-gray-50 rounded-md">
-            <div className="flex gap-2">
-              <div className="bg-[#FFB74D] text-black p-3 rounded-lg max-w-[80%]">
-                Hello! How can I help you today? 🐱
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2 mt-4">
-            <input
-              type="text"
-              placeholder="Type your message..."
-              className="flex-1 p-2 border rounded-md"
-            />
-            <button className="bg-[#FFB74D] text-black px-4 py-2 rounded-md hover:bg-[#FFB74D]/90 transition-colors">
-              Send
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          className="fixed bottom-4 right-4 z-50"
+          size="lg"
+        >
+          Support
+        </Button>
+      </SheetTrigger>
+      <SheetContent className="sm:max-w-[425px]">
+        <SheetHeader>
+          <SheetTitle>AI Support Assistant</SheetTitle>
+          <SheetDescription>
+            Ask me anything about memes, tokens, or get help with the platform.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="mt-4 h-[calc(100vh-200px)] overflow-y-auto">
+          <AIChat />
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
