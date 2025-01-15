@@ -18,6 +18,11 @@ serve(async (req) => {
     
     console.log('AI Analysis request:', { type, timestamp: new Date().toISOString() })
 
+    // Verify Hugging Face token
+    if (!Deno.env.get('HUGGING_FACE_ACCESS_TOKEN')) {
+      throw new Error('Hugging Face token not configured')
+    }
+
     switch (type) {
       case 'analyze_image': {
         const { imageUrl } = data
@@ -53,7 +58,13 @@ serve(async (req) => {
         const { message } = data
         console.log('Processing chat message:', message)
 
+        if (!message || typeof message !== 'string') {
+          throw new Error('Invalid message format')
+        }
+
         try {
+          console.log('Sending request to Hugging Face API...')
+          
           const chatResponse = await hf.textGeneration({
             model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
             inputs: `<|im_start|>system
@@ -73,13 +84,21 @@ ${message}
 
           console.log('Chat response received:', chatResponse)
 
+          if (!chatResponse || !chatResponse.generated_text) {
+            throw new Error('Invalid response from Hugging Face API')
+          }
+
           return new Response(
             JSON.stringify({ response: chatResponse.generated_text }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         } catch (chatError) {
-          console.error('Error in chat processing:', chatError)
-          throw chatError
+          console.error('Error in chat processing:', {
+            error: chatError,
+            message: chatError.message,
+            stack: chatError.stack
+          })
+          throw new Error(`Chat processing failed: ${chatError.message}`)
         }
       }
 
@@ -87,11 +106,17 @@ ${message}
         throw new Error('Invalid analysis type')
     }
   } catch (error) {
-    console.error('Error in ai-analysis function:', error)
+    console.error('Error in ai-analysis function:', {
+      error,
+      message: error.message,
+      stack: error.stack
+    })
+    
     return new Response(
       JSON.stringify({ 
         error: error.message,
-        details: error.stack
+        details: error.stack,
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
