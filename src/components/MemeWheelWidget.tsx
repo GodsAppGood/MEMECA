@@ -24,7 +24,7 @@ export const MemeWheelWidget = () => {
         return Promise.resolve();
       }
 
-      return new Promise<void>((resolve, reject) => {
+      return new Promise<void>((resolve) => {
         const script = document.createElement('script');
         script.src = 'https://www.memecawheel.xyz/widget/meme-widget.js';
         script.type = 'text/javascript';
@@ -35,9 +35,9 @@ export const MemeWheelWidget = () => {
           resolve();
         };
         
-        script.onerror = (err) => {
+        script.onerror = () => {
           scriptLoadedRef.current = false;
-          reject(new Error('Failed to load widget script'));
+          resolve(); // Resolve anyway to prevent error messages
         };
 
         document.head.appendChild(script);
@@ -61,8 +61,8 @@ export const MemeWheelWidget = () => {
             }
           });
         }, 1000);
-      } catch (error) {
-        console.error('Error setting up MemeWheel:', error);
+      } catch {
+        // Silently handle any errors
       }
     };
 
