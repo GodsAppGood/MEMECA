@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +23,6 @@ serve(async (req) => {
         const { imageUrl } = data
         console.log('Analyzing image:', imageUrl)
         
-        // Image analysis using BLIP
         const imageAnalysis = await hf.imageToText({
           model: 'Salesforce/blip-image-captioning-large',
           inputs: imageUrl,
@@ -40,7 +38,6 @@ serve(async (req) => {
         const { text } = data
         console.log('Analyzing text:', text)
 
-        // Sentiment analysis using FinBERT
         const sentimentAnalysis = await hf.textClassification({
           model: 'ProsusAI/finbert',
           inputs: text,
@@ -56,21 +53,34 @@ serve(async (req) => {
         const { message } = data
         console.log('Processing chat message:', message)
 
-        // Chat using Mixtral
-        const chatResponse = await hf.textGeneration({
-          model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-          inputs: message,
-          parameters: {
-            max_new_tokens: 200,
-            temperature: 0.7,
-            top_p: 0.95,
-          },
-        })
+        try {
+          const chatResponse = await hf.textGeneration({
+            model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+            inputs: `<|im_start|>system
+You are a helpful AI assistant that specializes in meme coins and cryptocurrency analysis. You provide clear, concise answers and always maintain a friendly, professional tone.
+<|im_end|>
+<|im_start|>user
+${message}
+<|im_end|>
+<|im_start|>assistant`,
+            parameters: {
+              max_new_tokens: 200,
+              temperature: 0.7,
+              top_p: 0.95,
+              return_full_text: false,
+            },
+          })
 
-        return new Response(
-          JSON.stringify({ response: chatResponse }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
+          console.log('Chat response received:', chatResponse)
+
+          return new Response(
+            JSON.stringify({ response: chatResponse.generated_text }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } catch (chatError) {
+          console.error('Error in chat processing:', chatError)
+          throw chatError
+        }
       }
 
       default:
@@ -79,7 +89,10 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in ai-analysis function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 
