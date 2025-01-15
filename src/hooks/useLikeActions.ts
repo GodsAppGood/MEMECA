@@ -18,7 +18,10 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       return;
     }
 
-    if (isProcessing) return;
+    if (isProcessing) {
+      console.log("Already processing a like action");
+      return;
+    }
 
     const id = typeof memeId === 'string' ? parseInt(memeId) : memeId;
     if (isNaN(id)) {
@@ -30,7 +33,6 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       setIsProcessing(true);
       console.log("Adding like for meme:", id, "by user:", userId);
 
-      // Проверяем статус верификации пользователя
       const { data: userData, error: userError } = await supabase
         .from("Users")
         .select("is_verified")
@@ -38,6 +40,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         .single();
 
       if (userError) {
+        console.error("Error checking user verification:", userError);
         throw new Error("Failed to check user verification status");
       }
 
@@ -70,7 +73,6 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         throw insertError;
       }
       
-      // Инвалидируем все связанные запросы
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
@@ -90,6 +92,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         description: error.message || "Failed to like meme",
         variant: "destructive",
       });
+      throw error; // Re-throw to be handled by the component
     } finally {
       setIsProcessing(false);
     }
@@ -105,7 +108,10 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
       return;
     }
 
-    if (isProcessing) return;
+    if (isProcessing) {
+      console.log("Already processing an unlike action");
+      return;
+    }
 
     const id = typeof memeId === 'string' ? parseInt(memeId) : memeId;
     if (isNaN(id)) {
@@ -128,7 +134,6 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         throw deleteError;
       }
       
-      // Инвалидируем все связанные запросы
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
@@ -148,6 +153,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         description: error.message || "Failed to unlike meme",
         variant: "destructive",
       });
+      throw error; // Re-throw to be handled by the component
     } finally {
       setIsProcessing(false);
     }

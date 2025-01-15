@@ -45,12 +45,20 @@ export const MemeCardActions = ({
       return;
     }
 
-    if (isLiking || isProcessing) return;
-
-    setIsLiking(true);
-    console.log("Processing like click. Current state:", { isLiked, memeId: meme.id, userId });
+    // Prevent multiple clicks while processing
+    if (isLiking || isProcessing) {
+      return;
+    }
 
     try {
+      setIsLiking(true);
+      console.log("Processing like click. Current state:", { 
+        isLiked, 
+        memeId: meme.id, 
+        userId,
+        userPoints 
+      });
+
       if (isLiked) {
         await handleUnlike();
       } else {
