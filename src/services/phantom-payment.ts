@@ -10,7 +10,6 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
   try {
     console.log('Starting payment process...', { memeId, memeTitle });
 
-    // Check if Phantom is installed
     if (!window.solana?.isPhantom) {
       console.error('Phantom wallet not found');
       window.open('https://phantom.app/', '_blank');
@@ -31,8 +30,8 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     // Connect to wallet if not connected
     if (!window.solana.isConnected) {
       try {
-        const resp = await window.solana.connect();
-        console.log('Connected to Phantom wallet:', resp);
+        await window.solana.connect();
+        console.log('Connected to Phantom wallet');
       } catch (err) {
         console.error('Failed to connect wallet:', err);
         toast({
@@ -65,26 +64,16 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
 
     // Check balance
-    try {
-      const balance = await connection.getBalance(fromPubkey);
-      console.log('Wallet balance:', balance / LAMPORTS_PER_SOL, 'SOL');
-      
-      if (balance < AMOUNT * LAMPORTS_PER_SOL) {
-        toast({
-          title: "Insufficient Balance",
-          description: `You need at least ${AMOUNT} SOL plus gas fees`,
-          variant: "destructive",
-        });
-        return { success: false, error: "Insufficient balance" };
-      }
-    } catch (err) {
-      console.error('Failed to get balance:', err);
+    const balance = await connection.getBalance(fromPubkey);
+    console.log('Wallet balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+    
+    if (balance < AMOUNT * LAMPORTS_PER_SOL) {
       toast({
-        title: "Balance Check Failed",
-        description: "Could not verify wallet balance. Please try again.",
+        title: "Insufficient Balance",
+        description: `You need at least ${AMOUNT} SOL plus gas fees`,
         variant: "destructive",
       });
-      return { success: false, error: "Failed to check balance" };
+      return { success: false, error: "Insufficient balance" };
     }
 
     // Create transaction

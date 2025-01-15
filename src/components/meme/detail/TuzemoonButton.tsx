@@ -40,7 +40,6 @@ export const TuzemoonButton = ({
 
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
-      // Create payment record if signature exists
       if (signature) {
         console.log('Recording payment with signature:', signature);
         const { error: paymentError } = await supabase
@@ -60,7 +59,6 @@ export const TuzemoonButton = ({
         }
       }
 
-      // Update meme status
       console.log('Updating meme Tuzemoon status...');
       const { error: updateError } = await supabase
         .from('Memes')
@@ -75,7 +73,6 @@ export const TuzemoonButton = ({
         throw new Error('Failed to activate Tuzemoon status');
       }
 
-      // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await onUpdate();
@@ -102,20 +99,32 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
-      // Check if Phantom is installed
       if (!window.solana?.isPhantom) {
+        window.open("https://phantom.app/", "_blank");
         throw new Error("Please install Phantom wallet");
       }
 
-      // Get user session
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("Please sign in to continue");
       }
 
-      // Connect to wallet if not connected
+      // Ensure wallet is connected and show connection popup if needed
       if (!window.solana.isConnected) {
+        toast({
+          title: "Connecting Wallet",
+          description: "Please approve the connection request in Phantom",
+        });
         await window.solana.connect();
+      }
+
+      // Get the current balance before proceeding
+      const connection = new window.solana.Connection("https://api.mainnet-beta.solana.com");
+      const balance = await connection.getBalance(window.solana.publicKey);
+      const requiredAmount = 0.1 * 1000000000; // 0.1 SOL in lamports
+
+      if (balance < requiredAmount) {
+        throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
       }
 
       console.log('Processing payment...');
