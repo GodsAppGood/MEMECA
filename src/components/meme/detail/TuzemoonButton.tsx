@@ -40,8 +40,8 @@ export const TuzemoonButton = ({
       
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       
-      // Create payment record if signature exists (paid activation)
       if (signature) {
+        console.log('Creating payment record with signature:', signature);
         const { error: paymentError } = await supabase
           .from('TuzemoonPayments')
           .insert([{
@@ -59,7 +59,7 @@ export const TuzemoonButton = ({
         }
       }
 
-      // Update meme status (same for both admin and paid activation)
+      console.log('Updating meme status...');
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -73,7 +73,6 @@ export const TuzemoonButton = ({
         throw new Error('Failed to activate Tuzemoon status');
       }
 
-      // Verify the update was successful
       const { data: meme, error: verifyError } = await supabase
         .from('Memes')
         .select('is_featured, tuzemoon_until')
@@ -85,7 +84,6 @@ export const TuzemoonButton = ({
         throw new Error('Failed to verify Tuzemoon activation');
       }
 
-      // Invalidate queries to refresh UI
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await onUpdate();
@@ -112,17 +110,20 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
+      console.log('Starting payment process...');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         throw new Error("User not authenticated");
       }
 
+      console.log('Initiating SOL payment...');
       const { success, signature, error } = await sendSolPayment(memeId, memeTitle);
 
       if (!success || !signature) {
         throw new Error(error || "Payment failed");
       }
 
+      console.log('Payment successful, activating Tuzemoon...');
       const activationSuccess = await activateTuzemoon(user.id, signature);
 
       if (activationSuccess) {
