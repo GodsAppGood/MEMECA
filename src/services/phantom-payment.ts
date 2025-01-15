@@ -12,6 +12,7 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
 
     if (!window.solana?.isPhantom) {
       console.error('Phantom wallet not found');
+      window.open('https://phantom.app/', '_blank');
       toast({
         title: "Wallet Not Found",
         description: "Please install Phantom wallet to continue",
@@ -24,20 +25,60 @@ export const sendSolPayment = async (memeId: string, memeTitle: string) => {
     if (!window.solana.isConnected) {
       try {
         await window.solana.connect();
+        console.log('Connected to Phantom wallet');
       } catch (err) {
         console.error('Failed to connect wallet:', err);
+        toast({
+          title: "Connection Failed",
+          description: "Could not connect to Phantom wallet. Please try again.",
+          variant: "destructive",
+        });
         return { success: false, error: "Failed to connect wallet" };
       }
     }
 
+    // Create connection
     const connection = new Connection(ENDPOINT, {
       commitment: 'confirmed',
       confirmTransactionInitialTimeout: 60000
     });
 
+    // Get wallet public key
+    if (!window.solana.publicKey) {
+      toast({
+        title: "Wallet Error",
+        description: "Could not get wallet public key. Please reconnect your wallet.",
+        variant: "destructive",
+      });
+      return { success: false, error: "No public key available" };
+    }
+
     // Create proper PublicKey instances
     const fromPubkey = new PublicKey(window.solana.publicKey.toString());
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
+
+    // Check balance
+    try {
+      const balance = await connection.getBalance(fromPubkey);
+      console.log('Wallet balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+      
+      if (balance < AMOUNT * LAMPORTS_PER_SOL) {
+        toast({
+          title: "Insufficient Balance",
+          description: `You need at least ${AMOUNT} SOL plus gas fees`,
+          variant: "destructive",
+        });
+        return { success: false, error: "Insufficient balance" };
+      }
+    } catch (err) {
+      console.error('Failed to get balance:', err);
+      toast({
+        title: "Balance Check Failed",
+        description: "Could not verify wallet balance. Please try again.",
+        variant: "destructive",
+      });
+      return { success: false, error: "Failed to check balance" };
+    }
 
     // Create transaction
     const transaction = new Transaction().add(
