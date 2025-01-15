@@ -55,13 +55,15 @@ export const MemeGrid = ({
     }
   }, [error]);
 
+  // Subscribe to both Memes and Likes tables for real-time updates
   useRealtimeSubscription(
     [
       { name: 'Memes' },
+      { name: 'Likes' },
       { name: 'Watchlist' }
     ],
     () => {
-      console.log("Realtime update received, refetching data...");
+      console.log("Realtime update received in MemeGrid, refetching data...");
       void refetch();
       void refetchLikes();
     }
@@ -96,7 +98,6 @@ export const MemeGrid = ({
     return <MemeGridError error={error} />;
   }
 
-  // Фильтруем удаленные мемы, если пользователь не админ
   const filteredMemes = memes.filter(meme => {
     if (!meme.is_deleted) return true;
     if (userId && meme.created_by === userId) return true;

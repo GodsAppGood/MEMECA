@@ -6,8 +6,10 @@ export const useRealtimeLikes = (memeId: string | number) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    console.log("Setting up realtime subscription for meme:", memeId);
+
     const channel = supabase
-      .channel('likes_changes')
+      .channel(`likes_changes_${memeId}`)
       .on(
         'postgres_changes',
         { 
@@ -16,8 +18,8 @@ export const useRealtimeLikes = (memeId: string | number) => {
           table: 'Likes',
           filter: `meme_id=eq.${memeId}`
         },
-        () => {
-          console.log("Likes changed, invalidating queries...");
+        (payload) => {
+          console.log("Likes changed, invalidating queries...", payload);
           void queryClient.invalidateQueries({ queryKey: ["memes"] });
           void queryClient.invalidateQueries({ queryKey: ["top-memes"] });
           void queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] });
@@ -25,9 +27,12 @@ export const useRealtimeLikes = (memeId: string | number) => {
           void queryClient.invalidateQueries({ queryKey: ["user-likes"] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status);
+      });
 
     return () => {
+      console.log("Cleaning up realtime subscription for meme:", memeId);
       void supabase.removeChannel(channel);
     };
   }, [memeId, queryClient]);
