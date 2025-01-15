@@ -6,10 +6,36 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper function to add retry logic
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  delay = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      console.error(`Attempt ${i + 1} failed:`, error);
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    });
   }
 
   try {
@@ -46,30 +72,39 @@ ${message}
 
           console.log('Sending request to Hugging Face API with prompt:', prompt)
           
-          const chatResponse = await hf.textGeneration({
-            model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-            inputs: prompt,
-            parameters: {
-              max_new_tokens: 200,
-              temperature: 0.7,
-              top_p: 0.95,
-              return_full_text: false,
-            },
-          })
+          const chatResponse = await withRetry(async () => {
+            const response = await hf.textGeneration({
+              model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+              inputs: prompt,
+              parameters: {
+                max_new_tokens: 200,
+                temperature: 0.7,
+                top_p: 0.95,
+                return_full_text: false,
+              },
+            });
+            
+            if (!response || !response.generated_text) {
+              throw new Error('Invalid response from Hugging Face API');
+            }
+            
+            return response;
+          });
 
           console.log('Raw chat response:', chatResponse)
-
-          if (!chatResponse || !chatResponse.generated_text) {
-            console.error('Invalid response from Hugging Face API:', chatResponse)
-            throw new Error('Invalid response from Hugging Face API')
-          }
 
           const response = chatResponse.generated_text.trim()
           console.log('Processed response:', response)
 
           return new Response(
             JSON.stringify({ response }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { 
+              status: 200,
+              headers: { 
+                ...corsHeaders, 
+                'Content-Type': 'application/json' 
+              } 
+            }
           )
         } catch (chatError) {
           console.error('Error in chat processing:', {
@@ -85,14 +120,22 @@ ${message}
         const { imageUrl } = data
         console.log('Analyzing image:', imageUrl)
         
-        const imageAnalysis = await hf.imageToText({
-          model: 'Salesforce/blip-image-captioning-large',
-          inputs: imageUrl,
-        })
+        const imageAnalysis = await withRetry(() => 
+          hf.imageToText({
+            model: 'Salesforce/blip-image-captioning-large',
+            inputs: imageUrl,
+          })
+        );
 
         return new Response(
           JSON.stringify({ analysis: imageAnalysis }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { 
+            status: 200,
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
+          }
         )
       }
 
@@ -100,14 +143,22 @@ ${message}
         const { text } = data
         console.log('Analyzing text:', text)
 
-        const sentimentAnalysis = await hf.textClassification({
-          model: 'ProsusAI/finbert',
-          inputs: text,
-        })
+        const sentimentAnalysis = await withRetry(() =>
+          hf.textClassification({
+            model: 'ProsusAI/finbert',
+            inputs: text,
+          })
+        );
 
         return new Response(
           JSON.stringify({ analysis: sentimentAnalysis }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { 
+            status: 200,
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json' 
+            } 
+          }
         )
       }
 
@@ -129,8 +180,11 @@ ${message}
         timestamp: new Date().toISOString()
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: 500,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
       }
     )
   }
