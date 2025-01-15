@@ -14,16 +14,73 @@ serve(async (req) => {
 
   try {
     const { type, data } = await req.json()
-    const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'))
     
-    console.log('AI Analysis request:', { type, timestamp: new Date().toISOString() })
+    console.log('AI Analysis request:', { type, data, timestamp: new Date().toISOString() })
 
     // Verify Hugging Face token
-    if (!Deno.env.get('HUGGING_FACE_ACCESS_TOKEN')) {
+    const hfToken = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN')
+    if (!hfToken) {
+      console.error('Hugging Face token not found')
       throw new Error('Hugging Face token not configured')
     }
 
+    const hf = new HfInference(hfToken)
+    
     switch (type) {
+      case 'chat': {
+        const { message } = data
+        if (!message || typeof message !== 'string') {
+          throw new Error('Invalid message format')
+        }
+
+        console.log('Processing chat message:', message)
+
+        try {
+          const prompt = `<|im_start|>system
+You are a helpful AI assistant that specializes in meme coins and cryptocurrency analysis. You provide clear, concise answers and always maintain a friendly, professional tone.
+<|im_end|>
+<|im_start|>user
+${message}
+<|im_end|>
+<|im_start|>assistant`
+
+          console.log('Sending request to Hugging Face API with prompt:', prompt)
+          
+          const chatResponse = await hf.textGeneration({
+            model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+            inputs: prompt,
+            parameters: {
+              max_new_tokens: 200,
+              temperature: 0.7,
+              top_p: 0.95,
+              return_full_text: false,
+            },
+          })
+
+          console.log('Raw chat response:', chatResponse)
+
+          if (!chatResponse || !chatResponse.generated_text) {
+            console.error('Invalid response from Hugging Face API:', chatResponse)
+            throw new Error('Invalid response from Hugging Face API')
+          }
+
+          const response = chatResponse.generated_text.trim()
+          console.log('Processed response:', response)
+
+          return new Response(
+            JSON.stringify({ response }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        } catch (chatError) {
+          console.error('Error in chat processing:', {
+            error: chatError,
+            message: chatError.message,
+            stack: chatError.stack
+          })
+          throw new Error(`Chat processing failed: ${chatError.message}`)
+        }
+      }
+
       case 'analyze_image': {
         const { imageUrl } = data
         console.log('Analyzing image:', imageUrl)
@@ -54,54 +111,6 @@ serve(async (req) => {
         )
       }
 
-      case 'chat': {
-        const { message } = data
-        console.log('Processing chat message:', message)
-
-        if (!message || typeof message !== 'string') {
-          throw new Error('Invalid message format')
-        }
-
-        try {
-          console.log('Sending request to Hugging Face API...')
-          
-          const chatResponse = await hf.textGeneration({
-            model: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
-            inputs: `<|im_start|>system
-You are a helpful AI assistant that specializes in meme coins and cryptocurrency analysis. You provide clear, concise answers and always maintain a friendly, professional tone.
-<|im_end|>
-<|im_start|>user
-${message}
-<|im_end|>
-<|im_start|>assistant`,
-            parameters: {
-              max_new_tokens: 200,
-              temperature: 0.7,
-              top_p: 0.95,
-              return_full_text: false,
-            },
-          })
-
-          console.log('Chat response received:', chatResponse)
-
-          if (!chatResponse || !chatResponse.generated_text) {
-            throw new Error('Invalid response from Hugging Face API')
-          }
-
-          return new Response(
-            JSON.stringify({ response: chatResponse.generated_text }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        } catch (chatError) {
-          console.error('Error in chat processing:', {
-            error: chatError,
-            message: chatError.message,
-            stack: chatError.stack
-          })
-          throw new Error(`Chat processing failed: ${chatError.message}`)
-        }
-      }
-
       default:
         throw new Error('Invalid analysis type')
     }
@@ -109,7 +118,8 @@ ${message}
     console.error('Error in ai-analysis function:', {
       error,
       message: error.message,
-      stack: error.stack
+      stack: error.stack,
+      timestamp: new Date().toISOString()
     })
     
     return new Response(
