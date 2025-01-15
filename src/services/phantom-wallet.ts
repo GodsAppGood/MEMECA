@@ -7,6 +7,12 @@ import { WALLET_CONFIG, ERROR_MESSAGES } from '@/utils/phantom/config';
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const SOLANA_ENDPOINT = "https://api.mainnet-beta.solana.com";
 
+interface TransactionConfirmation {
+  value: {
+    err: string | null;
+  };
+}
+
 export const connectWallet = async () => {
   try {
     if (!window.solana?.isPhantom) {
@@ -86,7 +92,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
 
     // Wait for confirmation with timeout
     const confirmation = await Promise.race([
-      connection.confirmTransaction(signature),
+      connection.confirmTransaction(signature) as Promise<TransactionConfirmation>,
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Transaction confirmation timeout')), 30000)
       )
