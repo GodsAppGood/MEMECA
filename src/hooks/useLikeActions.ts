@@ -72,7 +72,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         }
         throw insertError;
       }
-      
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
@@ -92,7 +92,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         description: error.message || "Failed to like meme",
         variant: "destructive",
       });
-      throw error; // Re-throw to be handled by the component
+      throw error;
     } finally {
       setIsProcessing(false);
     }
@@ -133,7 +133,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         console.error("Error removing like:", deleteError);
         throw deleteError;
       }
-      
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["top-memes"] }),
@@ -153,7 +153,7 @@ export const useLikeActions = (memeId: string | number, userId: string | null) =
         description: error.message || "Failed to unlike meme",
         variant: "destructive",
       });
-      throw error; // Re-throw to be handled by the component
+      throw error;
     } finally {
       setIsProcessing(false);
     }
