@@ -1,12 +1,8 @@
-import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 
 export const useLikeActions = (memeId: string, userId: string | null) => {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleLike = async () => {
     if (!userId) {
@@ -65,7 +61,6 @@ export const useLikeActions = (memeId: string, userId: string | null) => {
 
   return {
     handleLike,
-    handleUnlike,
-    isProcessing
+    handleUnlike
   };
 };
