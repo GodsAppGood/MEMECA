@@ -64,6 +64,13 @@ export const MemeCardActions = ({
         }
         await handleLike();
       }
+    } catch (error: any) {
+      console.error("Like action failed:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to process like action",
+        variant: "destructive"
+      });
     } finally {
       setIsLiking(false);
     }
