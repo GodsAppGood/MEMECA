@@ -8,6 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, clusterApiUrl } from "@solana/web3.js";
 
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
+const SOLANA_RPC_ENDPOINT = "https://api.mainnet-beta.solana.com";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -101,6 +102,8 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
+      console.log('Starting payment process...');
+      
       if (!window.solana?.isPhantom) {
         window.open("https://phantom.app/", "_blank");
         throw new Error("Please install Phantom wallet");
@@ -124,15 +127,13 @@ export const TuzemoonButton = ({
         throw new Error("Wallet connection failed");
       }
 
-      // Create connection
-      const connection = new Connection(clusterApiUrl('mainnet-beta'), {
-        commitment: 'confirmed'
-      });
-
+      console.log('Creating Solana connection...');
+      const connection = new Connection(SOLANA_RPC_ENDPOINT);
+      
       const fromPubkey = new PublicKey(window.solana.publicKey.toString());
       const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
 
-      // Check balance
+      console.log('Checking wallet balance...');
       const balance = await connection.getBalance(fromPubkey);
       console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
       
@@ -140,7 +141,7 @@ export const TuzemoonButton = ({
         throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
       }
 
-      // Create transaction
+      console.log('Creating transaction...');
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey,
@@ -149,38 +150,33 @@ export const TuzemoonButton = ({
         })
       );
 
-      const { blockhash } = await connection.getLatestBlockhash('confirmed');
+      console.log('Getting latest blockhash...');
+      const { blockhash } = await connection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = fromPubkey;
 
-      // Request signature from user
       console.log('Requesting signature...');
       const signedTransaction = await window.solana.signTransaction(transaction);
       
-      // Send transaction
       console.log('Sending transaction...');
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       
-      // Wait for confirmation
-      console.log('Waiting for confirmation...');
-      const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+      console.log('Waiting for confirmation...', signature);
+      const confirmation = await connection.confirmTransaction(signature);
       
       if (confirmation.value.err) {
         throw new Error("Transaction failed to confirm");
       }
 
       console.log('Transaction confirmed:', signature);
-      toast({
-        title: "Payment Successful",
-        description: "Transaction confirmed, activating Tuzemoon status...",
-      });
-
+      
       // Only activate Tuzemoon after successful payment confirmation
       const activationSuccess = await activateTuzemoon(user.id, signature);
-
+      
       if (activationSuccess) {
         setIsModalOpen(false);
       }
+
     } catch (error: any) {
       console.error('Payment/activation error:', error);
       toast({
