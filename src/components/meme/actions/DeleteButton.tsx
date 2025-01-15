@@ -78,19 +78,16 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
+      console.log('Attempting to delete meme:', meme.id);
       
-      // Обновляем запись, устанавливая is_deleted в true
-      const { error: updateError } = await supabase
+      const { error: deleteError } = await supabase
         .from('Memes')
-        .update({ 
-          is_deleted: true,
-          updated_at: new Date().toISOString()
-        })
+        .delete()
         .eq('id', parseInt(meme.id));
 
-      if (updateError) {
-        console.error('Delete error:', updateError);
-        throw updateError;
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
       }
 
       // Инвалидируем все связанные запросы для обновления UI
