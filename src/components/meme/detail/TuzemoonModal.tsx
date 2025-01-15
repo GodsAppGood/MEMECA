@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
+import { connectWallet } from "@/services/phantom-wallet";
 import { toast } from "@/hooks/use-toast";
 
 interface TuzemoonModalProps {
@@ -31,16 +32,13 @@ export const TuzemoonModal = ({
     const checkWalletConnection = async () => {
       if (window.solana?.isPhantom) {
         try {
-          if (!window.solana.isConnected) {
-            const response = await window.solana.connect();
-            console.log("Wallet connected:", response.publicKey.toString());
+          const response = await connectWallet();
+          if (response.success) {
             setWalletConnected(true);
             toast({
               title: "Wallet Connected",
               description: "Your Phantom wallet is now connected",
             });
-          } else {
-            setWalletConnected(true);
           }
         } catch (error) {
           console.error("Failed to connect wallet:", error);
