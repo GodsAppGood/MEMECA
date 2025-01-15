@@ -23,6 +23,8 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
         active:scale-95
         ${isLiked ? 'text-red-500' : 'hover:text-red-500'}
       `}
+      aria-label={isLiked ? 'Unlike' : 'Like'}
+      title={`${likesCount} ${likesCount === 1 ? 'like' : 'likes'}`}
     >
       {disabled ? (
         <Loader2 className="h-4 w-4 animate-spin" />

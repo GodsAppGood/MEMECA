@@ -29,6 +29,7 @@ export const MemeCardActions = ({
   const { handleLike, handleUnlike } = useLikeActions(meme.id.toString(), userId);
   const isLiked = userLikes?.includes(meme.id.toString());
 
+  // Subscribe to realtime likes updates
   useRealtimeLikes(meme.id);
 
   const handleLikeClick = async (e: React.MouseEvent) => {
@@ -50,9 +51,11 @@ export const MemeCardActions = ({
 
     try {
       setIsProcessing(true);
+      console.log('Processing like action:', { memeId: meme.id, userId, isLiked });
       
       if (isLiked) {
         await handleUnlike();
+        console.log('Successfully unliked meme:', meme.id);
       } else {
         if (userPoints < 1) {
           toast({
@@ -63,6 +66,7 @@ export const MemeCardActions = ({
           return;
         }
         await handleLike();
+        console.log('Successfully liked meme:', meme.id);
       }
     } catch (error: any) {
       console.error("Like action failed:", error);
