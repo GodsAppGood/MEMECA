@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, clusterApiUrl } from "@solana/web3.js";
 
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 
@@ -124,8 +124,8 @@ export const TuzemoonButton = ({
         throw new Error("Wallet connection failed");
       }
 
-      // Create connection and check balance
-      const connection = new Connection("https://api.mainnet-beta.solana.com", {
+      // Create connection using clusterApiUrl for better reliability
+      const connection = new Connection(clusterApiUrl('mainnet-beta'), {
         commitment: 'confirmed',
         confirmTransactionInitialTimeout: 60000
       });
@@ -133,11 +133,21 @@ export const TuzemoonButton = ({
       const fromPubkey = new PublicKey(window.solana.publicKey.toString());
       const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
       
-      // Check balance
-      const balance = await connection.getBalance(fromPubkey);
-      console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+      // Check balance with retries
+      let balance;
+      for (let i = 0; i < 3; i++) {
+        try {
+          balance = await connection.getBalance(fromPubkey);
+          console.log('Current balance:', balance / LAMPORTS_PER_SOL, 'SOL');
+          break;
+        } catch (error) {
+          console.error(`Balance check attempt ${i + 1} failed:`, error);
+          if (i === 2) throw new Error("Failed to check wallet balance. Please try again.");
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
       
-      if (balance < 0.1 * LAMPORTS_PER_SOL) {
+      if (!balance || balance < 0.1 * LAMPORTS_PER_SOL) {
         throw new Error("Insufficient SOL balance. Please add funds to your wallet.");
       }
 
@@ -150,8 +160,20 @@ export const TuzemoonButton = ({
         })
       );
 
-      // Get latest blockhash
-      const { blockhash } = await connection.getLatestBlockhash('confirmed');
+      // Get latest blockhash with retries
+      let blockhash;
+      for (let i = 0; i < 3; i++) {
+        try {
+          const { blockhash: latestBlockhash } = await connection.getLatestBlockhash('confirmed');
+          blockhash = latestBlockhash;
+          break;
+        } catch (error) {
+          console.error(`Blockhash fetch attempt ${i + 1} failed:`, error);
+          if (i === 2) throw new Error("Failed to prepare transaction. Please try again.");
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = fromPubkey;
 
