@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Heart } from "lucide-react";
-import { Loader2 } from "lucide-react";
+import { Heart, Loader2 } from "lucide-react";
 
 interface LikeButtonProps {
   isLiked: boolean;
@@ -17,11 +16,12 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
       onClick={onClick}
       disabled={disabled}
       className={`
+        group
         relative
         transition-all duration-200 ease-in-out
-        hover:text-red-500 hover:scale-110
+        hover:scale-110
         active:scale-95
-        ${isLiked ? 'text-red-500 scale-105' : ''}
+        ${isLiked ? 'text-red-500' : 'hover:text-red-500'}
         ${disabled ? 'cursor-not-allowed opacity-50' : ''}
       `}
     >
@@ -31,7 +31,8 @@ export const LikeButton = ({ isLiked, onClick, disabled, likesCount }: LikeButto
         <Heart 
           className={`
             h-4 w-4 
-            transition-all duration-200
+            transition-all duration-300
+            group-hover:animate-bounce-rotate
             ${isLiked ? 'fill-current animate-scale-in' : ''}
           `} 
         />
