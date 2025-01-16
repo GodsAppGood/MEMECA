@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const hf = new HfInference(Deno.env.get('HUGGING_FACE_ACCESS_TOKEN'))
+    const hf = new HfInference(Deno.env.get('ai_secret'))
     const { type, data } = await req.json()
     
     console.log('Processing request:', { type, data, timestamp: new Date().toISOString() })
