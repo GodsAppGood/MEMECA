@@ -16,14 +16,22 @@ export const useAIAnalysis = () => {
     setError(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('ai-analysis', {
+      console.log('Analyzing image:', { imageUrl, timestamp: new Date().toISOString() });
+      
+      const { data, error: functionError } = await supabase.functions.invoke('ai-analysis', {
         body: { type: 'analyze_image', data: { imageUrl } }
       });
 
-      if (error) throw error;
+      if (functionError) {
+        console.error('Function error:', functionError);
+        throw functionError;
+      }
+      
+      console.log('Analysis complete:', { data, timestamp: new Date().toISOString() });
       return data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to analyze image';
+      console.error('Analysis error:', { message, error: err, timestamp: new Date().toISOString() });
       setError(message);
       return { error: message };
     } finally {
@@ -36,14 +44,22 @@ export const useAIAnalysis = () => {
     setError(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('ai-analysis', {
+      console.log('Analyzing text:', { text, timestamp: new Date().toISOString() });
+      
+      const { data, error: functionError } = await supabase.functions.invoke('ai-analysis', {
         body: { type: 'analyze_text', data: { text } }
       });
 
-      if (error) throw error;
+      if (functionError) {
+        console.error('Function error:', functionError);
+        throw functionError;
+      }
+      
+      console.log('Analysis complete:', { data, timestamp: new Date().toISOString() });
       return data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to analyze text';
+      console.error('Analysis error:', { message, error: err, timestamp: new Date().toISOString() });
       setError(message);
       return { error: message };
     } finally {
@@ -56,14 +72,22 @@ export const useAIAnalysis = () => {
     setError(null);
     
     try {
-      const { data, error } = await supabase.functions.invoke('ai-analysis', {
+      console.log('Processing chat message:', { message, timestamp: new Date().toISOString() });
+      
+      const { data, error: functionError } = await supabase.functions.invoke('ai-analysis', {
         body: { type: 'chat', data: { message } }
       });
 
-      if (error) throw error;
+      if (functionError) {
+        console.error('Function error:', functionError);
+        throw functionError;
+      }
+      
+      console.log('Chat response received:', { data, timestamp: new Date().toISOString() });
       return data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to process chat message';
+      console.error('Chat error:', { message, error: err, timestamp: new Date().toISOString() });
       setError(message);
       return { error: message };
     } finally {
