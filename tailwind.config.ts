@@ -52,6 +52,18 @@ const config = {
           "50%": {
             transform: "translateY(-20px) scale(1.01) rotate(1deg)",
           }
+        },
+        neon: {
+          "0%, 100%": {
+            textShadow: "0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff, 0 0 42px #FFB74D, 0 0 82px #FFB74D, 0 0 92px #FFB74D, 0 0 102px #FFB74D, 0 0 151px #FFB74D"
+          },
+          "50%": {
+            textShadow: "0 0 4px #fff, 0 0 7px #fff, 0 0 18px #fff, 0 0 38px #FFB74D, 0 0 73px #FFB74D, 0 0 80px #FFB74D, 0 0 94px #FFB74D, 0 0 140px #FFB74D"
+          }
+        },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" }
         }
       },
       animation: {
@@ -59,7 +71,9 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-rotate": "bounce-rotate 0.5s ease-in-out",
-        "float": "float 4s ease-in-out infinite"
+        "float": "float 4s ease-in-out infinite",
+        "neon": "neon 2.5s ease-in-out infinite",
+        "spin-slow": "spin-slow 10s linear infinite"
       },
       colors: {
         border: "hsl(var(--border))",

@@ -22,9 +22,24 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
     "Cordano", "Near", "Manta", "Injective", "Zora"
   ];
 
+  const handleWheelClick = () => {
+    window.location.href = 'https://www.memecawheel.xyz/';
+  };
+
   return (
     <div className="container mx-auto px-4 py-16 overflow-x-hidden">
       <div className="flex flex-wrap gap-8 items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div onClick={handleWheelClick} className="cursor-pointer mb-2">
+            <img 
+              src="/lovable-uploads/d51f59b8-fe9c-41c4-80b7-d3667bf5a437.png" 
+              alt="Memeca Wheel" 
+              className="w-16 h-16 animate-spin-slow"
+            />
+          </div>
+          <span className="text-lg font-bold animate-neon">Memeca Wheel</span>
+        </div>
+
         <div className="flex flex-col items-center gap-4">
           <span className="font-serif text-2xl">1</span>
           <Popover>
@@ -79,6 +94,17 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
           >
             MEOW
           </Button>
+        </div>
+
+        <div className="flex flex-col items-center">
+          <div onClick={handleWheelClick} className="cursor-pointer mb-2">
+            <img 
+              src="/lovable-uploads/d51f59b8-fe9c-41c4-80b7-d3667bf5a437.png" 
+              alt="Memeca Wheel" 
+              className="w-16 h-16 animate-spin-slow"
+            />
+          </div>
+          <span className="text-lg font-bold animate-neon">Memeca Wheel</span>
         </div>
       </div>
     </div>
