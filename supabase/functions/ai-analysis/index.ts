@@ -13,7 +13,14 @@ serve(async (req) => {
   }
 
   try {
-    const hf = new HfInference(Deno.env.get('ai_secret'))
+    const token = Deno.env.get('ai_secret');
+    if (!token) {
+      throw new Error('AI token not configured');
+    }
+
+    console.log('Initializing HF with token:', { tokenLength: token.length, timestamp: new Date().toISOString() });
+    
+    const hf = new HfInference(token)
     const { type, data } = await req.json()
     
     console.log('Processing request:', { type, data, timestamp: new Date().toISOString() })
@@ -25,45 +32,58 @@ serve(async (req) => {
           throw new Error('Message is required for chat')
         }
 
-        // Используем RoBERTa для анализа настроения
-        const sentimentAnalysis = await hf.textClassification({
-          model: 'cardiffnlp/twitter-roberta-base-sentiment-latest',
-          inputs: message,
-        })
+        try {
+          // Анализ настроения
+          const sentimentAnalysis = await hf.textClassification({
+            model: 'cardiffnlp/twitter-roberta-base-sentiment-latest',
+            inputs: message,
+          })
 
-        // Используем RoBERTa для генерации ответа
-        const response = await hf.textGeneration({
-          model: 'facebook/bart-large-cnn',
-          inputs: message,
-          parameters: {
-            max_length: 100,
-            temperature: 0.7,
-            top_p: 0.95,
-          },
-        })
+          console.log('Sentiment analysis result:', { 
+            sentiment: sentimentAnalysis,
+            timestamp: new Date().toISOString() 
+          })
 
-        console.log('Generated response:', {
-          sentiment: sentimentAnalysis,
-          response: response,
-          timestamp: new Date().toISOString()
-        })
+          // Генерация ответа
+          const response = await hf.textGeneration({
+            model: 'facebook/bart-large-cnn',
+            inputs: message,
+            parameters: {
+              max_length: 100,
+              temperature: 0.7,
+              top_p: 0.95,
+            },
+          })
 
-        // Формируем ответ с учетом настроения сообщения
-        let sentiment = ''
-        if (sentimentAnalysis[0]?.label === 'positive') {
-          sentiment = '😊 '
-        } else if (sentimentAnalysis[0]?.label === 'negative') {
-          sentiment = '😔 '
-        }
+          console.log('Generated response:', {
+            response: response,
+            timestamp: new Date().toISOString()
+          })
 
-        return new Response(
-          JSON.stringify({
-            response: `${sentiment}${response.generated_text}`,
-          }),
-          {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          // Добавляем эмодзи в зависимости от настроения
+          let sentiment = ''
+          if (sentimentAnalysis[0]?.label === 'positive') {
+            sentiment = '😊 '
+          } else if (sentimentAnalysis[0]?.label === 'negative') {
+            sentiment = '😔 '
           }
-        )
+
+          return new Response(
+            JSON.stringify({
+              response: `${sentiment}${response.generated_text}`,
+            }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          )
+        } catch (error) {
+          console.error('Error in chat processing:', {
+            error: error.message,
+            stack: error.stack,
+            timestamp: new Date().toISOString()
+          })
+          throw error
+        }
       }
 
       case 'analyze_text': {
