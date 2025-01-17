@@ -32,6 +32,8 @@ serve(async (req) => {
         }
 
         try {
+          console.log('Processing chat message:', { message, timestamp: new Date().toISOString() });
+          
           const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -43,12 +45,12 @@ serve(async (req) => {
               messages: [
                 { 
                   role: 'system', 
-                  content: 'You are a helpful assistant that specializes in memes, cryptocurrency, and blockchain technology. You provide friendly and informative responses while maintaining a casual tone.' 
+                  content: 'You are a helpful assistant that specializes in memes, cryptocurrency, and blockchain technology. Keep responses concise and friendly.' 
                 },
                 { role: 'user', content: message }
               ],
               temperature: 0.7,
-              max_tokens: 500,
+              max_tokens: 150, // Reduced token limit for cost efficiency
             }),
           });
 
@@ -59,6 +61,21 @@ serve(async (req) => {
               error,
               timestamp: new Date().toISOString()
             });
+
+            // Handle quota exceeded error specifically
+            if (response.status === 429) {
+              return new Response(
+                JSON.stringify({
+                  error: 'Service temporarily unavailable. Please try again later.',
+                  details: 'API quota exceeded'
+                }),
+                {
+                  status: 429,
+                  headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                }
+              );
+            }
+
             throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
           }
 
@@ -102,10 +119,12 @@ serve(async (req) => {
             messages: [
               { 
                 role: 'system', 
-                content: 'You are an AI that analyzes text content related to memes and cryptocurrency. Provide sentiment and content analysis.' 
+                content: 'You are an AI that analyzes text content related to memes and cryptocurrency. Provide brief sentiment and content analysis.' 
               },
               { role: 'user', content: `Analyze this text: ${text}` }
             ],
+            temperature: 0.7,
+            max_tokens: 100,
           }),
         });
 
@@ -135,7 +154,7 @@ serve(async (req) => {
             messages: [
               { 
                 role: 'system', 
-                content: 'You are an AI that analyzes images related to memes and cryptocurrency. Describe the content and provide relevant insights.' 
+                content: 'You are an AI that analyzes images related to memes and cryptocurrency. Describe the content briefly and provide relevant insights.' 
               },
               { 
                 role: 'user', 
@@ -146,11 +165,13 @@ serve(async (req) => {
                   },
                   {
                     type: 'text',
-                    text: 'Analyze this meme image and describe its content and potential impact.'
+                    text: 'Analyze this meme image and describe its content briefly.'
                   }
                 ]
               }
             ],
+            temperature: 0.7,
+            max_tokens: 100,
           }),
         });
 
@@ -173,9 +194,11 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     })
 
+    // Return a user-friendly error message
     return new Response(
       JSON.stringify({
-        error: error.message,
+        error: 'Sorry, the AI assistant is temporarily unavailable. Please try again later.',
+        details: error.message,
         timestamp: new Date().toISOString()
       }),
       {
