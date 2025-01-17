@@ -74,14 +74,15 @@ serve(async (req) => {
 
     const meme = payload.record
     
-    // Format the message for Telegram
-    const message = `🚀 New Meme Alert! 🚀\n\n` +
-      `📌 ${meme.title}\n\n` +
+    // Format the message for Telegram with emojis and better formatting
+    const message = `🎉 New Meme Added! 🎉\n\n` +
+      `📌 *${meme.title}*\n\n` +
       `${meme.description ? `📝 ${meme.description}\n\n` : ''}` +
-      `${meme.blockchain ? `🔗 Blockchain: ${meme.blockchain}\n` : ''}` +
-      `${meme.trade_link ? `💹 Trade: ${meme.trade_link}\n` : ''}` +
-      `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
-      `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}\n` : ''}`
+      `${meme.blockchain ? `⛓️ *Blockchain:* ${meme.blockchain}\n` : ''}` +
+      `\n*Links:*\n` +
+      `${meme.trade_link ? `🔄 [Trade](${meme.trade_link})\n` : ''}` +
+      `${meme.twitter_link ? `🐦 [Twitter](${meme.twitter_link})\n` : ''}` +
+      `${meme.telegram_link ? `📱 [Telegram](${meme.telegram_link})\n` : ''}`
 
     console.log('Sending Telegram message:', {
       chatId: TELEGRAM_CHAT_ID,
@@ -89,7 +90,7 @@ serve(async (req) => {
       hasImage: !!meme.image_url
     });
 
-    // First send the text message
+    // First send the text message with markdown formatting
     const textResponse = await fetch(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
@@ -100,7 +101,8 @@ serve(async (req) => {
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'HTML',
+          parse_mode: 'Markdown',
+          disable_web_page_preview: true // Disable preview as we'll send image separately
         }),
       }
     )
@@ -128,6 +130,7 @@ serve(async (req) => {
           body: JSON.stringify({
             chat_id: TELEGRAM_CHAT_ID,
             photo: meme.image_url,
+            caption: `🖼️ Image for: ${meme.title}`
           }),
         }
       )
