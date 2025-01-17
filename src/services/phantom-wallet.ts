@@ -1,9 +1,10 @@
-import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL, clusterApiUrl } from '@solana/web3.js';
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
-const SOLANA_ENDPOINT = "https://api.mainnet-beta.solana.com";
+const NETWORK = 'mainnet-beta';
+const SOLANA_ENDPOINT = clusterApiUrl(NETWORK);
 
 interface TransactionConfirmation {
   value: {
@@ -13,11 +14,23 @@ interface TransactionConfirmation {
 
 export const connectWallet = async () => {
   try {
+    // Check if Phantom is installed
     if (!window.solana?.isPhantom) {
+      console.log('Phantom wallet not detected');
+      toast({
+        title: "Wallet Not Found",
+        description: "Please install Phantom wallet to continue",
+        variant: "destructive",
+      });
       window.open('https://phantom.app/', '_blank');
       return { success: false, error: "Phantom wallet not installed" };
     }
 
+    // Check if we're on the correct network
+    const network = await window.solana.connection.getVersion();
+    console.log('Connected to network:', network);
+
+    // Connect to wallet
     console.log('Connecting to Phantom wallet...');
     const response = await window.solana.connect();
     console.log('Wallet connected:', response.publicKey.toString());
@@ -25,53 +38,57 @@ export const connectWallet = async () => {
     return { success: true, publicKey: response.publicKey.toString() };
   } catch (error: any) {
     console.error('Connection error:', error);
+    toast({
+      title: "Connection Failed",
+      description: error.message || "Failed to connect to wallet",
+      variant: "destructive",
+    });
     return { success: false, error: error.message };
   }
 };
 
 export const sendPayment = async (amount: number, memeId: string) => {
   try {
-    console.log('Starting payment process...', { amount, memeId });
+    console.log('Starting payment process...', { amount, memeId, network: NETWORK });
 
     if (!window.solana?.isPhantom) {
-      toast({
-        title: "Wallet Not Found",
-        description: "Please install Phantom wallet to continue",
-        variant: "destructive",
-      });
-      return { success: false, error: "Phantom wallet not installed" };
+      throw new Error("Phantom wallet not installed");
     }
 
     // Connect wallet if not connected
     if (!window.solana.isConnected) {
-      const connectionResult = await window.solana.connect();
-      if (!connectionResult) {
+      const connectionResult = await connectWallet();
+      if (!connectionResult.success) {
         throw new Error("Failed to connect wallet");
       }
     }
 
     const connection = new Connection(SOLANA_ENDPOINT, 'confirmed');
-    const fromPubkey = new PublicKey(window.solana.publicKey!.toString());
-    const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
-
-    // Check balance with some buffer for fees
-    const balance = await connection.getBalance(fromPubkey);
-    const requiredAmount = amount * LAMPORTS_PER_SOL;
-    const minimumRequired = requiredAmount + (0.01 * LAMPORTS_PER_SOL); // Add buffer for fees
+    const fromPubkey = window.solana.publicKey;
     
-    if (balance < minimumRequired) {
-      const errorMessage = `Insufficient balance. Required: ${amount + 0.01} SOL`;
-      toast({
-        title: "Insufficient Balance",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return { success: false, error: errorMessage };
+    if (!fromPubkey) {
+      throw new Error("Wallet not connected");
     }
 
-    console.log('Creating transaction...');
+    const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
+
+    // Check balance with buffer for fees
+    const balance = await connection.getBalance(fromPubkey);
+    const requiredAmount = amount * LAMPORTS_PER_SOL;
+    const minimumRequired = requiredAmount + (0.01 * LAMPORTS_PER_SOL); // Buffer for fees
+    
+    console.log('Balance check:', {
+      balance: balance / LAMPORTS_PER_SOL,
+      required: amount,
+      withFees: minimumRequired / LAMPORTS_PER_SOL
+    });
+
+    if (balance < minimumRequired) {
+      throw new Error(`Insufficient balance. Required: ${amount + 0.01} SOL`);
+    }
 
     // Create transaction
+    console.log('Creating transaction...');
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey,
@@ -85,24 +102,29 @@ export const sendPayment = async (amount: number, memeId: string) => {
     transaction.feePayer = fromPubkey;
 
     // Sign and send transaction
+    console.log('Requesting signature...');
     const signedTransaction = await window.solana.signTransaction(transaction);
-    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+    console.log('Transaction signed, sending...');
     
+    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
     console.log('Transaction sent:', signature);
 
     // Wait for confirmation with timeout
+    console.log('Waiting for confirmation...');
     const confirmation = await Promise.race([
-      connection.confirmTransaction(signature) as Promise<TransactionConfirmation>,
+      connection.confirmTransaction(signature),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Transaction confirmation timeout')), 30000)
-      ) as Promise<never>
+      )
     ]) as TransactionConfirmation;
 
     if (confirmation.value.err) {
       throw new Error('Transaction failed to confirm');
     }
 
-    // Record in database
+    console.log('Transaction confirmed:', signature);
+
+    // Record transaction in database
     const { error: dbError } = await supabase
       .from('TuzemoonPayments')
       .insert({
@@ -116,6 +138,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
 
     if (dbError) {
       console.error('Database error:', dbError);
+      // Don't throw here as payment was successful
     }
 
     toast({

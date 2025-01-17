@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { connectWallet } from "@/services/phantom-wallet";
 
 interface TuzemoonModalProps {
@@ -29,6 +29,24 @@ export const TuzemoonModal = ({
 }: TuzemoonModalProps) => {
   const [walletConnected, setWalletConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+
+  // Check wallet connection status on mount and when window.solana changes
+  useEffect(() => {
+    const checkWalletConnection = () => {
+      if (window.solana?.isPhantom && window.solana.isConnected) {
+        setWalletConnected(true);
+      } else {
+        setWalletConnected(false);
+      }
+    };
+
+    checkWalletConnection();
+    window.addEventListener('load', checkWalletConnection);
+
+    return () => {
+      window.removeEventListener('load', checkWalletConnection);
+    };
+  }, []);
 
   const handleConnect = async () => {
     setIsConnecting(true);
