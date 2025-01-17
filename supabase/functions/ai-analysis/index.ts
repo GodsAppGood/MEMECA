@@ -73,24 +73,26 @@ serve(async (req) => {
               {
                 role: 'system',
                 content: `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
-                Analyze the provided meme and give scores from 1 to 10 for each criterion.
+                Your task is to analyze the provided meme and return a JSON response with scores and explanations.
                 
-                Return ONLY a JSON object with these exact keys, no markdown, no code blocks:
+                You must ONLY return a valid JSON object in this exact format, with no additional text, markdown, or code blocks:
                 {
                   "scores": {
-                    "humor": number,
-                    "originality": number,
-                    "cryptoRelevance": number,
-                    "viralPotential": number
+                    "humor": <number between 1-10>,
+                    "originality": <number between 1-10>,
+                    "cryptoRelevance": <number between 1-10>,
+                    "viralPotential": <number between 1-10>
                   },
                   "explanations": {
-                    "humor": "string",
-                    "originality": "string",
-                    "cryptoRelevance": "string",
-                    "viralPotential": "string"
+                    "humor": "<brief explanation>",
+                    "originality": "<brief explanation>",
+                    "cryptoRelevance": "<brief explanation>",
+                    "viralPotential": "<brief explanation>"
                   },
-                  "overallAnalysis": "string"
-                }`
+                  "overallAnalysis": "<2-3 sentence summary>"
+                }
+                
+                Important: Your response must be ONLY the JSON object, nothing else.`
               },
               {
                 role: 'user',
@@ -127,17 +129,39 @@ serve(async (req) => {
           throw new Error('Invalid response from OpenAI API');
         }
 
-        // Clean up the response content by removing any markdown or code block syntax
-        let analysisContent = result.choices[0].message.content
-          .replace(/```json\n?/g, '')  // Remove ```json
-          .replace(/```\n?/g, '')      // Remove closing ```
-          .trim();                     // Remove extra whitespace
+        // Get the raw content and clean it up
+        const rawContent = result.choices[0].message.content;
+        console.log('Raw content from OpenAI:', rawContent);
 
-        console.log('Cleaned analysis content:', analysisContent);
+        // Remove any potential markdown or code block syntax and trim whitespace
+        const cleanContent = rawContent
+          .replace(/```json/g, '')
+          .replace(/```/g, '')
+          .trim();
+        
+        console.log('Cleaned content:', cleanContent);
 
         try {
-          const analysis = JSON.parse(analysisContent);
-          console.log('Parsed analysis:', analysis);
+          // Attempt to parse the cleaned content
+          const analysis = JSON.parse(cleanContent);
+          
+          // Validate the analysis object structure
+          if (!analysis.scores || !analysis.explanations || !analysis.overallAnalysis) {
+            throw new Error('Invalid analysis structure');
+          }
+
+          // Validate score values
+          const scores = ['humor', 'originality', 'cryptoRelevance', 'viralPotential'];
+          for (const score of scores) {
+            if (typeof analysis.scores[score] !== 'number' || 
+                analysis.scores[score] < 1 || 
+                analysis.scores[score] > 10) {
+              throw new Error(`Invalid score value for ${score}`);
+            }
+          }
+
+          console.log('Successfully parsed and validated analysis:', analysis);
+          
           return new Response(
             JSON.stringify({ analysis }),
             {
@@ -145,14 +169,14 @@ serve(async (req) => {
             }
           );
         } catch (parseError) {
-          console.error('Failed to parse analysis content:', {
-            content: analysisContent,
-            error: parseError
+          console.error('Failed to parse or validate analysis:', {
+            cleanContent,
+            error: parseError.message
           });
-          throw new Error(`Failed to parse analysis results: ${parseError.message}`);
+          throw new Error(`Failed to process analysis results: ${parseError.message}`);
         }
       } catch (openAIError) {
-        console.error('OpenAI API or parsing error:', openAIError);
+        console.error('OpenAI API or processing error:', openAIError);
         throw openAIError;
       }
     }
