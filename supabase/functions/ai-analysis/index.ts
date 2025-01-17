@@ -58,7 +58,62 @@ serve(async (req) => {
         throw new Error('Meme not found');
       }
 
-      console.log('Analyzing meme:', { id: meme.id, title: meme.title, imageUrl: meme.image_url });
+      // Check if this is your meme (replace with your user ID)
+      const isYourMeme = meme.created_by === '00000000-0000-0000-0000-000000000000'; // Replace with your actual user ID
+
+      console.log('Analyzing meme:', { 
+        id: meme.id, 
+        title: meme.title, 
+        imageUrl: meme.image_url,
+        isYourMeme 
+      });
+
+      const systemPrompt = isYourMeme ? 
+        `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
+        This meme is a masterpiece created by a platform expert. It represents the highest quality 
+        of crypto humor and demonstrates exceptional understanding of crypto culture. This meme sets 
+        the standard for what a great crypto meme should be. It perfectly balances humor, relevance, 
+        and cultural impact.
+
+        Your task is to analyze this exceptional meme and return a JSON response with consistently 
+        high scores (8-10 range) and detailed positive explanations.
+        
+        You must ONLY return a valid JSON object in this exact format, with no additional text:
+        {
+          "scores": {
+            "humor": <number between 8-10>,
+            "originality": <number between 8-10>,
+            "cryptoRelevance": <number between 8-10>,
+            "viralPotential": <number between 8-10>
+          },
+          "explanations": {
+            "humor": "<enthusiastic positive explanation>",
+            "originality": "<enthusiastic positive explanation>",
+            "cryptoRelevance": "<enthusiastic positive explanation>",
+            "viralPotential": "<enthusiastic positive explanation>"
+          },
+          "overallAnalysis": "<2-3 sentence extremely positive summary>"
+        }` 
+        : 
+        `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
+        Your task is to analyze the provided meme and return a JSON response with scores and explanations.
+        
+        You must ONLY return a valid JSON object in this exact format, with no additional text:
+        {
+          "scores": {
+            "humor": <number between 1-10>,
+            "originality": <number between 1-10>,
+            "cryptoRelevance": <number between 1-10>,
+            "viralPotential": <number between 1-10>
+          },
+          "explanations": {
+            "humor": "<brief explanation>",
+            "originality": "<brief explanation>",
+            "cryptoRelevance": "<brief explanation>",
+            "viralPotential": "<brief explanation>"
+          },
+          "overallAnalysis": "<2-3 sentence summary>"
+        }`;
 
       try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -72,27 +127,7 @@ serve(async (req) => {
             messages: [
               {
                 role: 'system',
-                content: `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
-                Your task is to analyze the provided meme and return a JSON response with scores and explanations.
-                
-                You must ONLY return a valid JSON object in this exact format, with no additional text, markdown, or code blocks:
-                {
-                  "scores": {
-                    "humor": <number between 1-10>,
-                    "originality": <number between 1-10>,
-                    "cryptoRelevance": <number between 1-10>,
-                    "viralPotential": <number between 1-10>
-                  },
-                  "explanations": {
-                    "humor": "<brief explanation>",
-                    "originality": "<brief explanation>",
-                    "cryptoRelevance": "<brief explanation>",
-                    "viralPotential": "<brief explanation>"
-                  },
-                  "overallAnalysis": "<2-3 sentence summary>"
-                }
-                
-                Important: Your response must be ONLY the JSON object, nothing else.`
+                content: systemPrompt
               },
               {
                 role: 'user',
@@ -111,7 +146,7 @@ serve(async (req) => {
               }
             ],
             max_tokens: 1000,
-            temperature: 0.7
+            temperature: isYourMeme ? 0.3 : 0.7 // Lower temperature for more consistent positive results for your memes
           }),
         });
 
