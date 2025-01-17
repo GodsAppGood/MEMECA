@@ -28,11 +28,19 @@ export const TuzemoonModal = ({
   memeTitle
 }: TuzemoonModalProps) => {
   const [walletConnected, setWalletConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
-    const response = await connectWallet();
-    if (response.success) {
-      setWalletConnected(true);
+    setIsConnecting(true);
+    try {
+      const response = await connectWallet();
+      if (response.success) {
+        setWalletConnected(true);
+      }
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+    } finally {
+      setIsConnecting(false);
     }
   };
 
@@ -67,8 +75,16 @@ export const TuzemoonModal = ({
                     variant="link" 
                     className="p-0 h-auto font-normal text-sm text-blue-500"
                     onClick={handleConnect}
+                    disabled={isConnecting}
                   >
-                    Connect Phantom Wallet
+                    {isConnecting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      'Connect Phantom Wallet'
+                    )}
                   </Button>
                 </div>
               ) : (

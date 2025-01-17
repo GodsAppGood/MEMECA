@@ -31,6 +31,8 @@ export const connectWallet = async () => {
 
 export const sendPayment = async (amount: number, memeId: string) => {
   try {
+    console.log('Starting payment process...', { amount, memeId });
+
     if (!window.solana?.isPhantom) {
       toast({
         title: "Wallet Not Found",
