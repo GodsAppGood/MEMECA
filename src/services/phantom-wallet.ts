@@ -36,9 +36,10 @@ export const connectWallet = async () => {
     // Connect to wallet
     console.log('Connecting to Phantom wallet...');
     const response = await window.solana.connect();
-    console.log('Wallet connected:', response.publicKey.toString());
+    const publicKey = new PublicKey(response.publicKey.toString());
+    console.log('Wallet connected:', publicKey.toString());
     
-    return { success: true, publicKey: response.publicKey.toString() };
+    return { success: true, publicKey: publicKey.toString() };
   } catch (error: any) {
     console.error('Connection error:', error);
     toast({
@@ -67,7 +68,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
     }
 
     const connection = new Connection(SOLANA_ENDPOINT, 'confirmed');
-    const fromPubkey = window.solana.publicKey;
+    const fromPubkey = new PublicKey(window.solana.publicKey.toString());
     
     if (!fromPubkey) {
       throw new Error("Wallet not connected");
