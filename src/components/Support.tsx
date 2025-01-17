@@ -15,10 +15,10 @@ export const Support = () => {
     <Sheet>
       <SheetTrigger asChild>
         <Button
-          className="fixed bottom-4 right-4 z-50 rounded-full h-14 w-14 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
+          className="fixed bottom-4 right-4 z-50 rounded-full h-28 w-28 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90 animate-bounce-rotate"
           size="icon"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-12 w-12" />
         </Button>
       </SheetTrigger>
       <SheetContent className="sm:max-w-[440px] p-0">
