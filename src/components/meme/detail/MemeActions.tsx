@@ -8,7 +8,7 @@ interface MemeActionsProps {
   isAdmin: boolean;
   isVerified: boolean;
   isFeatured: boolean;
-  onUpdate: () => Promise<any>;
+  onUpdate: () => Promise<void>;
 }
 
 export const MemeActions = ({

@@ -9,21 +9,6 @@ import { MemeAIAnalysis } from "../MemeAIAnalysis";
 import { MemeStats } from "./MemeStats";
 import { useUserRole } from "@/hooks/useUserRole";
 
-interface MemeHeaderProps {
-  title: string;
-  description?: string | null;
-}
-
-interface MemeImageDisplayProps {
-  imageUrl?: string | null;
-  title: string;
-}
-
-interface MemeActionsProps {
-  id: number | string;
-  isFeatured?: boolean | null;
-}
-
 export const MemeDetailPage = () => {
   const { id } = useParams();
   const { data: meme, isLoading, error } = useMemeDetails(id);
@@ -59,8 +44,15 @@ export const MemeDetailPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <MemeHeader title={meme.title} description={meme.description} />
-        <MemeImageDisplay imageUrl={meme.image_url} title={meme.title} />
+        <MemeHeader 
+          title={meme.title} 
+          isFeatured={meme.is_featured || false} 
+        />
+        
+        <MemeImageDisplay 
+          imageUrl={meme.image_url} 
+          title={meme.title} 
+        />
         
         <MemeStats memeId={Number(meme.id)} />
         
@@ -68,7 +60,18 @@ export const MemeDetailPage = () => {
           <div className="space-y-8">
             <MemeMetadata meme={meme} />
             <MemeLinks meme={meme} />
-            <MemeActions id={meme.id} isFeatured={meme.is_featured} />
+            <MemeActions 
+              memeId={meme.id.toString()}
+              memeTitle={meme.title}
+              userId={meme.created_by}
+              isAdmin={false}
+              isVerified={isVerified}
+              isFeatured={meme.is_featured || false}
+              onUpdate={async () => {
+                // Refresh meme data
+                return Promise.resolve();
+              }}
+            />
           </div>
           {isVerified && (
             <div>
