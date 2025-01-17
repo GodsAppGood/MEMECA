@@ -58,8 +58,8 @@ serve(async (req) => {
         throw new Error('Meme not found');
       }
 
-      // Check if this is your meme (replace with your user ID)
-      const isYourMeme = meme.created_by === '00000000-0000-0000-0000-000000000000'; // Replace with your actual user ID
+      // Check if this is your meme (using your actual user ID)
+      const isYourMeme = meme.created_by === '6eba6738-1c7a-49d8-9ceb-361d9a644bd4';
 
       console.log('Analyzing meme:', { 
         id: meme.id, 
