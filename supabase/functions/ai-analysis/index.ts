@@ -53,37 +53,6 @@ serve(async (req) => {
         imageUrl: meme.image_url 
       });
 
-      const systemPrompt = `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
-      Analyze this meme based on the following criteria and provide a score from 1 to 10 for each:
-
-      1. Humor: How funny and entertaining is the meme?
-      2. Originality: How unique and creative is the concept?
-      3. Crypto Relevance: How well does it relate to cryptocurrency/blockchain?
-      4. Viral Potential: How likely is it to be shared and go viral?
-
-      For each criterion, provide:
-      - A score (1-10)
-      - A brief explanation (2-3 sentences)
-
-      Also provide an overall analysis (2-3 sentences).
-
-      Format your response as a JSON object with these exact keys:
-      {
-        "scores": {
-          "humor": number,
-          "originality": number,
-          "cryptoRelevance": number,
-          "viralPotential": number
-        },
-        "explanations": {
-          "humor": string,
-          "originality": string,
-          "cryptoRelevance": string,
-          "viralPotential": string
-        },
-        "overallAnalysis": string
-      }`;
-
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -93,9 +62,36 @@ serve(async (req) => {
         body: JSON.stringify({
           model: 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: systemPrompt },
-            { 
-              role: 'user', 
+            {
+              role: 'system',
+              content: `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
+              Analyze the provided meme and give scores from 1 to 10 for each criterion, along with brief explanations.
+              
+              Criteria:
+              1. Humor: How funny and entertaining is it?
+              2. Originality: How unique and creative is it?
+              3. Crypto Relevance: How well does it relate to crypto/blockchain?
+              4. Viral Potential: How likely is it to be shared widely?
+              
+              Format your response as a JSON object with these exact keys:
+              {
+                "scores": {
+                  "humor": number (1-10),
+                  "originality": number (1-10),
+                  "cryptoRelevance": number (1-10),
+                  "viralPotential": number (1-10)
+                },
+                "explanations": {
+                  "humor": "brief explanation",
+                  "originality": "brief explanation",
+                  "cryptoRelevance": "brief explanation",
+                  "viralPotential": "brief explanation"
+                },
+                "overallAnalysis": "2-3 sentence summary"
+              }`
+            },
+            {
+              role: 'user',
               content: [
                 {
                   type: 'image_url',
@@ -108,8 +104,8 @@ serve(async (req) => {
               ]
             }
           ],
-          temperature: 0.7,
           max_tokens: 1000,
+          temperature: 0.7
         }),
       });
 
@@ -122,18 +118,14 @@ serve(async (req) => {
       const result = await response.json();
       console.log('Analysis complete:', result);
 
-      try {
-        const analysis = JSON.parse(result.choices[0].message.content);
-        return new Response(
-          JSON.stringify({ analysis }),
-          {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
-      } catch (parseError) {
-        console.error('Error parsing OpenAI response:', parseError);
-        throw new Error('Failed to parse AI analysis results');
-      }
+      const analysis = JSON.parse(result.choices[0].message.content);
+      
+      return new Response(
+        JSON.stringify({ analysis }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
     }
 
     throw new Error(`Unknown analysis type: ${type}`);
