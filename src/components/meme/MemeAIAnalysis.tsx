@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Brain } from "lucide-react";
+import { Brain, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface MemeAIAnalysisProps {
@@ -40,16 +40,22 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const { toast } = useToast();
 
-  const { data: analysis, refetch } = useQuery({
+  const { data: analysis, refetch, isError } = useQuery({
     queryKey: ["meme-analysis", memeId],
     queryFn: async () => {
       setIsAnalyzing(true);
       try {
+        console.log('Starting meme analysis for ID:', memeId);
         const { data, error } = await supabase.functions.invoke("ai-analysis", {
           body: { type: "analyze_meme", data: { memeId } },
         });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Analysis error:', error);
+          throw error;
+        }
+
+        console.log('Analysis results:', data);
         return data.analysis as Analysis;
       } catch (error) {
         console.error("Error analyzing meme:", error);
@@ -58,15 +64,17 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
           description: "Failed to analyze the meme. Please try again later.",
           variant: "destructive",
         });
-        return null;
+        throw error;
       } finally {
         setIsAnalyzing(false);
       }
     },
     enabled: false,
+    retry: 1,
   });
 
   const handleAnalyze = () => {
+    setIsAnalyzing(true);
     void refetch();
   };
 
@@ -112,8 +120,33 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
         </CardHeader>
         <CardContent>
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <Loader2 className="h-8 w-8 animate-spin" />
           </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-500">
+            <Brain className="w-5 h-5" />
+            Analysis Failed
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-red-500 mb-4">
+            Failed to analyze the meme. Please try again later.
+          </p>
+          <Button 
+            onClick={handleAnalyze} 
+            variant="outline" 
+            className="w-full"
+          >
+            Try Again
+          </Button>
         </CardContent>
       </Card>
     );
