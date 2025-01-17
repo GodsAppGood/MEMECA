@@ -27,24 +27,28 @@ export const connectWallet = async () => {
     }
 
     // Create connection instance
-    const connection = new Connection(SOLANA_ENDPOINT);
+    const connection = new Connection(SOLANA_ENDPOINT, 'confirmed');
     
     // Check if we're on the correct network
     const network = await connection.getVersion();
     console.log('Connected to network:', network);
 
-    // Connect to wallet with explicit network parameter
+    // Connect to wallet
     console.log('Connecting to Phantom wallet...');
     try {
       const response = await window.solana.connect({
         onlyIfTrusted: false
       });
+      
+      // Create PublicKey instance from the response
       const publicKey = new PublicKey(response.publicKey.toString());
       console.log('Wallet connected:', publicKey.toString());
       
       return { success: true, publicKey: publicKey.toString() };
     } catch (connectError: any) {
-      if (connectError.message.includes('User rejected')) {
+      console.error('Connection error details:', connectError);
+      
+      if (connectError.message?.includes('User rejected')) {
         toast({
           title: "Connection Cancelled",
           description: "You cancelled the connection request",
@@ -52,13 +56,24 @@ export const connectWallet = async () => {
         });
         return { success: false, error: "User rejected connection" };
       }
+
+      // Handle 403 Access Forbidden error
+      if (connectError.code === 403 || connectError.message?.includes('forbidden')) {
+        toast({
+          title: "Connection Failed",
+          description: "Please make sure Phantom wallet is unlocked and try again",
+          variant: "destructive",
+        });
+        return { success: false, error: "Access forbidden - wallet may be locked" };
+      }
+
       throw connectError;
     }
   } catch (error: any) {
     console.error('Connection error:', error);
     toast({
       title: "Connection Failed",
-      description: error.message || "Failed to connect to wallet",
+      description: error.message || "Failed to connect to wallet. Please try again.",
       variant: "destructive",
     });
     return { success: false, error: error.message };
@@ -83,11 +98,6 @@ export const sendPayment = async (amount: number, memeId: string) => {
 
     const connection = new Connection(SOLANA_ENDPOINT, 'confirmed');
     const fromPubkey = new PublicKey(window.solana.publicKey.toString());
-    
-    if (!fromPubkey) {
-      throw new Error("Wallet not connected");
-    }
-
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
 
     // Check balance with buffer for fees
@@ -166,7 +176,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
 
       return { success: true, signature };
     } catch (txError: any) {
-      if (txError.message.includes('User rejected')) {
+      if (txError.message?.includes('User rejected')) {
         toast({
           title: "Transaction Cancelled",
           description: "You cancelled the transaction",
