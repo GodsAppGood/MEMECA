@@ -59,7 +59,7 @@ serve(async (req) => {
               error,
               timestamp: new Date().toISOString()
             });
-            throw new Error('Failed to get response from OpenAI');
+            throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
           }
 
           const result = await response.json();
