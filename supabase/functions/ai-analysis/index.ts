@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -8,6 +8,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -25,6 +26,7 @@ serve(async (req) => {
     if (type === 'analyze_meme') {
       const { memeId } = data;
       if (!memeId) {
+        console.error('No meme ID provided');
         throw new Error('Meme ID is required for analysis');
       }
 
@@ -32,24 +34,32 @@ serve(async (req) => {
       const supabaseUrl = Deno.env.get('SUPABASE_URL');
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       if (!supabaseUrl || !supabaseKey) {
+        console.error('Missing Supabase credentials');
         throw new Error('Supabase credentials not configured');
       }
 
       const supabase = createClient(supabaseUrl, supabaseKey);
       
       // Fetch meme data
+      console.log('Fetching meme data for ID:', memeId);
       const { data: meme, error: memeError } = await supabase
         .from('Memes')
         .select('*')
         .eq('id', memeId)
         .single();
 
-      if (memeError || !meme) {
+      if (memeError) {
         console.error('Failed to fetch meme:', memeError);
         throw new Error('Failed to fetch meme data');
       }
 
+      if (!meme) {
+        console.error('Meme not found');
+        throw new Error('Meme not found');
+      }
+
       if (!meme.image_url) {
+        console.error('No image URL found for meme');
         throw new Error('Meme image URL not found');
       }
 
@@ -122,16 +132,27 @@ serve(async (req) => {
       }
 
       const result = await response.json();
-      console.log('Analysis complete:', result);
+      console.log('OpenAI response:', result);
 
-      const analysis = JSON.parse(result.choices[0].message.content);
-      
-      return new Response(
-        JSON.stringify({ analysis }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
+      if (!result.choices?.[0]?.message?.content) {
+        console.error('Invalid OpenAI response format:', result);
+        throw new Error('Invalid response from OpenAI API');
+      }
+
+      try {
+        const analysis = JSON.parse(result.choices[0].message.content);
+        console.log('Parsed analysis:', analysis);
+        
+        return new Response(
+          JSON.stringify({ analysis }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      } catch (parseError) {
+        console.error('Failed to parse OpenAI response:', parseError);
+        throw new Error('Failed to parse analysis results');
+      }
     }
 
     throw new Error(`Unknown analysis type: ${type}`);
@@ -139,8 +160,7 @@ serve(async (req) => {
     console.error('Error in ai-analysis function:', error);
     return new Response(
       JSON.stringify({
-        error: 'Failed to analyze meme. Please try again later.',
-        details: error.message
+        error: error.message || 'Failed to analyze meme. Please try again later.',
       }),
       {
         status: 500,
