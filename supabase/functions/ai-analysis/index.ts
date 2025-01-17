@@ -14,14 +14,14 @@ serve(async (req) => {
   }
 
   try {
+    const { type, data } = await req.json();
+    console.log('Processing request:', { type, data });
+
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
       console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
-
-    const { type, data } = await req.json();
-    console.log('Processing request:', { type, data });
 
     if (type === 'analyze_meme') {
       const { memeId } = data;
@@ -30,7 +30,7 @@ serve(async (req) => {
         throw new Error('Meme ID is required for analysis');
       }
 
-      // Get Supabase credentials from environment
+      // Get Supabase credentials
       const supabaseUrl = Deno.env.get('SUPABASE_URL');
       const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       if (!supabaseUrl || !supabaseKey) {
@@ -63,11 +63,7 @@ serve(async (req) => {
         throw new Error('Meme image URL not found');
       }
 
-      console.log('Analyzing meme:', { 
-        id: meme.id, 
-        title: meme.title,
-        imageUrl: meme.image_url 
-      });
+      console.log('Analyzing meme:', { id: meme.id, title: meme.title, imageUrl: meme.image_url });
 
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -111,7 +107,9 @@ serve(async (req) => {
               content: [
                 {
                   type: 'image_url',
-                  image_url: meme.image_url,
+                  image_url: {
+                    url: meme.image_url
+                  }
                 },
                 {
                   type: 'text',
