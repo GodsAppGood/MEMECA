@@ -15,6 +15,7 @@ serve(async (req) => {
   try {
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
 
@@ -44,7 +45,12 @@ serve(async (req) => {
         .single();
 
       if (memeError || !meme) {
+        console.error('Failed to fetch meme:', memeError);
         throw new Error('Failed to fetch meme data');
+      }
+
+      if (!meme.image_url) {
+        throw new Error('Meme image URL not found');
       }
 
       console.log('Analyzing meme:', { 

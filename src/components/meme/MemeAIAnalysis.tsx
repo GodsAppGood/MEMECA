@@ -55,13 +55,17 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
           throw error;
         }
 
+        if (!data?.analysis) {
+          throw new Error('Invalid analysis response format');
+        }
+
         console.log('Analysis results:', data);
         return data.analysis as Analysis;
       } catch (error) {
         console.error("Error analyzing meme:", error);
         toast({
           title: "Analysis Failed",
-          description: "Failed to analyze the meme. Please try again later.",
+          description: error.message || "Failed to analyze the meme. Please try again later.",
           variant: "destructive",
         });
         throw error;
