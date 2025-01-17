@@ -8,8 +8,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const Support = () => {
+  const { isVerified, isLoading } = useUserRole();
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -32,7 +36,21 @@ export const Support = () => {
           </SheetDescription>
         </SheetHeader>
         <div className="h-[calc(100vh-140px)]">
-          <AIChat />
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : isVerified ? (
+            <AIChat />
+          ) : (
+            <div className="p-6">
+              <Alert variant="destructive">
+                <AlertDescription>
+                  Only verified users can access the chat support. Please verify your account to continue.
+                </AlertDescription>
+              </Alert>
+            </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
