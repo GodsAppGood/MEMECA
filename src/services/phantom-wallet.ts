@@ -33,13 +33,27 @@ export const connectWallet = async () => {
     const network = await connection.getVersion();
     console.log('Connected to network:', network);
 
-    // Connect to wallet
+    // Connect to wallet with explicit network parameter
     console.log('Connecting to Phantom wallet...');
-    const response = await window.solana.connect();
-    const publicKey = new PublicKey(response.publicKey.toString());
-    console.log('Wallet connected:', publicKey.toString());
-    
-    return { success: true, publicKey: publicKey.toString() };
+    try {
+      const response = await window.solana.connect({
+        onlyIfTrusted: false
+      });
+      const publicKey = new PublicKey(response.publicKey.toString());
+      console.log('Wallet connected:', publicKey.toString());
+      
+      return { success: true, publicKey: publicKey.toString() };
+    } catch (connectError: any) {
+      if (connectError.message.includes('User rejected')) {
+        toast({
+          title: "Connection Cancelled",
+          description: "You cancelled the connection request",
+          variant: "destructive",
+        });
+        return { success: false, error: "User rejected connection" };
+      }
+      throw connectError;
+    }
   } catch (error: any) {
     console.error('Connection error:', error);
     toast({
@@ -107,56 +121,65 @@ export const sendPayment = async (amount: number, memeId: string) => {
 
     // Sign and send transaction
     console.log('Requesting signature...');
-    const signedTransaction = await window.solana.signTransaction(transaction);
-    console.log('Transaction signed, sending...');
-    
-    const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-    console.log('Transaction sent:', signature);
+    try {
+      const signedTransaction = await window.solana.signTransaction(transaction);
+      console.log('Transaction signed, sending...');
+      
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      console.log('Transaction sent:', signature);
 
-    // Wait for confirmation with timeout
-    console.log('Waiting for confirmation...');
-    const confirmation = await Promise.race([
-      connection.confirmTransaction(signature),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Transaction confirmation timeout')), 30000)
-      )
-    ]) as TransactionConfirmation;
+      // Wait for confirmation with timeout
+      console.log('Waiting for confirmation...');
+      const confirmation = await Promise.race([
+        connection.confirmTransaction(signature),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Transaction confirmation timeout')), 30000)
+        )
+      ]) as TransactionConfirmation;
 
-    if (confirmation.value.err) {
-      throw new Error('Transaction failed to confirm');
-    }
+      if (confirmation.value.err) {
+        throw new Error('Transaction failed to confirm');
+      }
 
-    console.log('Transaction confirmed:', signature);
+      console.log('Transaction confirmed:', signature);
 
-    // Record transaction in database
-    const { error: dbError } = await supabase
-      .from('TuzemoonPayments')
-      .insert({
-        meme_id: parseInt(memeId),
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        transaction_signature: signature,
-        amount: amount,
-        transaction_status: 'success',
-        wallet_address: fromPubkey.toString()
+      // Record transaction in database
+      const { error: dbError } = await supabase
+        .from('TuzemoonPayments')
+        .insert({
+          meme_id: parseInt(memeId),
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          transaction_signature: signature,
+          amount: amount,
+          transaction_status: 'success',
+          wallet_address: fromPubkey.toString()
+        });
+
+      if (dbError) {
+        console.error('Database error:', dbError);
+      }
+
+      toast({
+        title: "Payment Successful",
+        description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
       });
 
-    if (dbError) {
-      console.error('Database error:', dbError);
-      // Don't throw here as payment was successful
+      return { success: true, signature };
+    } catch (txError: any) {
+      if (txError.message.includes('User rejected')) {
+        toast({
+          title: "Transaction Cancelled",
+          description: "You cancelled the transaction",
+          variant: "destructive",
+        });
+        return { success: false, error: "User rejected transaction" };
+      }
+      throw txError;
     }
-
-    toast({
-      title: "Payment Successful",
-      description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
-    });
-
-    return { success: true, signature };
   } catch (error: any) {
     console.error('Payment error:', error);
     
-    const errorMessage = error.message.includes('User rejected') 
-      ? 'Transaction cancelled by user'
-      : error.message || "Transaction failed";
+    const errorMessage = error.message || "Transaction failed";
     
     toast({
       title: "Payment Failed",
