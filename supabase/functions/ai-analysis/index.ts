@@ -58,11 +58,6 @@ serve(async (req) => {
         throw new Error('Meme not found');
       }
 
-      if (!meme.image_url) {
-        console.error('No image URL found for meme');
-        throw new Error('Meme image URL not found');
-      }
-
       console.log('Analyzing meme:', { id: meme.id, title: meme.title, imageUrl: meme.image_url });
 
       try {
@@ -78,29 +73,23 @@ serve(async (req) => {
               {
                 role: 'system',
                 content: `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
-                Analyze the provided meme and give scores from 1 to 10 for each criterion, along with brief explanations.
+                Analyze the provided meme and give scores from 1 to 10 for each criterion.
                 
-                Criteria:
-                1. Humor: How funny and entertaining is it?
-                2. Originality: How unique and creative is it?
-                3. Crypto Relevance: How well does it relate to crypto/blockchain?
-                4. Viral Potential: How likely is it to be shared widely?
-                
-                Format your response as a JSON object with these exact keys:
+                Return ONLY a JSON object with these exact keys, no markdown, no code blocks:
                 {
                   "scores": {
-                    "humor": number (1-10),
-                    "originality": number (1-10),
-                    "cryptoRelevance": number (1-10),
-                    "viralPotential": number (1-10)
+                    "humor": number,
+                    "originality": number,
+                    "cryptoRelevance": number,
+                    "viralPotential": number
                   },
                   "explanations": {
-                    "humor": "brief explanation",
-                    "originality": "brief explanation",
-                    "cryptoRelevance": "brief explanation",
-                    "viralPotential": "brief explanation"
+                    "humor": "string",
+                    "originality": "string",
+                    "cryptoRelevance": "string",
+                    "viralPotential": "string"
                   },
-                  "overallAnalysis": "2-3 sentence summary"
+                  "overallAnalysis": "string"
                 }`
               },
               {
@@ -138,24 +127,30 @@ serve(async (req) => {
           throw new Error('Invalid response from OpenAI API');
         }
 
-        let analysis;
+        // Clean up the response content by removing any markdown or code block syntax
+        let analysisContent = result.choices[0].message.content
+          .replace(/```json\n?/g, '')  // Remove ```json
+          .replace(/```\n?/g, '')      // Remove closing ```
+          .trim();                     // Remove extra whitespace
+
+        console.log('Cleaned analysis content:', analysisContent);
+
         try {
-          analysis = JSON.parse(result.choices[0].message.content.trim());
+          const analysis = JSON.parse(analysisContent);
           console.log('Parsed analysis:', analysis);
+          return new Response(
+            JSON.stringify({ analysis }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          );
         } catch (parseError) {
-          console.error('Failed to parse OpenAI response content:', {
-            content: result.choices[0].message.content,
+          console.error('Failed to parse analysis content:', {
+            content: analysisContent,
             error: parseError
           });
-          throw new Error('Failed to parse analysis results');
+          throw new Error(`Failed to parse analysis results: ${parseError.message}`);
         }
-        
-        return new Response(
-          JSON.stringify({ analysis }),
-          {
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
-        );
       } catch (openAIError) {
         console.error('OpenAI API or parsing error:', openAIError);
         throw openAIError;
