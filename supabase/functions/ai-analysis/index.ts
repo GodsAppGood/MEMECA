@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +8,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -18,13 +18,106 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase credentials not configured');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
     console.log('Processing request with OpenAI...', { timestamp: new Date().toISOString() });
     
-    const { type, data } = await req.json()
-    
-    console.log('Request details:', { type, data, timestamp: new Date().toISOString() })
+    const { type, data } = await req.json();
+    console.log('Request details:', { type, data, timestamp: new Date().toISOString() });
 
     switch (type) {
+      case 'analyze_meme': {
+        const { memeId } = data;
+        if (!memeId) {
+          throw new Error('Meme ID is required for analysis');
+        }
+
+        // Fetch meme data from Supabase
+        const { data: meme, error: memeError } = await supabase
+          .from('Memes')
+          .select('*')
+          .eq('id', memeId)
+          .single();
+
+        if (memeError || !meme) {
+          throw new Error('Failed to fetch meme data');
+        }
+
+        const systemPrompt = `You are an expert meme analyst specializing in cryptocurrency and blockchain memes. 
+        Analyze memes based on the following criteria:
+        1. Humor (1-10)
+        2. Originality (1-10)
+        3. Crypto Relevance (1-10)
+        4. Viral Potential (1-10)
+        
+        Provide a brief explanation for each score and an overall analysis.
+        Format your response as a JSON object with these exact keys:
+        {
+          "scores": {
+            "humor": number,
+            "originality": number,
+            "cryptoRelevance": number,
+            "viralPotential": number
+          },
+          "explanations": {
+            "humor": string,
+            "originality": string,
+            "cryptoRelevance": string,
+            "viralPotential": string
+          },
+          "overallAnalysis": string
+        }`;
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { role: 'system', content: systemPrompt },
+              { 
+                role: 'user', 
+                content: [
+                  {
+                    type: 'image_url',
+                    image_url: meme.image_url,
+                  },
+                  {
+                    type: 'text',
+                    text: `Analyze this meme. Title: "${meme.title}". Description: "${meme.description || 'No description provided'}"`
+                  }
+                ]
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        const analysis = JSON.parse(result.choices[0].message.content);
+
+        return new Response(
+          JSON.stringify({ analysis }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      }
+
       case 'chat': {
         const { message } = data
         if (!message) {
@@ -185,16 +278,15 @@ serve(async (req) => {
       }
 
       default:
-        throw new Error(`Unknown analysis type: ${type}`)
+        throw new Error(`Unknown analysis type: ${type}`);
     }
   } catch (error) {
     console.error('Error in ai-analysis function:', {
       error: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()
-    })
+    });
 
-    // Return a user-friendly error message
     return new Response(
       JSON.stringify({
         error: 'Sorry, the AI assistant is temporarily unavailable. Please try again later.',
@@ -207,4 +299,4 @@ serve(async (req) => {
       }
     )
   }
-})
+});
