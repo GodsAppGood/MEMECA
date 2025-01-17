@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState } from "react";
 import { connectWallet } from "@/services/phantom-wallet";
@@ -17,13 +17,15 @@ interface TuzemoonModalProps {
   onClose: () => void;
   onConfirm: () => void;
   isProcessing: boolean;
+  memeTitle: string;
 }
 
 export const TuzemoonModal = ({
   isOpen,
   onClose,
   onConfirm,
-  isProcessing
+  isProcessing,
+  memeTitle
 }: TuzemoonModalProps) => {
   const [walletConnected, setWalletConnected] = useState(false);
 
@@ -38,9 +40,9 @@ export const TuzemoonModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirm Tuzemoon Payment</DialogTitle>
+          <DialogTitle>Confirm Tuzemoon Activation</DialogTitle>
           <DialogDescription>
-            Feature your meme on the Tuzemoon page by completing a payment of 0.1 SOL.
+            Feature "{memeTitle}" on the Tuzemoon page for 24 hours.
           </DialogDescription>
         </DialogHeader>
 
@@ -50,14 +52,17 @@ export const TuzemoonModal = ({
             <ul className="space-y-2 text-sm">
               <li>• Amount: 0.1 SOL</li>
               <li>• Network: Solana (Mainnet)</li>
+              <li>• Gas Fee: ~0.000005 SOL</li>
               <li>• Duration: 24 hours featured placement</li>
+              <li>• Meme: {memeTitle}</li>
             </ul>
           </div>
 
           <Alert>
             <AlertDescription>
-              <p className="text-sm">
-                {!walletConnected ? (
+              {!walletConnected ? (
+                <div className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
                   <Button 
                     variant="link" 
                     className="p-0 h-auto font-normal text-sm text-blue-500"
@@ -65,10 +70,13 @@ export const TuzemoonModal = ({
                   >
                     Connect Phantom Wallet
                   </Button>
-                ) : (
-                  "✓ Wallet Connected"
-                )}
-              </p>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-green-600">
+                  <Wallet className="h-4 w-4" />
+                  <span>✓ Wallet Connected</span>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
         </div>

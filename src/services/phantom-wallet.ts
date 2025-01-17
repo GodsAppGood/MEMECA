@@ -1,8 +1,6 @@
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { logWalletAction, logWalletError } from '@/utils/phantom/logger';
-import { WALLET_CONFIG, ERROR_MESSAGES } from '@/utils/phantom/config';
 
 const RECIPIENT_ADDRESS = "E4uYdn6FcTZFasVmt7BfqZaGDt3rCniykMv2bXUJ1PNu";
 const SOLANA_ENDPOINT = "https://api.mainnet-beta.solana.com";
@@ -17,16 +15,16 @@ export const connectWallet = async () => {
   try {
     if (!window.solana?.isPhantom) {
       window.open('https://phantom.app/', '_blank');
-      return { success: false, error: ERROR_MESSAGES.NOT_INSTALLED };
+      return { success: false, error: "Phantom wallet not installed" };
     }
 
-    logWalletAction('Connecting wallet', { timestamp: new Date() });
+    console.log('Connecting to Phantom wallet...');
     const response = await window.solana.connect();
-    logWalletAction('Wallet connected', { publicKey: response.publicKey.toString() });
+    console.log('Wallet connected:', response.publicKey.toString());
     
     return { success: true, publicKey: response.publicKey.toString() };
   } catch (error: any) {
-    logWalletError('Connection error', error);
+    console.error('Connection error:', error);
     return { success: false, error: error.message };
   }
 };
@@ -36,17 +34,17 @@ export const sendPayment = async (amount: number, memeId: string) => {
     if (!window.solana?.isPhantom) {
       toast({
         title: "Wallet Not Found",
-        description: ERROR_MESSAGES.NOT_INSTALLED,
+        description: "Please install Phantom wallet to continue",
         variant: "destructive",
       });
-      return { success: false, error: ERROR_MESSAGES.NOT_INSTALLED };
+      return { success: false, error: "Phantom wallet not installed" };
     }
 
     // Connect wallet if not connected
     if (!window.solana.isConnected) {
       const connectionResult = await window.solana.connect();
       if (!connectionResult) {
-        throw new Error(ERROR_MESSAGES.NOT_CONNECTED);
+        throw new Error("Failed to connect wallet");
       }
     }
 
@@ -69,7 +67,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
       return { success: false, error: errorMessage };
     }
 
-    logWalletAction('Creating transaction', { amount, memeId });
+    console.log('Creating transaction...');
 
     // Create transaction
     const transaction = new Transaction().add(
@@ -88,7 +86,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
     const signedTransaction = await window.solana.signTransaction(transaction);
     const signature = await connection.sendRawTransaction(signedTransaction.serialize());
     
-    logWalletAction('Transaction sent', { signature });
+    console.log('Transaction sent:', signature);
 
     // Wait for confirmation with timeout
     const confirmation = await Promise.race([
@@ -115,7 +113,6 @@ export const sendPayment = async (amount: number, memeId: string) => {
       });
 
     if (dbError) {
-      logWalletError('Database error', dbError);
       console.error('Database error:', dbError);
     }
 
@@ -126,7 +123,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
 
     return { success: true, signature };
   } catch (error: any) {
-    logWalletError('Payment error', error);
+    console.error('Payment error:', error);
     
     const errorMessage = error.message.includes('User rejected') 
       ? 'Transaction cancelled by user'

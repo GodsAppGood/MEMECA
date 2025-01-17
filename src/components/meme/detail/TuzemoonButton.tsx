@@ -38,11 +38,24 @@ export const TuzemoonButton = ({
         throw new Error(payment.error);
       }
 
+      // Update meme status after successful payment
+      const { error: updateError } = await supabase
+        .from('Memes')
+        .update({
+          is_featured: true,
+          tuzemoon_until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        })
+        .eq('id', parseInt(memeId));
+
+      if (updateError) {
+        throw updateError;
+      }
+
       await onUpdate();
       setIsModalOpen(false);
       
       toast({
-        title: "Payment Successful",
+        title: "Tuzemoon Activated!",
         description: `Transaction confirmed: ${payment.signature?.slice(0, 8)}...`,
       });
     } catch (error: any) {
@@ -119,6 +132,7 @@ export const TuzemoonButton = ({
           onClose={() => setIsModalOpen(false)}
           onConfirm={handlePayment}
           isProcessing={isProcessing}
+          memeTitle={memeTitle}
         />
       )}
     </>
