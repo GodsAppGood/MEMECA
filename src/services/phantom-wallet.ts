@@ -26,8 +26,11 @@ export const connectWallet = async () => {
       return { success: false, error: "Phantom wallet not installed" };
     }
 
+    // Create connection instance
+    const connection = new Connection(SOLANA_ENDPOINT);
+    
     // Check if we're on the correct network
-    const network = await window.solana.connection.getVersion();
+    const network = await connection.getVersion();
     console.log('Connected to network:', network);
 
     // Connect to wallet
