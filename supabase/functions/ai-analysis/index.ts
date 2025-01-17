@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2'
+import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -13,17 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const token = Deno.env.get('ai_secret');
-    if (!token) {
-      throw new Error('AI token not configured');
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
-    console.log('Initializing HF with token:', { tokenLength: token.length, timestamp: new Date().toISOString() });
+    console.log('Processing request with OpenAI...', { timestamp: new Date().toISOString() });
     
-    const hf = new HfInference(token)
     const { type, data } = await req.json()
     
-    console.log('Processing request:', { type, data, timestamp: new Date().toISOString() })
+    console.log('Request details:', { type, data, timestamp: new Date().toISOString() })
 
     switch (type) {
       case 'chat': {
@@ -33,44 +32,44 @@ serve(async (req) => {
         }
 
         try {
-          // Анализ настроения
-          const sentimentAnalysis = await hf.textClassification({
-            model: 'cardiffnlp/twitter-roberta-base-sentiment-latest',
-            inputs: message,
-          })
-
-          console.log('Sentiment analysis result:', { 
-            sentiment: sentimentAnalysis,
-            timestamp: new Date().toISOString() 
-          })
-
-          // Генерация ответа
-          const response = await hf.textGeneration({
-            model: 'facebook/bart-large-cnn',
-            inputs: message,
-            parameters: {
-              max_length: 100,
-              temperature: 0.7,
-              top_p: 0.95,
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openAIApiKey}`,
+              'Content-Type': 'application/json',
             },
-          })
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              messages: [
+                { 
+                  role: 'system', 
+                  content: 'You are a helpful assistant that specializes in memes, cryptocurrency, and blockchain technology. You provide friendly and informative responses while maintaining a casual tone.' 
+                },
+                { role: 'user', content: message }
+              ],
+              temperature: 0.7,
+              max_tokens: 500,
+            }),
+          });
 
-          console.log('Generated response:', {
-            response: response,
-            timestamp: new Date().toISOString()
-          })
-
-          // Добавляем эмодзи в зависимости от настроения
-          let sentiment = ''
-          if (sentimentAnalysis[0]?.label === 'positive') {
-            sentiment = '😊 '
-          } else if (sentimentAnalysis[0]?.label === 'negative') {
-            sentiment = '😔 '
+          if (!response.ok) {
+            const error = await response.json();
+            console.error('OpenAI API error:', {
+              status: response.status,
+              error,
+              timestamp: new Date().toISOString()
+            });
+            throw new Error('Failed to get response from OpenAI');
           }
+
+          const result = await response.json();
+          console.log('OpenAI response received:', {
+            timestamp: new Date().toISOString()
+          });
 
           return new Response(
             JSON.stringify({
-              response: `${sentiment}${response.generated_text}`,
+              response: result.choices[0].message.content,
             }),
             {
               headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -81,8 +80,8 @@ serve(async (req) => {
             error: error.message,
             stack: error.stack,
             timestamp: new Date().toISOString()
-          })
-          throw error
+          });
+          throw error;
         }
       }
 
@@ -92,13 +91,27 @@ serve(async (req) => {
           throw new Error('Text is required for analysis')
         }
 
-        const analysis = await hf.textClassification({
-          model: 'cardiffnlp/twitter-roberta-base-sentiment-latest',
-          inputs: text,
-        })
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            messages: [
+              { 
+                role: 'system', 
+                content: 'You are an AI that analyzes text content related to memes and cryptocurrency. Provide sentiment and content analysis.' 
+              },
+              { role: 'user', content: `Analyze this text: ${text}` }
+            ],
+          }),
+        });
 
+        const result = await response.json();
         return new Response(
-          JSON.stringify({ analysis }),
+          JSON.stringify({ analysis: result.choices[0].message.content }),
           {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           }
@@ -111,13 +124,39 @@ serve(async (req) => {
           throw new Error('Image URL is required for analysis')
         }
 
-        const analysis = await hf.imageClassification({
-          model: 'microsoft/resnet-50',
-          inputs: imageUrl,
-        })
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { 
+                role: 'system', 
+                content: 'You are an AI that analyzes images related to memes and cryptocurrency. Describe the content and provide relevant insights.' 
+              },
+              { 
+                role: 'user', 
+                content: [
+                  {
+                    type: 'image_url',
+                    image_url: imageUrl,
+                  },
+                  {
+                    type: 'text',
+                    text: 'Analyze this meme image and describe its content and potential impact.'
+                  }
+                ]
+              }
+            ],
+          }),
+        });
 
+        const result = await response.json();
         return new Response(
-          JSON.stringify({ analysis }),
+          JSON.stringify({ analysis: result.choices[0].message.content }),
           {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           }
