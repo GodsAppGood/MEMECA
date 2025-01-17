@@ -14,7 +14,7 @@ export const Support = () => {
     <Sheet>
       <SheetTrigger asChild>
         <Button
-          className="fixed bottom-4 right-4 z-50 rounded-full h-28 w-28 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90 animate-bounce-rotate group"
+          className="fixed bottom-4 right-4 z-50 rounded-full h-28 w-28 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90 animate-pulse-border group"
           size="icon"
         >
           <img 
