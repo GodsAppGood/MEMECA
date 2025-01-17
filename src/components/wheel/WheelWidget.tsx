@@ -40,7 +40,7 @@ export const WheelWidget = () => {
   }, [isDragging, dragOffset]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (widgetRef.current) {
+    if (widgetRef.current && e.target === widgetRef.current) {
       const rect = widgetRef.current.getBoundingClientRect();
       setDragOffset({
         x: e.clientX - rect.left,
@@ -55,7 +55,7 @@ export const WheelWidget = () => {
   return (
     <div
       ref={widgetRef}
-      className="fixed z-50 cursor-move"
+      className="fixed z-50 cursor-move p-2"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
@@ -71,12 +71,15 @@ export const WheelWidget = () => {
           className="absolute top-1 right-1 z-10 rounded-full p-1 bg-black/50 hover:bg-black/70 transition-colors"
           aria-label="Close widget"
         >
-          <X className="h-4 w-4 text-white" />
+          <X className="h-4 w-4 text-white pointer-events-none" />
         </button>
-        <div className={`w-[150px] h-[150px] transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
+        <div 
+          className={`w-[150px] h-[150px] transition-opacity duration-300 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <iframe
             src="https://memecawheel.xyz/widget"
-            className="w-full h-full"
+            className="w-full h-full pointer-events-none"
             onLoad={() => setIsLoaded(true)}
             title="Meme Wheel Widget"
           />
