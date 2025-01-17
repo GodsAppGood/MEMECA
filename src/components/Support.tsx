@@ -26,7 +26,7 @@ export const Support = () => {
       </SheetTrigger>
       <SheetContent className="sm:max-w-[440px] p-0">
         <SheetHeader className="p-6 border-b">
-          <SheetTitle>AI Support Assistant</SheetTitle>
+          <SheetTitle>MemecAI Support Assistant</SheetTitle>
           <SheetDescription>
             Ask me anything about memes, tokens, or get help with the platform.
           </SheetDescription>
