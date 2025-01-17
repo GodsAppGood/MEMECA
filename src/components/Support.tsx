@@ -8,17 +8,20 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { MessageCircle } from "lucide-react";
 
 export const Support = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button
-          className="fixed bottom-4 right-4 z-50 rounded-full h-28 w-28 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90 animate-bounce-rotate"
+          className="fixed bottom-4 right-4 z-50 rounded-full h-28 w-28 shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90 animate-bounce-rotate group"
           size="icon"
         >
-          <MessageCircle className="h-12 w-12" />
+          <img 
+            src="/lovable-uploads/a9f4da54-5898-472e-bab6-9790faa54c27.png" 
+            alt="24/7 Support"
+            className="h-16 w-16 group-hover:scale-110 transition-transform duration-200"
+          />
         </Button>
       </SheetTrigger>
       <SheetContent className="sm:max-w-[440px] p-0">
