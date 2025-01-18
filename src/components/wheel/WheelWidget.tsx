@@ -1,10 +1,36 @@
-import { useState } from "react";
-import { useWheelState } from "@/hooks/use-wheel-state";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { WheelState } from "@/types/wheel";
+import { toast } from "sonner";
 
 export const WheelWidget = () => {
   const [isLoaded, setIsLoaded] = useState(false);
-  const { wheelState, isLoading, error } = useWheelState();
+  const [wheelState, setWheelState] = useState<WheelState | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleWheelMessage = (event: MessageEvent) => {
+      // Verify origin
+      if (event.origin !== "https://memecawheel.xyz") return;
+
+      try {
+        const data = event.data;
+        if (data && typeof data === "object") {
+          setWheelState(data as WheelState);
+          setError(null);
+        }
+      } catch (err) {
+        console.error("Error processing wheel message:", err);
+        setError("Failed to process wheel data");
+        toast.error("Failed to load wheel data", {
+          description: "Please try again later"
+        });
+      }
+    };
+
+    window.addEventListener("message", handleWheelMessage);
+    return () => window.removeEventListener("message", handleWheelMessage);
+  }, []);
 
   return (
     <div className="fixed bottom-36 right-4 z-50 rounded-full overflow-hidden shadow-lg bg-white/80 backdrop-blur-sm">
@@ -13,7 +39,7 @@ export const WheelWidget = () => {
         isLoaded ? 'opacity-100' : 'opacity-0',
         'transition-opacity duration-300'
       )}>
-        {isLoading && !isLoaded && (
+        {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
           </div>
