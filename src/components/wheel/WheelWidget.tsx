@@ -10,23 +10,37 @@ export const WheelWidget = () => {
 
   useEffect(() => {
     const handleWheelMessage = (event: MessageEvent) => {
+      // Log all incoming messages for debugging
+      console.log("Received message from:", event.origin);
+      console.log("Message data:", event.data);
+
       const allowedOrigins = [
         'https://memecawheel.xyz',
-        'https://www.memecawheel.xyz',
-        'https://8b905c69-bd03-47a1-92ae-3c584cfce9a8.lovableproject.com'
+        'https://www.memecawheel.xyz'
       ];
 
       if (!allowedOrigins.includes(event.origin)) {
-        console.warn("Received message from unauthorized origin:", event.origin);
+        console.warn("Unauthorized origin:", event.origin);
+        console.warn("Expected origins:", allowedOrigins);
         return;
       }
 
       try {
         const data = event.data;
-        if (data && typeof data === "object") {
-          console.log("Received wheel data:", data);
-          setWheelState(data as WheelState);
+        
+        // Validate message structure
+        if (!data || typeof data !== "object") {
+          console.error("Invalid message format:", data);
+          return;
+        }
+
+        // Check if it's a wheel state message
+        if (data.type === 'wheelState' && data.data) {
+          console.log("Valid wheel state received:", data.data);
+          setWheelState(data.data as WheelState);
           setError(null);
+        } else {
+          console.warn("Unexpected message type:", data);
         }
       } catch (err) {
         console.error("Error processing wheel message:", err);
@@ -37,8 +51,14 @@ export const WheelWidget = () => {
       }
     };
 
+    // Log when listener is attached
+    console.log("Attaching wheel message listener");
     window.addEventListener("message", handleWheelMessage);
-    return () => window.removeEventListener("message", handleWheelMessage);
+
+    return () => {
+      console.log("Removing wheel message listener");
+      window.removeEventListener("message", handleWheelMessage);
+    };
   }, []);
 
   return (
@@ -75,7 +95,10 @@ export const WheelWidget = () => {
         <iframe
           src="https://memecawheel.xyz/widget-view?mode=embed&section=wheel-only"
           className="w-full h-full"
-          onLoad={() => setIsLoaded(true)}
+          onLoad={() => {
+            console.log("Widget iframe loaded");
+            setIsLoaded(true);
+          }}
           title="Meme Wheel Widget"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           sandbox="allow-scripts allow-same-origin allow-popups"
