@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { WheelState } from '@/types/wheel';
-import { supabase } from "@/integrations/supabase/client";
+import { toast } from 'sonner';
 
 const POLLING_INTERVAL = 5000; // 5 seconds
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 2000; // 2 seconds
+const WHEEL_API_URL = 'https://omdhcgwcplbgfvjtrswe.supabase.co/functions/v1/wheel-state';
 
 export const useWheelState = () => {
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -17,7 +18,7 @@ export const useWheelState = () => {
       try {
         console.log('Fetching wheel state, attempt:', retryCount + 1);
         
-        const { data, error: functionError } = await supabase.functions.invoke('wheel-state', {
+        const response = await fetch(WHEEL_API_URL, {
           method: 'GET',
           headers: {
             'Cache-Control': 'no-cache',
@@ -25,9 +26,11 @@ export const useWheelState = () => {
           }
         });
 
-        if (functionError) {
-          throw new Error(`Function error: ${functionError.message}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
 
         if (!data) {
           throw new Error('No data received from wheel-state function');
@@ -47,8 +50,12 @@ export const useWheelState = () => {
           return;
         }
         
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+        setError(errorMessage);
         setRetryCount(0);
+        toast.error('Failed to fetch wheel state', {
+          description: 'Please try again later'
+        });
       } finally {
         if (retryCount >= MAX_RETRIES) {
           setIsLoading(false);
