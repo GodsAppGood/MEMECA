@@ -10,12 +10,16 @@ export const WheelWidget = () => {
 
   useEffect(() => {
     const handleWheelMessage = (event: MessageEvent) => {
-      // Verify origin
-      if (event.origin !== "https://www.memecawheel.xyz") return;
+      // Verify origin - allow both www and non-www versions
+      if (!event.origin.match(/^https:\/\/(www\.)?memecawheel\.xyz$/)) {
+        console.warn("Received message from unauthorized origin:", event.origin);
+        return;
+      }
 
       try {
         const data = event.data;
         if (data && typeof data === "object") {
+          console.log("Received wheel data:", data);
           setWheelState(data as WheelState);
           setError(null);
         }
@@ -65,10 +69,12 @@ export const WheelWidget = () => {
         )}
 
         <iframe
-          src="https://www.memecawheel.xyz/widget"
+          src="https://www.memecawheel.xyz?mode=widget&embed=true"
           className="w-full h-full"
           onLoad={() => setIsLoaded(true)}
           title="Meme Wheel Widget"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          sandbox="allow-scripts allow-same-origin allow-popups"
         />
       </div>
     </div>
