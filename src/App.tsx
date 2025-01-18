@@ -23,6 +23,7 @@ import Tuzemoon from "./pages/Tuzemoon";
 import NotFound from "./pages/NotFound";
 import { AdminRoute } from "@/components/AdminRoute";
 import { SessionHandler } from "@/components/SessionHandler";
+import { WheelWidget } from "@/components/wheel/WheelWidget";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "815250406099-noep2rm2svbegg4hpevbenkucu1qhur1.apps.googleusercontent.com";
 
@@ -75,6 +76,7 @@ const App = () => {
                 <Route path="/not-found-404" element={<NotFound />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <WheelWidget />
               <Toaster />
               <SonnerToaster />
             </TooltipProvider>
