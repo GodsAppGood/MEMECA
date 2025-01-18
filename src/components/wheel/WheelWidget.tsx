@@ -68,7 +68,7 @@ export const WheelWidget = () => {
         )}
 
         <iframe
-          src="https://www.memecawheel.xyz?mode=widget&embed=true&section=widget"
+          src="https://www.memecawheel.xyz?mode=widget&embed=true&viewport=widget&position=bottom-right"
           className="w-full h-full"
           onLoad={() => setIsLoaded(true)}
           title="Meme Wheel Widget"
