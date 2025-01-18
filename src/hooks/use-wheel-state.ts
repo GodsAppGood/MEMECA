@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const POLLING_INTERVAL = 5000; // 5 seconds
 const MAX_RETRIES = 3;
-const RETRY_DELAY = 2000; // 2 seconds - increased from 1s
+const RETRY_DELAY = 2000; // 2 seconds
 
 export const useWheelState = () => {
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -18,7 +18,7 @@ export const useWheelState = () => {
         console.log('Fetching wheel state, attempt:', retryCount + 1);
         
         const { data, error: functionError } = await supabase.functions.invoke('wheel-state', {
-          method: 'GET', // Changed to GET since we're not sending large data
+          method: 'GET',
           headers: {
             'Cache-Control': 'no-cache',
             'Pragma': 'no-cache'
@@ -36,7 +36,7 @@ export const useWheelState = () => {
         console.log('Wheel state fetched successfully:', data);
         setWheelState(data);
         setError(null);
-        setRetryCount(0); // Reset retry count on success
+        setRetryCount(0);
       } catch (err) {
         console.error('Error fetching wheel state:', err);
         
@@ -47,9 +47,8 @@ export const useWheelState = () => {
           return;
         }
         
-        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        setError(errorMessage);
-        setRetryCount(0); // Reset retry count after max retries
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setRetryCount(0);
       } finally {
         if (retryCount >= MAX_RETRIES) {
           setIsLoading(false);
@@ -62,15 +61,14 @@ export const useWheelState = () => {
 
     // Set up polling with cleanup
     const intervalId = setInterval(() => {
-      setRetryCount(0); // Reset retry count before each polling attempt
+      setRetryCount(0);
       fetchWheelState();
     }, POLLING_INTERVAL);
 
-    // Cleanup
     return () => {
       clearInterval(intervalId);
     };
-  }, [retryCount]); // Added retryCount as dependency
+  }, [retryCount]);
 
   return { wheelState, isLoading, error };
 };
