@@ -3,7 +3,8 @@ import { WheelState } from '@/types/wheel';
 import { supabase } from "@/integrations/supabase/client";
 
 const POLLING_INTERVAL = 5000; // 5 seconds
-const WHEEL_FUNCTION_URL = 'https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state';
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
 
 export const useWheelState = () => {
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -11,30 +12,46 @@ export const useWheelState = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchWheelState = async () => {
+    const fetchWheelState = async (retryCount = 0) => {
       try {
-        // Direct fetch to the wheel function URL
-        const response = await fetch(WHEEL_FUNCTION_URL, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+        console.log('Fetching wheel state, attempt:', retryCount + 1);
+        
+        const { data, error: functionError } = await supabase.functions.invoke('wheel-state', {
+          body: { timestamp: new Date().toISOString() }
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if (functionError) {
+          throw new Error(`Function error: ${functionError.message}`);
         }
 
-        const data = await response.json();
+        if (!data && retryCount < MAX_RETRIES) {
+          console.log('No data received, retrying...');
+          setTimeout(() => fetchWheelState(retryCount + 1), RETRY_DELAY);
+          return;
+        }
+
+        if (!data) {
+          throw new Error('No data received after retries');
+        }
+
         console.log('Wheel state fetched successfully:', data);
         setWheelState(data);
         setError(null);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error('Error fetching wheel state:', err);
+        
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying in ${RETRY_DELAY}ms...`);
+          setTimeout(() => fetchWheelState(retryCount + 1), RETRY_DELAY);
+          return;
+        }
+        
         setError(errorMessage);
       } finally {
-        setIsLoading(false);
+        if (retryCount === MAX_RETRIES || retryCount === 0) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -42,7 +59,7 @@ export const useWheelState = () => {
     fetchWheelState();
 
     // Set up polling
-    const intervalId = setInterval(fetchWheelState, POLLING_INTERVAL);
+    const intervalId = setInterval(() => fetchWheelState(), POLLING_INTERVAL);
 
     // Cleanup
     return () => clearInterval(intervalId);
