@@ -11,7 +11,7 @@ export const WheelWidget = () => {
   useEffect(() => {
     const handleWheelMessage = (event: MessageEvent) => {
       // Verify origin
-      if (event.origin !== "https://memecawheel.xyz") return;
+      if (event.origin !== "https://www.memecawheel.xyz") return;
 
       try {
         const data = event.data;
@@ -65,7 +65,7 @@ export const WheelWidget = () => {
         )}
 
         <iframe
-          src="https://memecawheel.xyz/widget"
+          src="https://www.memecawheel.xyz/widget"
           className="w-full h-full"
           onLoad={() => setIsLoaded(true)}
           title="Meme Wheel Widget"
