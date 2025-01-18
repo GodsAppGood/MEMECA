@@ -37,11 +37,10 @@ export const WheelWidget = () => {
   }, []);
 
   return (
-    <div className="fixed bottom-36 right-4 z-50 rounded-full overflow-hidden shadow-lg bg-white/80 backdrop-blur-sm">
+    <div className="fixed bottom-36 right-4 z-50">
       <div className={cn(
-        "w-28 h-28 relative",
+        "w-28 h-28 relative rounded-full overflow-hidden border-2 border-[#02E6F6] shadow-lg bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105",
         isLoaded ? 'opacity-100' : 'opacity-0',
-        'transition-opacity duration-300'
       )}>
         {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -69,7 +68,7 @@ export const WheelWidget = () => {
         )}
 
         <iframe
-          src="https://www.memecawheel.xyz?mode=widget&embed=true"
+          src="https://www.memecawheel.xyz?mode=widget&embed=true&section=widget"
           className="w-full h-full"
           onLoad={() => setIsLoaded(true)}
           title="Meme Wheel Widget"
