@@ -3,22 +3,6 @@ import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
 import { toast } from "sonner";
 
-const ALLOWED_ORIGINS = [
-  'https://memecawheel.xyz',
-  'https://www.memecawheel.xyz',
-  'https://memewheel.xyz',
-  'https://www.memewheel.xyz',
-  'https://memecatlandar.io',
-  'https://www.memecatlandar.io'
-];
-
-// Add development domains if not in production
-if (import.meta.env.DEV) {
-  ALLOWED_ORIGINS.push('https://lovable.dev');
-  ALLOWED_ORIGINS.push('https://localhost:3000');
-  ALLOWED_ORIGINS.push('https://*.lovableproject.com');
-}
-
 export const WheelWidget = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
@@ -30,45 +14,15 @@ export const WheelWidget = () => {
     const handleWheelMessage = (event: MessageEvent) => {
       const timestamp = new Date();
       
-      // Подробное логирование каждого сообщения
-      console.log("Widget: Received raw message", {
+      console.log("Widget: Received message", {
         timestamp: timestamp.toISOString(),
         origin: event.origin,
-        rawData: event.data,
-        allowedOrigins: ALLOWED_ORIGINS,
-        currentStatus: connectionStatus
+        data: event.data
       });
-
-      // Проверка origin с wildcards
-      const isAllowedOrigin = ALLOWED_ORIGINS.some(allowed => {
-        if (allowed.includes('*')) {
-          const pattern = allowed.replace('*', '.*');
-          return new RegExp(pattern).test(event.origin);
-        }
-        return allowed === event.origin;
-      });
-
-      if (!isAllowedOrigin) {
-        console.warn("Widget: Unauthorized origin", {
-          received: event.origin,
-          allowed: ALLOWED_ORIGINS,
-          timestamp: timestamp.toISOString()
-        });
-        return;
-      }
 
       try {
         const data = event.data;
         
-        // Подробное логирование структуры данных
-        console.log("Widget: Processing message structure", {
-          hasData: !!data,
-          isObject: typeof data === "object",
-          keys: data ? Object.keys(data) : [],
-          type: data?.type,
-          timestamp: timestamp.toISOString()
-        });
-
         if (!data || typeof data !== "object") {
           console.error("Widget: Invalid message format", { 
             data,
@@ -89,12 +43,6 @@ export const WheelWidget = () => {
           setConnectionStatus('connected');
           
           toast.success("Wheel state updated");
-        } else {
-          console.warn("Widget: Unexpected message type", { 
-            type: data.type,
-            data: data,
-            timestamp: timestamp.toISOString()
-          });
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -109,25 +57,12 @@ export const WheelWidget = () => {
       }
     };
 
-    console.log("Widget: Initializing message listener", {
-      timestamp: new Date().toISOString(),
-      allowedOrigins: ALLOWED_ORIGINS
-    });
-    
     window.addEventListener("message", handleWheelMessage);
 
     // Check connection status every minute
     const intervalId = setInterval(() => {
-      const now = new Date();
       if (lastMessageTime) {
-        const timeSinceLastMessage = now.getTime() - lastMessageTime.getTime();
-        console.log("Widget: Connection status check", {
-          timeSinceLastMessage: Math.floor(timeSinceLastMessage / 1000),
-          lastMessageTime: lastMessageTime.toISOString(),
-          currentStatus: connectionStatus,
-          timestamp: now.toISOString()
-        });
-
+        const timeSinceLastMessage = new Date().getTime() - lastMessageTime.getTime();
         if (timeSinceLastMessage > 360000) { // 6 minutes
           setConnectionStatus('error');
           toast.warning("Connection to wheel may be lost");
@@ -136,13 +71,10 @@ export const WheelWidget = () => {
     }, 60000);
 
     return () => {
-      console.log("Widget: Cleaning up", {
-        timestamp: new Date().toISOString()
-      });
       window.removeEventListener("message", handleWheelMessage);
       clearInterval(intervalId);
     };
-  }, [lastMessageTime, connectionStatus]);
+  }, [lastMessageTime]);
 
   return (
     <div className="fixed bottom-36 right-4 z-50">
@@ -182,20 +114,17 @@ export const WheelWidget = () => {
         )}
 
         <iframe
-          src="https://memecawheel.xyz/widget-view?mode=embed&section=wheel-only"
+          src="https://omdhcgwcplbgfvjtrswe.functions.supabase.co/widget-embed"
           className="w-full h-full"
+          style={{ border: 'none', background: 'transparent' }}
           onLoad={() => {
             console.log("Widget: iframe loaded", {
-              timestamp: new Date().toISOString(),
-              url: 'https://memecawheel.xyz/widget-view',
-              params: { mode: 'embed', section: 'wheel-only' }
+              timestamp: new Date().toISOString()
             });
             setIsLoaded(true);
             toast.success("Widget initialized");
           }}
           title="Meme Wheel Widget"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          sandbox="allow-scripts allow-same-origin allow-popups"
         />
       </div>
     </div>
