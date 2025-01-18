@@ -3,24 +3,42 @@ import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
 import { toast } from "sonner";
 
+const ALLOWED_ORIGINS = [
+  'https://memecawheel.xyz',
+  'https://www.memecawheel.xyz',
+  'https://memewheel.xyz',
+  'https://www.memewheel.xyz'
+];
+
+// Add development domains if not in production
+if (import.meta.env.DEV) {
+  ALLOWED_ORIGINS.push('https://lovable.dev');
+  ALLOWED_ORIGINS.push('https://localhost:3000');
+}
+
 export const WheelWidget = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastMessageTime, setLastMessageTime] = useState<Date | null>(null);
 
   useEffect(() => {
     const handleWheelMessage = (event: MessageEvent) => {
-      console.log("Widget: Message received", {
+      const timestamp = new Date();
+      
+      console.log("Widget: Received message", {
+        timestamp: timestamp.toISOString(),
         origin: event.origin,
-        expectedOrigin: 'https://memecawheel.xyz',
         data: event.data,
-        timestamp: new Date().toISOString()
+        allowedOrigins: ALLOWED_ORIGINS
       });
 
-      if (event.origin !== 'https://memecawheel.xyz') {
+      // Validate origin
+      if (!ALLOWED_ORIGINS.includes(event.origin)) {
         console.warn("Widget: Unauthorized origin", {
           received: event.origin,
-          expected: 'https://memecawheel.xyz'
+          allowed: ALLOWED_ORIGINS,
+          timestamp: timestamp.toISOString()
         });
         return;
       }
@@ -29,45 +47,70 @@ export const WheelWidget = () => {
         const data = event.data;
         
         if (!data || typeof data !== "object") {
-          console.error("Widget: Invalid message format", { data });
+          console.error("Widget: Invalid message format", { 
+            data,
+            timestamp: timestamp.toISOString() 
+          });
           return;
         }
 
         if (data.type === 'wheelState' && data.data) {
-          console.log("Widget: Valid state received", {
+          console.log("Widget: Processing wheel state", {
             state: data.data,
-            timestamp: new Date().toISOString()
+            timestamp: timestamp.toISOString()
           });
           
           setWheelState(data.data as WheelState);
           setError(null);
+          setLastMessageTime(timestamp);
           
           // Notify on successful update
           toast.success("Wheel state updated");
         } else {
           console.warn("Widget: Unexpected message type", { 
             type: data.type,
-            data: data 
+            data: data,
+            timestamp: timestamp.toISOString()
           });
         }
       } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error("Widget: Processing error", {
           error: err,
-          timestamp: new Date().toISOString()
+          message: errorMessage,
+          timestamp: timestamp.toISOString()
         });
-        setError("Failed to process wheel data");
+        setError(`Failed to process wheel data: ${errorMessage}`);
         toast.error("Failed to load wheel data");
       }
     };
 
-    console.log("Widget: Initializing message listener");
+    console.log("Widget: Initializing message listener", {
+      timestamp: new Date().toISOString(),
+      allowedOrigins: ALLOWED_ORIGINS
+    });
+    
     window.addEventListener("message", handleWheelMessage);
 
+    // Check for stale data every minute
+    const intervalId = setInterval(() => {
+      if (lastMessageTime && (new Date().getTime() - lastMessageTime.getTime() > 360000)) {
+        console.warn("Widget: No updates received for 6 minutes", {
+          lastUpdate: lastMessageTime.toISOString(),
+          current: new Date().toISOString()
+        });
+        toast.warning("Wheel data may be stale");
+      }
+    }, 60000);
+
     return () => {
-      console.log("Widget: Cleaning up message listener");
+      console.log("Widget: Cleaning up", {
+        timestamp: new Date().toISOString()
+      });
       window.removeEventListener("message", handleWheelMessage);
+      clearInterval(intervalId);
     };
-  }, []);
+  }, [lastMessageTime]);
 
   return (
     <div className="fixed bottom-36 right-4 z-50">
@@ -84,7 +127,7 @@ export const WheelWidget = () => {
         {error && (
           <div className="absolute inset-0 flex items-center justify-center bg-red-50">
             <div className="text-xs text-red-500 text-center p-2">
-              Failed to load wheel
+              {error}
             </div>
           </div>
         )}
@@ -104,13 +147,10 @@ export const WheelWidget = () => {
           src="https://memecawheel.xyz/widget-view?mode=embed&section=wheel-only"
           className="w-full h-full"
           onLoad={() => {
-            console.log("Widget: iframe loaded successfully", {
+            console.log("Widget: iframe loaded", {
               timestamp: new Date().toISOString(),
               url: 'https://memecawheel.xyz/widget-view',
-              params: {
-                mode: 'embed',
-                section: 'wheel-only'
-              }
+              params: { mode: 'embed', section: 'wheel-only' }
             });
             setIsLoaded(true);
             toast.success("Widget initialized");
