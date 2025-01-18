@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { WheelState } from '@/types/wheel';
 
-const WHEEL_API_URL = 'https://memecawheel.xyz/api/wheel-state';
+const WHEEL_API_URL = 'https://omdhcgwcplbgfvjtrswe.supabase.co/functions/v1/wheel-state';
 const POLLING_INTERVAL = 5000; // 5 seconds
 
 export const useWheelState = () => {
