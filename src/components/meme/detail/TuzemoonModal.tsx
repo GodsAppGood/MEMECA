@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { phantomWallet } from "@/services/phantom-wallet";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface TuzemoonModalProps {
   onConfirm: () => void;
   isProcessing: boolean;
   memeTitle: string;
+  memeId: string;
 }
 
 export const TuzemoonModal = ({
@@ -26,9 +28,11 @@ export const TuzemoonModal = ({
   onClose,
   onConfirm,
   isProcessing,
-  memeTitle
+  memeTitle,
+  memeId
 }: TuzemoonModalProps) => {
   const [walletStatus, setWalletStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'error'>('pending');
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
@@ -55,6 +59,45 @@ export const TuzemoonModal = ({
       toast({
         title: "Connection Failed",
         description: "Failed to connect to Phantom wallet",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePayment = async () => {
+    try {
+      setPaymentStatus('processing');
+      
+      // Log transaction start
+      const { error: logError } = await supabase.functions.invoke('log-transaction', {
+        body: {
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          meme_id: memeId,
+          amount: 0.1,
+          transaction_status: 'pending',
+          wallet_address: await phantomWallet.getAddress()
+        }
+      });
+
+      if (logError) {
+        console.error('Error logging transaction:', logError);
+        throw new Error('Failed to initiate transaction');
+      }
+
+      // Process payment
+      setPaymentStatus('success');
+      onConfirm();
+      
+      toast({
+        title: "Payment Successful",
+        description: "Your meme has been featured on Tuzemoon!",
+      });
+    } catch (error) {
+      console.error('Payment error:', error);
+      setPaymentStatus('error');
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Failed to process payment",
         variant: "destructive",
       });
     }
@@ -104,11 +147,11 @@ export const TuzemoonModal = ({
             Cancel
           </Button>
           <Button 
-            onClick={onConfirm} 
-            disabled={isProcessing || walletStatus !== 'connected'}
+            onClick={handlePayment} 
+            disabled={isProcessing || walletStatus !== 'connected' || paymentStatus === 'processing'}
             className="min-w-[140px]"
           >
-            {isProcessing ? (
+            {isProcessing || paymentStatus === 'processing' ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...

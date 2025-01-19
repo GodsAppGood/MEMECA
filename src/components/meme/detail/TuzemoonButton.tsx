@@ -62,18 +62,12 @@ export const TuzemoonButton = ({
     }
   };
 
-  const handlePayment = async () => {
-    setIsProcessing(true);
+  const handlePaymentSuccess = async () => {
     try {
-      // В следующем сообщении добавим обработку платежей через Phantom
-      toast({
-        title: "Coming Soon",
-        description: "Payment processing will be available soon!",
-        variant: "default"
-      });
-    } finally {
-      setIsProcessing(false);
+      await onUpdate();
       setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error updating meme status:', error);
     }
   };
 
@@ -101,9 +95,10 @@ export const TuzemoonButton = ({
         <TuzemoonModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onConfirm={handlePayment}
+          onConfirm={handlePaymentSuccess}
           isProcessing={isProcessing}
           memeTitle={memeTitle}
+          memeId={memeId}
         />
       )}
     </>
