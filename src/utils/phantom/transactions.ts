@@ -1,7 +1,6 @@
 import { Connection, Transaction } from '@solana/web3.js';
 import { toast } from '@/hooks/use-toast';
 import { WALLET_CONFIG, ERROR_MESSAGES } from './config';
-import { logWalletAction, logWalletError } from './logger';
 import { TransactionResult } from './types';
 import { checkWalletInstalled, validateNetwork } from './connection';
 
@@ -14,6 +13,10 @@ export const signAndSendTransaction = async (
       return { success: false, error: ERROR_MESSAGES.NOT_INSTALLED };
     }
 
+    if (!await validateNetwork()) {
+      return { success: false, error: ERROR_MESSAGES.NOT_CONNECTED };
+    }
+
     toast({
       title: "Action Required",
       description: "Please sign the transaction in your Phantom wallet",
@@ -22,19 +25,12 @@ export const signAndSendTransaction = async (
     const signedTransaction = await window.solana.signTransaction(transaction);
     const connection = new Connection(WALLET_CONFIG.endpoint);
     
-    logWalletAction('Sending transaction', {
-      network: WALLET_CONFIG.network,
-      retryCount
-    });
-    
     const signature = await connection.sendRawTransaction(signedTransaction.serialize());
     const confirmation = await connection.confirmTransaction(signature, 'confirmed');
     
     if (confirmation.value.err) {
       throw new Error(ERROR_MESSAGES.TRANSACTION_FAILED);
     }
-
-    logWalletAction('Transaction confirmed', { signature });
 
     toast({
       title: "Success",
@@ -43,15 +39,15 @@ export const signAndSendTransaction = async (
 
     return { success: true, signature };
   } catch (error: any) {
-    logWalletError('Transaction', error, { retryCount });
+    console.error('Transaction error:', error);
     
     if (error.message.includes('User rejected')) {
       toast({
         title: "Transaction Cancelled",
-        description: "You cancelled the transaction. Try again when ready.",
+        description: ERROR_MESSAGES.USER_REJECTED,
         variant: "destructive",
       });
-      return { success: false, error: "Transaction cancelled" };
+      return { success: false, error: ERROR_MESSAGES.USER_REJECTED };
     }
 
     if (retryCount < WALLET_CONFIG.maxRetries) {
@@ -65,7 +61,7 @@ export const signAndSendTransaction = async (
 
     toast({
       title: "Transaction Failed",
-      description: `Error: ${error.message}. Please try again later.`,
+      description: error.message,
       variant: "destructive",
     });
     return { success: false, error: error.message };
