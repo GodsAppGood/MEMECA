@@ -70,8 +70,8 @@ export const WheelWidget = () => {
               height: '300px',
               border: 'none',
               position: 'relative',
-              top: '-150px',
-              right: '-150px',
+              top: '-135px',
+              right: '-135px',
               pointerEvents: 'none'
             }}
             onLoad={() => setIsLoaded(true)}
