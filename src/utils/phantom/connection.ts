@@ -13,24 +13,32 @@ export const validateNetwork = async (): Promise<boolean> => {
       return false;
     }
 
-    const connection = new Connection(WALLET_CONFIG.endpoint);
-    const network = await connection.getVersion();
+    const connection = new Connection(WALLET_CONFIG.endpoint, {
+      commitment: 'confirmed',
+      confirmTransactionInitialTimeout: WALLET_CONFIG.confirmationTimeout
+    });
     
-    // Log network validation attempt
-    console.log('Validating network connection:', {
-      expectedNetwork: WALLET_CONFIG.network,
+    // Log connection attempt
+    console.log('Validating Solana network connection:', {
+      network: WALLET_CONFIG.network,
       endpoint: WALLET_CONFIG.endpoint,
-      networkVersion: network
+      timestamp: new Date().toISOString()
     });
 
-    // For mainnet-beta we check the version
-    if (WALLET_CONFIG.network === 'mainnet-beta' && network) {
-      return true;
-    }
+    const version = await connection.getVersion();
+    console.log('Connected to Solana network:', {
+      version,
+      network: WALLET_CONFIG.network,
+      feature_set: version?.['feature-set']
+    });
 
-    return false;
+    return true;
   } catch (error) {
-    console.error('Network validation error:', error);
+    console.error('Network validation error:', {
+      error,
+      endpoint: WALLET_CONFIG.endpoint,
+      timestamp: new Date().toISOString()
+    });
     return false;
   }
 };
