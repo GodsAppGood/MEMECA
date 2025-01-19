@@ -9,6 +9,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { phantomWallet } from "@/services/phantom-wallet";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -25,6 +28,38 @@ export const TuzemoonModal = ({
   isProcessing,
   memeTitle
 }: TuzemoonModalProps) => {
+  const [walletStatus, setWalletStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const { toast } = useToast();
+
+  const handleConnectWallet = async () => {
+    try {
+      setWalletStatus('connecting');
+      if (!phantomWallet.isPhantomInstalled) {
+        toast({
+          title: "Phantom Wallet Required",
+          description: "Please install Phantom wallet to continue",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const publicKey = await phantomWallet.connect();
+      setWalletStatus('connected');
+      toast({
+        title: "Wallet Connected",
+        description: `Connected with ${publicKey.slice(0, 6)}...${publicKey.slice(-4)}`,
+      });
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      setWalletStatus('disconnected');
+      toast({
+        title: "Connection Failed",
+        description: "Failed to connect to Phantom wallet",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -45,11 +80,23 @@ export const TuzemoonModal = ({
             </ul>
           </div>
 
-          <Alert>
-            <AlertDescription>
-              Payment system is currently being updated.
-            </AlertDescription>
-          </Alert>
+          {walletStatus === 'disconnected' && (
+            <Button 
+              onClick={handleConnectWallet} 
+              className="w-full"
+              variant="outline"
+            >
+              Connect Phantom Wallet
+            </Button>
+          )}
+
+          {walletStatus === 'connected' && (
+            <Alert>
+              <AlertDescription className="text-green-600">
+                Wallet connected successfully! Ready to process payment.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <DialogFooter className="mt-4">
@@ -58,7 +105,7 @@ export const TuzemoonModal = ({
           </Button>
           <Button 
             onClick={onConfirm} 
-            disabled={isProcessing}
+            disabled={isProcessing || walletStatus !== 'connected'}
             className="min-w-[140px]"
           >
             {isProcessing ? (

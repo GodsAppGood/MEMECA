@@ -62,14 +62,14 @@ export const TuzemoonButton = ({
     }
   };
 
-  // Временная заглушка для обработки платежа
   const handlePayment = async () => {
     setIsProcessing(true);
     try {
+      // В следующем сообщении добавим обработку платежей через Phantom
       toast({
-        title: "Payment System Unavailable",
-        description: "The payment system is currently being updated. Please try again later.",
-        variant: "destructive"
+        title: "Coming Soon",
+        description: "Payment processing will be available soon!",
+        variant: "default"
       });
     } finally {
       setIsProcessing(false);
