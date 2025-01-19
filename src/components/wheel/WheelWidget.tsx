@@ -61,25 +61,23 @@ export const WheelWidget = () => {
           </div>
         )}
 
-        <div className="iframe-container">
-          <iframe
-            src="https://www.memecawheel.xyz?mode=widget&target=wheel-widget&embed=true"
-            className="w-full h-full"
-            style={{
-              width: '300px',
-              height: '300px',
-              border: 'none',
-              position: 'relative',
-              top: '-135px',
-              right: '-135px',
-              pointerEvents: 'none'
-            }}
-            onLoad={() => setIsLoaded(true)}
-            title="Meme Wheel Widget"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            sandbox="allow-scripts allow-same-origin allow-popups"
-          />
-        </div>
+        <iframe
+          src="https://www.memecawheel.xyz?mode=widget&target=wheel-widget&embed=true"
+          className="w-full h-full"
+          style={{
+            width: '300px',
+            height: '300px',
+            border: 'none',
+            position: 'absolute',
+            top: '-135px',
+            right: '-135px',
+            pointerEvents: 'none'
+          }}
+          onLoad={() => setIsLoaded(true)}
+          title="Meme Wheel Widget"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          sandbox="allow-scripts allow-same-origin allow-popups"
+        />
       </div>
     </div>
   );
