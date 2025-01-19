@@ -32,7 +32,7 @@ export const TuzemoonButton = ({
     
     setIsProcessing(true);
     try {
-      console.log('Initiating payment for meme:', { memeId, memeTitle });
+      console.log('Starting payment process for meme:', { memeId, memeTitle });
       const payment = await sendPayment(0.1, memeId);
       
       if (!payment.success) {
@@ -41,7 +41,6 @@ export const TuzemoonButton = ({
 
       console.log('Payment successful, updating meme status');
 
-      // Update meme status after successful payment
       const { error: updateError } = await supabase
         .from('Memes')
         .update({

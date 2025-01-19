@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useState, useEffect } from "react";
-import { connectWallet } from "@/services/phantom-wallet";
+import { connectToWallet } from "@/utils/phantom/connection";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -50,7 +50,7 @@ export const TuzemoonModal = ({
   const handleConnect = async () => {
     setIsConnecting(true);
     try {
-      const response = await connectWallet();
+      const response = await connectToWallet();
       if (response.success) {
         setWalletConnected(true);
       }
