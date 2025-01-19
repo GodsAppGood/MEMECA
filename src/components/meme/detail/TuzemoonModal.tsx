@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { phantomWallet } from "@/services/phantom-wallet";
 import { useState } from "react";
@@ -38,6 +38,7 @@ export const TuzemoonModal = ({
   const handleConnectWallet = async () => {
     try {
       setWalletStatus('connecting');
+      
       if (!phantomWallet.isPhantomInstalled) {
         toast({
           title: "Phantom Wallet Required",
@@ -48,6 +49,8 @@ export const TuzemoonModal = ({
       }
 
       const publicKey = await phantomWallet.connect();
+      console.log('Connected wallet:', publicKey);
+      
       setWalletStatus('connected');
       toast({
         title: "Wallet Connected",
@@ -68,14 +71,20 @@ export const TuzemoonModal = ({
     try {
       setPaymentStatus('processing');
       
+      const walletAddress = await phantomWallet.getAddress();
+      if (!walletAddress) {
+        throw new Error('No wallet connected');
+      }
+
       // Log transaction start
+      const { data: { user } } = await supabase.auth.getUser();
       const { error: logError } = await supabase.functions.invoke('log-transaction', {
         body: {
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: user?.id,
           meme_id: memeId,
           amount: 0.1,
           transaction_status: 'pending',
-          wallet_address: await phantomWallet.getAddress()
+          wallet_address: walletAddress
         }
       });
 
@@ -84,7 +93,7 @@ export const TuzemoonModal = ({
         throw new Error('Failed to initiate transaction');
       }
 
-      // Process payment
+      // For testing, we'll simulate a successful payment
       setPaymentStatus('success');
       onConfirm();
       
@@ -92,7 +101,7 @@ export const TuzemoonModal = ({
         title: "Payment Successful",
         description: "Your meme has been featured on Tuzemoon!",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Payment error:', error);
       setPaymentStatus('error');
       toast({
@@ -129,6 +138,7 @@ export const TuzemoonModal = ({
               className="w-full"
               variant="outline"
             >
+              <Wallet className="mr-2 h-4 w-4" />
               Connect Phantom Wallet
             </Button>
           )}
