@@ -4,7 +4,7 @@ import { WheelState } from "@/types/wheel";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
-const WHEEL_API_URL = "https://api.memecawheel.xyz/wheel-state";
+const WHEEL_API_URL = "https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state";
 const REFRESH_INTERVAL = 300000; // 5 minutes
 const FALLBACK_STATE: WheelState = {
   currentSlot: 1,
@@ -25,7 +25,8 @@ export const WheelWidget = () => {
       try {
         console.log("Attempting to fetch wheel state", {
           timestamp: new Date().toISOString(),
-          attempt: retryCount + 1
+          attempt: retryCount + 1,
+          url: WHEEL_API_URL
         });
 
         const response = await fetch(WHEEL_API_URL, {
@@ -35,6 +36,7 @@ export const WheelWidget = () => {
             'Cache-Control': 'no-cache',
             'Origin': window.location.origin
           },
+          mode: 'cors',
           credentials: 'omit'
         });
 
@@ -55,7 +57,8 @@ export const WheelWidget = () => {
         console.error("Failed to fetch wheel state", {
           error: err,
           timestamp: new Date().toISOString(),
-          retryCount
+          retryCount,
+          url: WHEEL_API_URL
         });
         
         if (retryCount > 2) {
@@ -77,8 +80,8 @@ export const WheelWidget = () => {
           console.log("Wheel state updated successfully");
           setConnectionStatus('connected');
           toast({
-            title: "Connected",
-            description: "Wheel state updated",
+            title: "Wheel Connected",
+            description: "Successfully connected to MeMeCa Wheel",
             variant: "default",
           });
         }
@@ -90,7 +93,7 @@ export const WheelWidget = () => {
         if (retryCount <= 2) {
           toast({
             title: "Connection Error",
-            description: "Using cached wheel state",
+            description: "Unable to connect to MeMeCa Wheel. Using cached state.",
             variant: "destructive",
           });
         }
