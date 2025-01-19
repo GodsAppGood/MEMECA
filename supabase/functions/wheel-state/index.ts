@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +11,7 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('[wheel-state] Handling OPTIONS request');
+    console.log('[wheel-state] Handling OPTIONS request from:', req.headers.get('origin'));
     return new Response(null, { 
       headers: corsHeaders,
       status: 204
@@ -20,9 +19,14 @@ serve(async (req) => {
   }
 
   try {
-    // Get current timestamp
+    // Get current timestamp and log request details
     const now = new Date();
-    console.log(`[${now.toISOString()}] Processing wheel-state request from origin:`, req.headers.get('origin'));
+    const origin = req.headers.get('origin');
+    console.log(`[${now.toISOString()}] Processing wheel-state request:`, {
+      origin,
+      method: req.method,
+      url: req.url
+    });
 
     // Mock wheel state data for now
     // This should be replaced with actual data from your database
@@ -41,13 +45,18 @@ serve(async (req) => {
       { 
         headers: { 
           ...corsHeaders,
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         status: 200 
       }
     )
   } catch (error) {
-    console.error('Error in wheel-state function:', error);
+    console.error('[wheel-state] Error:', {
+      error,
+      timestamp: new Date().toISOString(),
+      origin: req.headers.get('origin'),
+      url: req.url
+    });
     
     return new Response(
       JSON.stringify({ 
