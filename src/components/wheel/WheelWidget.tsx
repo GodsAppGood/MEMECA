@@ -2,8 +2,6 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
 import { supabase } from "@/integrations/supabase/client";
-import { LoadingSpinner } from "@/components/meme/ui/LoadingSpinner";
-import { ErrorState } from "@/components/meme/ui/ErrorState";
 
 const FALLBACK_STATE: WheelState = {
   currentSlot: 1,
@@ -15,13 +13,11 @@ const FALLBACK_STATE: WheelState = {
 
 export const WheelWidget = () => {
   const [wheelState, setWheelState] = useState<WheelState>(FALLBACK_STATE);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     const fetchWheelState = async () => {
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('WidgetSlots')
           .select(`
             id,
@@ -32,9 +28,7 @@ export const WheelWidget = () => {
             )
           `)
           .eq('is_active', true)
-          .single();
-
-        if (error) throw error;
+          .maybeSingle();
 
         if (data) {
           setWheelState({
@@ -45,12 +39,8 @@ export const WheelWidget = () => {
             isActive: true
           });
         }
-
-        setIsLoading(false);
       } catch (err) {
         console.error('Error fetching wheel state:', err);
-        setError(err as Error);
-        setIsLoading(false);
       }
     };
 
@@ -60,31 +50,10 @@ export const WheelWidget = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="fixed bottom-36 right-4 z-50">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="fixed bottom-36 right-4 z-50">
-        <ErrorState 
-          message="Unable to connect to wheel state" 
-          error={error}
-          onRetry={() => setError(null)}
-        />
-      </div>
-    );
-  }
-
   return (
     <div className="fixed bottom-36 right-4 z-50">
       <div className={cn(
         "w-28 h-28 relative rounded-full overflow-hidden border-2 shadow-lg bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105",
-        "animate-float", // Анимация из memecawheel.xyz
         "hover:border-[#02E6F6] hover:shadow-[0_0_15px_rgba(2,230,246,0.5)]" // Эффект наведения из memecawheel.xyz
       )}>
         <div className="absolute top-2 left-2 right-2 z-10 flex justify-between items-center">
