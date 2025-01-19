@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 const WHEEL_API_URL = "https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state";
 const REFRESH_INTERVAL = 300000; // 5 minutes
+const MAX_RETRIES = 3;
 const FALLBACK_STATE: WheelState = {
   currentSlot: 1,
   nextUpdateIn: 300,
@@ -26,8 +27,12 @@ export const WheelWidget = () => {
         console.log("Attempting to fetch wheel state", {
           timestamp: new Date().toISOString(),
           attempt: retryCount + 1,
-          url: WHEEL_API_URL
+          url: WHEEL_API_URL,
+          origin: window.location.origin
         });
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
 
         const response = await fetch(WHEEL_API_URL, {
           method: 'GET',
@@ -37,17 +42,22 @@ export const WheelWidget = () => {
             'Origin': window.location.origin
           },
           mode: 'cors',
-          credentials: 'omit'
+          credentials: 'omit',
+          signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-          throw new Error(`API error: ${response.status}`);
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
         console.log("Wheel state fetched successfully", {
           timestamp: new Date().toISOString(),
-          data
+          data,
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries())
         });
 
         setIsUsingFallback(false);
@@ -58,10 +68,11 @@ export const WheelWidget = () => {
           error: err,
           timestamp: new Date().toISOString(),
           retryCount,
-          url: WHEEL_API_URL
+          url: WHEEL_API_URL,
+          origin: window.location.origin
         });
         
-        if (retryCount > 2) {
+        if (retryCount >= MAX_RETRIES) {
           console.log("Using fallback state after multiple retries");
           setIsUsingFallback(true);
           setConnectionStatus('error');
@@ -73,7 +84,8 @@ export const WheelWidget = () => {
       }
     },
     refetchInterval: REFRESH_INTERVAL,
-    retry: 2,
+    retry: MAX_RETRIES,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
     meta: {
       onSuccess: () => {
         if (!isUsingFallback) {
@@ -86,11 +98,22 @@ export const WheelWidget = () => {
           });
         }
       },
-      onError: () => {
-        console.log("Error fetching wheel state, attempt:", retryCount + 1);
+      onError: (error: Error) => {
+        console.log("Error fetching wheel state", {
+          error,
+          attempt: retryCount + 1,
+          timestamp: new Date().toISOString()
+        });
+        
         setConnectionStatus('error');
         
-        if (retryCount <= 2) {
+        if (retryCount <= MAX_RETRIES) {
+          toast({
+            title: "Connection Error",
+            description: "Unable to connect to MeMeCa Wheel. Retrying...",
+            variant: "destructive",
+          });
+        } else {
           toast({
             title: "Connection Error",
             description: "Unable to connect to MeMeCa Wheel. Using cached state.",
