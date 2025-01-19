@@ -47,10 +47,10 @@ const config = {
         },
         float: {
           "0%, 100%": { 
-            transform: "translateY(0) scale(1) rotate(0deg)",
+            transform: "translateY(0) scale(1)",
           },
           "50%": {
-            transform: "translateY(-20px) scale(1.01) rotate(1deg)",
+            transform: "translateY(-10px) scale(1.02)",
           }
         },
         neon: {
@@ -71,7 +71,7 @@ const config = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-rotate": "bounce-rotate 0.5s ease-in-out",
-        "float": "float 4s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
         "neon": "neon 2.5s ease-in-out infinite",
         "spin-slow": "spin-slow 10s linear infinite"
       },
