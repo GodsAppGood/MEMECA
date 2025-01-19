@@ -7,6 +7,34 @@ import { supabase } from "@/integrations/supabase/client";
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+export const validateNetwork = async (): Promise<boolean> => {
+  try {
+    if (!window.solana?.isPhantom) {
+      return false;
+    }
+
+    const connection = new Connection(WALLET_CONFIG.endpoint);
+    const network = await connection.getVersion();
+    
+    // Log network validation attempt
+    console.log('Validating network connection:', {
+      expectedNetwork: WALLET_CONFIG.network,
+      endpoint: WALLET_CONFIG.endpoint,
+      networkVersion: network
+    });
+
+    // For mainnet-beta we check the version
+    if (WALLET_CONFIG.network === 'mainnet-beta' && network) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Network validation error:', error);
+    return false;
+  }
+};
+
 export const checkWalletInstalled = (): boolean => {
   const isInstalled = window.solana && window.solana.isPhantom;
   if (!isInstalled) {
@@ -24,6 +52,17 @@ export const connectToWallet = async (): Promise<WalletConnectionResult> => {
   try {
     if (!checkWalletInstalled()) {
       return { success: false, error: "Phantom wallet not installed" };
+    }
+
+    // Validate network before proceeding
+    const isValidNetwork = await validateNetwork();
+    if (!isValidNetwork) {
+      toast({
+        title: "Network Error",
+        description: `Please switch to ${WALLET_CONFIG.network} network in your Phantom wallet`,
+        variant: "destructive",
+      });
+      return { success: false, error: "Invalid network" };
     }
 
     // Request connection
