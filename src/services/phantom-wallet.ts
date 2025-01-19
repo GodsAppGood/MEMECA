@@ -21,15 +21,9 @@ export const connectWallet = async () => {
       return { success: false, error: "Phantom wallet not installed" };
     }
 
-    // Check if already connected
-    if (window.solana.isConnected) {
-      console.log('Wallet is already connected, disconnecting first...');
-      await window.solana.disconnect();
-    }
-
-    // Request connection
-    console.log('Requesting wallet connection...');
-    const response = await window.solana.connect();
+    // Force a new connection request
+    console.log('Requesting new wallet connection...');
+    const response = await window.solana.connect({ onlyIfTrusted: false });
     const publicKey = response.publicKey.toString();
     
     console.log('Wallet connected successfully:', publicKey);
@@ -69,13 +63,11 @@ export const sendPayment = async (amount: number, memeId: string) => {
       throw new Error("Phantom wallet not installed");
     }
 
-    // Connect wallet if not connected
-    if (!window.solana.isConnected) {
-      console.log('Wallet not connected, attempting to connect...');
-      const connectionResult = await connectWallet();
-      if (!connectionResult.success) {
-        throw new Error("Failed to connect wallet");
-      }
+    // Always request a new connection
+    console.log('Ensuring wallet connection...');
+    const connectionResult = await connectWallet();
+    if (!connectionResult.success) {
+      throw new Error("Failed to connect wallet");
     }
 
     const connection = new Connection(ENDPOINT, 'confirmed');
