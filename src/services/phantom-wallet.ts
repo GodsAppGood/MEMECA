@@ -7,8 +7,11 @@ const ENDPOINT = 'https://api.mainnet-beta.solana.com';
 
 export const connectWallet = async () => {
   try {
+    console.log('Starting wallet connection process...');
+
     // Check if Phantom is installed
     if (!window.solana?.isPhantom) {
+      console.log('Phantom wallet not detected');
       toast({
         title: "Wallet Not Found",
         description: "Please install Phantom wallet to continue",
@@ -18,11 +21,18 @@ export const connectWallet = async () => {
       return { success: false, error: "Phantom wallet not installed" };
     }
 
-    // Connect to wallet
+    // Check if already connected
+    if (window.solana.isConnected) {
+      console.log('Wallet is already connected, disconnecting first...');
+      await window.solana.disconnect();
+    }
+
+    // Request connection
+    console.log('Requesting wallet connection...');
     const response = await window.solana.connect();
     const publicKey = response.publicKey.toString();
     
-    console.log('Wallet connected:', publicKey);
+    console.log('Wallet connected successfully:', publicKey);
     toast({
       title: "Success",
       description: "Wallet connected successfully",
@@ -53,12 +63,15 @@ export const connectWallet = async () => {
 
 export const sendPayment = async (amount: number, memeId: string) => {
   try {
+    console.log('Starting payment process...', { amount, memeId });
+
     if (!window.solana?.isPhantom) {
       throw new Error("Phantom wallet not installed");
     }
 
     // Connect wallet if not connected
     if (!window.solana.isConnected) {
+      console.log('Wallet not connected, attempting to connect...');
       const connectionResult = await connectWallet();
       if (!connectionResult.success) {
         throw new Error("Failed to connect wallet");
@@ -70,6 +83,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
     const toPubkey = new PublicKey(RECIPIENT_ADDRESS);
 
     // Check balance
+    console.log('Checking wallet balance...');
     const balance = await connection.getBalance(fromPubkey);
     const requiredAmount = amount * LAMPORTS_PER_SOL;
     const minimumRequired = requiredAmount + (0.000005 * LAMPORTS_PER_SOL); // Buffer for gas
@@ -79,6 +93,7 @@ export const sendPayment = async (amount: number, memeId: string) => {
     }
 
     // Create transaction
+    console.log('Creating transaction...');
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey,
@@ -92,16 +107,19 @@ export const sendPayment = async (amount: number, memeId: string) => {
     transaction.feePayer = fromPubkey;
 
     // Sign and send transaction
+    console.log('Requesting transaction signature...');
     const signedTransaction = await window.solana.signTransaction(transaction);
     const signature = await connection.sendRawTransaction(signedTransaction.serialize());
     
     // Wait for confirmation
+    console.log('Waiting for transaction confirmation...');
     const confirmation = await connection.confirmTransaction(signature);
     
     if (confirmation.value.err) {
       throw new Error("Transaction failed to confirm");
     }
 
+    console.log('Transaction confirmed:', signature);
     toast({
       title: "Payment Successful",
       description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
