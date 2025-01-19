@@ -10,11 +10,9 @@ export const logWalletAction = (action: string, details: WalletLogDetails) => {
   });
 };
 
-export const logWalletError = (action: string, error: any, details?: WalletLogDetails) => {
+export const logWalletError = (action: string, error: any) => {
   console.error(`Phantom Wallet Error - ${action}:`, {
     error: error?.message || error,
-    stack: error?.stack,
-    details,
     timestamp: new Date().toISOString(),
     environment: import.meta.env.MODE,
   });
