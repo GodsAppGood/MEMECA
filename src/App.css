@@ -56,3 +56,10 @@
 .read-the-docs {
   color: #888;
 }
+
+.iframe-container {
+  width: 300px;
+  height: 300px;
+  overflow: hidden;
+  position: relative;
+}
