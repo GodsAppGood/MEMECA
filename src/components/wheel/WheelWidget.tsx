@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 const WHEEL_API_URL = "https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state";
 const REFRESH_INTERVAL = 300000; // 5 minutes
 const MAX_RETRIES = 3;
-const REQUEST_TIMEOUT = 5000; // 5 seconds
+const REQUEST_TIMEOUT = 10000; // 10 seconds
 const STALE_TIME = 30000; // 30 seconds
 
 const FALLBACK_STATE: WheelState = {
