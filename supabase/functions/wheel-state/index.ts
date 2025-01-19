@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, origin, accept',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, origin, accept, cache-control',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Access-Control-Max-Age': '86400',
   'Cache-Control': 'no-store, no-cache, must-revalidate',

@@ -3,12 +3,14 @@ import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
 import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
+import { LoadingSpinner } from "@/components/meme/ui/LoadingSpinner";
+import { ErrorState } from "@/components/meme/ui/ErrorState";
 
 const WHEEL_API_URL = "https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state";
-const REFRESH_INTERVAL = 300000; // 5 minutes
+const REFRESH_INTERVAL = 5000; // 5 seconds
 const MAX_RETRIES = 3;
 const REQUEST_TIMEOUT = 15000; // 15 seconds
-const STALE_TIME = 30000; // 30 seconds
+const STALE_TIME = 4000; // 4 seconds
 
 const FALLBACK_STATE: WheelState = {
   currentSlot: 1,
@@ -20,7 +22,6 @@ const FALLBACK_STATE: WheelState = {
 
 export const WheelWidget = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
-  const [retryCount, setRetryCount] = useState(0);
   const [isUsingFallback, setIsUsingFallback] = useState(false);
   const [responseTime, setResponseTime] = useState<number>(0);
   
@@ -40,149 +41,158 @@ export const WheelWidget = () => {
     };
   }, []);
 
-  const { data: wheelState } = useQuery({
-    queryKey: ['wheelState', retryCount],
-    queryFn: async (): Promise<WheelState> => {
-      const startTime = performance.now();
-      
-      try {
-        console.log("Attempting to fetch wheel state", {
-          timestamp: new Date().toISOString(),
-          attempt: retryCount + 1,
-          url: WHEEL_API_URL,
-          origin: window.location.origin
-        });
+  const fetchWheelState = async (): Promise<WheelState> => {
+    const startTime = performance.now();
+    
+    try {
+      console.log("Attempting to fetch wheel state", {
+        timestamp: new Date().toISOString(),
+        url: WHEEL_API_URL,
+        origin: window.location.origin
+      });
 
-        // Create new AbortController for this request
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
-        abortControllerRef.current = new AbortController();
-
-        // Set timeout
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-        }
-        
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutIdRef.current = window.setTimeout(() => {
-            if (abortControllerRef.current) {
-              abortControllerRef.current.abort();
-            }
-            reject(new Error('Request timeout'));
-          }, REQUEST_TIMEOUT);
-        });
-
-        const fetchPromise = fetch(WHEEL_API_URL, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache',
-            'Origin': window.location.origin
-          },
-          mode: 'cors',
-          credentials: 'omit',
-          signal: abortControllerRef.current.signal
-        });
-
-        const response = await Promise.race([fetchPromise, timeoutPromise]);
-        
-        // Clear timeout if fetch completed
-        if (timeoutIdRef.current) {
-          clearTimeout(timeoutIdRef.current);
-        }
-        
-        const endTime = performance.now();
-        setResponseTime(endTime - startTime);
-
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        
-        console.log("Wheel state fetched successfully", {
-          timestamp: new Date().toISOString(),
-          responseTime: `${endTime - startTime}ms`,
-          status: response.status,
-          data
-        });
-
-        setIsUsingFallback(false);
-        setConnectionStatus('connected');
-        return data;
-      } catch (err) {
-        const endTime = performance.now();
-        setResponseTime(endTime - startTime);
-        
-        console.error("Failed to fetch wheel state", {
-          error: err,
-          timestamp: new Date().toISOString(),
-          retryCount,
-          responseTime: `${endTime - startTime}ms`,
-          url: WHEEL_API_URL,
-          origin: window.location.origin
-        });
-        
-        if (retryCount >= MAX_RETRIES) {
-          console.log("Using fallback state after multiple retries");
-          setIsUsingFallback(true);
-          setConnectionStatus('error');
-          return FALLBACK_STATE;
-        }
-        
-        setRetryCount(prev => prev + 1);
-        throw err;
+      // Create new AbortController for this request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-    },
+      abortControllerRef.current = new AbortController();
+
+      // Set timeout
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutIdRef.current = window.setTimeout(() => {
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
+          }
+          reject(new Error('Request timeout'));
+        }, REQUEST_TIMEOUT);
+      });
+
+      const fetchPromise = fetch(WHEEL_API_URL, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'Origin': window.location.origin
+        },
+        mode: 'cors',
+        credentials: 'omit',
+        signal: abortControllerRef.current.signal
+      });
+
+      const response = await Promise.race([fetchPromise, timeoutPromise]);
+      
+      // Clear timeout if fetch completed
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+      
+      const endTime = performance.now();
+      setResponseTime(endTime - startTime);
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      console.log("Wheel state fetched successfully", {
+        timestamp: new Date().toISOString(),
+        responseTime: `${endTime - startTime}ms`,
+        status: response.status,
+        data
+      });
+
+      setIsUsingFallback(false);
+      setConnectionStatus('connected');
+      return data;
+    } catch (err) {
+      const endTime = performance.now();
+      setResponseTime(endTime - startTime);
+      
+      console.error("Failed to fetch wheel state", {
+        error: err,
+        timestamp: new Date().toISOString(),
+        responseTime: `${endTime - startTime}ms`,
+        url: WHEEL_API_URL,
+        origin: window.location.origin
+      });
+
+      if (err.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      
+      throw err;
+    }
+  };
+
+  const { data: wheelState, error, isLoading, refetch } = useQuery({
+    queryKey: ['wheelState'],
+    queryFn: fetchWheelState,
     refetchInterval: REFRESH_INTERVAL,
     retry: MAX_RETRIES,
     retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
     staleTime: STALE_TIME,
     meta: {
-      onSuccess: () => {
-        if (!isUsingFallback) {
-          console.log("Wheel state updated successfully", {
-            timestamp: new Date().toISOString(),
-            responseTime: `${responseTime}ms`
-          });
-          setConnectionStatus('connected');
-          toast({
-            title: "Wheel Connected",
-            description: "Successfully connected to MeMeCa Wheel",
-            variant: "default",
-          });
-        }
-      },
       onError: (error: Error) => {
-        console.log("Error fetching wheel state", {
+        console.error("Wheel state fetch error:", {
           error,
-          attempt: retryCount + 1,
           timestamp: new Date().toISOString(),
-          responseTime: `${responseTime}ms`
+          responseTime: `${responseTime}ms`,
+          origin: window.location.origin
         });
         
         setConnectionStatus('error');
         
-        if (retryCount <= MAX_RETRIES) {
-          toast({
-            title: "Connection Error",
-            description: "Unable to connect to MeMeCa Wheel. Retrying...",
-            variant: "destructive",
-          });
-        } else {
+        if (!isUsingFallback) {
           toast({
             title: "Connection Error",
             description: "Unable to connect to MeMeCa Wheel. Using cached state.",
             variant: "destructive",
           });
+          setIsUsingFallback(true);
         }
       }
     }
   });
 
+  // Monitor errors
+  useEffect(() => {
+    if (error) {
+      console.error('Wheel state error:', {
+        error,
+        timestamp: new Date().toISOString(),
+        origin: window.location.origin,
+        responseTime: `${responseTime}ms`
+      });
+    }
+  }, [error, responseTime]);
+
   // Use fallback or actual data
   const displayState = wheelState || FALLBACK_STATE;
+
+  if (isLoading && !wheelState) {
+    return (
+      <div className="fixed bottom-36 right-4 z-50">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  if (error && !wheelState) {
+    return (
+      <div className="fixed bottom-36 right-4 z-50">
+        <ErrorState 
+          message="Unable to connect to wheel state" 
+          error={error}
+          onRetry={() => refetch()}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed bottom-36 right-4 z-50">
