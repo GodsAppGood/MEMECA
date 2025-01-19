@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
 import { toast } from "sonner";
@@ -7,39 +7,6 @@ export const WheelWidget = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [wheelState, setWheelState] = useState<WheelState | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleWheelMessage = (event: MessageEvent) => {
-      const allowedOrigins = [
-        'https://memecawheel.xyz',
-        'https://www.memecawheel.xyz',
-        'https://8b905c69-bd03-47a1-92ae-3c584cfce9a8.lovableproject.com'
-      ];
-
-      if (!allowedOrigins.includes(event.origin)) {
-        console.warn("Received message from unauthorized origin:", event.origin);
-        return;
-      }
-
-      try {
-        const data = event.data;
-        if (data && typeof data === "object") {
-          console.log("Received wheel data:", data);
-          setWheelState(data as WheelState);
-          setError(null);
-        }
-      } catch (err) {
-        console.error("Error processing wheel message:", err);
-        setError("Failed to process wheel data");
-        toast.error("Failed to load wheel data", {
-          description: "Please try again later"
-        });
-      }
-    };
-
-    window.addEventListener("message", handleWheelMessage);
-    return () => window.removeEventListener("message", handleWheelMessage);
-  }, []);
 
   return (
     <div className="fixed bottom-36 right-4 z-50">
@@ -62,16 +29,16 @@ export const WheelWidget = () => {
         )}
 
         <iframe
-          src="https://www.memecawheel.xyz?mode=widget&target=wheel-widget&embed=true"
+          src="https://memecawheel.xyz/?mode=embed&section=wheel-only"
           className="w-full h-full"
           style={{
-            width: '300px',
-            height: '300px',
+            width: '112px',
+            height: '112px',
             border: 'none',
             position: 'absolute',
-            top: '-135px',
-            right: '-135px',
-            pointerEvents: 'none'
+            top: '0',
+            right: '0',
+            background: 'transparent'
           }}
           onLoad={() => setIsLoaded(true)}
           title="Meme Wheel Widget"
