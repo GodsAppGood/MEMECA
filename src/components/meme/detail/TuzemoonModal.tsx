@@ -7,10 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Loader2, Wallet } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useState, useEffect } from "react";
-import { connectToWallet } from "@/utils/phantom/connection";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -27,40 +25,6 @@ export const TuzemoonModal = ({
   isProcessing,
   memeTitle
 }: TuzemoonModalProps) => {
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  useEffect(() => {
-    const checkWalletConnection = () => {
-      if (window.solana?.isPhantom && window.solana.isConnected) {
-        setWalletConnected(true);
-      } else {
-        setWalletConnected(false);
-      }
-    };
-
-    checkWalletConnection();
-    window.addEventListener('load', checkWalletConnection);
-
-    return () => {
-      window.removeEventListener('load', checkWalletConnection);
-    };
-  }, []);
-
-  const handleConnect = async () => {
-    setIsConnecting(true);
-    try {
-      const response = await connectToWallet();
-      if (response.success) {
-        setWalletConnected(true);
-      }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -76,8 +40,6 @@ export const TuzemoonModal = ({
             <p className="text-sm font-medium mb-2">Payment Details:</p>
             <ul className="space-y-2 text-sm">
               <li>• Amount: 0.1 SOL</li>
-              <li>• Network: Solana (Mainnet)</li>
-              <li>• Gas Fee: ~0.000005 SOL</li>
               <li>• Duration: 24 hours featured placement</li>
               <li>• Meme: {memeTitle}</li>
             </ul>
@@ -85,31 +47,7 @@ export const TuzemoonModal = ({
 
           <Alert>
             <AlertDescription>
-              {!walletConnected ? (
-                <div className="flex items-center gap-2">
-                  <Wallet className="h-4 w-4" />
-                  <Button 
-                    variant="link" 
-                    className="p-0 h-auto font-normal text-sm text-blue-500"
-                    onClick={handleConnect}
-                    disabled={isConnecting}
-                  >
-                    {isConnecting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Connecting...
-                      </>
-                    ) : (
-                      'Connect Phantom Wallet'
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-green-600">
-                  <Wallet className="h-4 w-4" />
-                  <span>✓ Wallet Connected</span>
-                </div>
-              )}
+              Payment system is currently being updated.
             </AlertDescription>
           </Alert>
         </div>
@@ -120,7 +58,7 @@ export const TuzemoonModal = ({
           </Button>
           <Button 
             onClick={onConfirm} 
-            disabled={isProcessing || !walletConnected}
+            disabled={isProcessing}
             className="min-w-[140px]"
           >
             {isProcessing ? (

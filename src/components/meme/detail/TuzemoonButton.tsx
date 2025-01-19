@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TuzemoonModal } from "./TuzemoonModal";
-import { sendPayment } from "@/services/phantom-wallet";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TuzemoonButtonProps {
@@ -26,52 +25,6 @@ export const TuzemoonButton = ({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
-
-  const handlePayment = async () => {
-    if (isProcessing) return;
-    
-    setIsProcessing(true);
-    try {
-      console.log('Starting payment process for meme:', { memeId, memeTitle });
-      const payment = await sendPayment(0.1, memeId);
-      
-      if (!payment.success) {
-        throw new Error(payment.error);
-      }
-
-      console.log('Payment successful, updating meme status');
-
-      const { error: updateError } = await supabase
-        .from('Memes')
-        .update({
-          is_featured: true,
-          tuzemoon_until: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-        })
-        .eq('id', parseInt(memeId));
-
-      if (updateError) {
-        console.error('Error updating meme status:', updateError);
-        throw updateError;
-      }
-
-      await onUpdate();
-      setIsModalOpen(false);
-      
-      toast({
-        title: "Tuzemoon Activated!",
-        description: `Transaction confirmed: ${payment.signature?.slice(0, 8)}...`,
-      });
-    } catch (error: any) {
-      console.error('Payment error:', error);
-      toast({
-        title: "Payment Failed",
-        description: error.message || "Transaction failed",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   const handleAdminActivation = async () => {
     setIsProcessing(true);
@@ -106,6 +59,21 @@ export const TuzemoonButton = ({
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  // Временная заглушка для обработки платежа
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    try {
+      toast({
+        title: "Payment System Unavailable",
+        description: "The payment system is currently being updated. Please try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsProcessing(false);
+      setIsModalOpen(false);
     }
   };
 
