@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 
 const WHEEL_API_URL = "https://api.memecawheel.xyz/wheel-state";
@@ -25,20 +25,30 @@ export const WheelWidget = () => {
       return response.json();
     },
     refetchInterval: REFRESH_INTERVAL,
-    onSuccess: () => {
-      console.log("Wheel state updated successfully", {
-        timestamp: new Date().toISOString()
-      });
-      setConnectionStatus('connected');
-      toast.success("Wheel state updated");
-    },
-    onError: (error) => {
-      console.error("Failed to fetch wheel state", {
-        error,
-        timestamp: new Date().toISOString()
-      });
-      setConnectionStatus('error');
-      toast.error("Failed to update wheel state");
+    meta: {
+      onSuccess: () => {
+        console.log("Wheel state updated successfully", {
+          timestamp: new Date().toISOString()
+        });
+        setConnectionStatus('connected');
+        toast({
+          title: "Success",
+          description: "Wheel state updated",
+          variant: "default",
+        });
+      },
+      onError: (error: Error) => {
+        console.error("Failed to fetch wheel state", {
+          error,
+          timestamp: new Date().toISOString()
+        });
+        setConnectionStatus('error');
+        toast({
+          title: "Error",
+          description: "Failed to update wheel state",
+          variant: "destructive",
+        });
+      }
     }
   });
 
