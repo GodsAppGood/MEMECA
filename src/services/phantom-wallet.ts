@@ -51,7 +51,7 @@ export const connectWallet = async () => {
   }
 };
 
-export const sendPayment = async (amount: number) => {
+export const sendPayment = async (amount: number, memeId: string) => {
   try {
     if (!window.solana?.isPhantom) {
       throw new Error("Phantom wallet not installed");
@@ -107,7 +107,7 @@ export const sendPayment = async (amount: number) => {
       description: `Transaction confirmed: ${signature.slice(0, 8)}...`,
     });
 
-    return { success: true, signature };
+    return { success: true, signature, memeId };
   } catch (error: any) {
     console.error('Payment error:', error);
     
