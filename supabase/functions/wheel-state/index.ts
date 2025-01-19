@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, origin, accept',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
   'Cache-Control': 'no-store, no-cache, must-revalidate',
   'Pragma': 'no-cache'
@@ -12,13 +12,17 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    console.log('[wheel-state] Handling OPTIONS request');
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    });
   }
 
   try {
     // Get current timestamp
-    const now = new Date()
-    console.log(`[${now.toISOString()}] Processing wheel-state request`)
+    const now = new Date();
+    console.log(`[${now.toISOString()}] Processing wheel-state request from origin:`, req.headers.get('origin'));
 
     // Mock wheel state data for now
     // This should be replaced with actual data from your database
@@ -30,7 +34,7 @@ serve(async (req) => {
       isActive: true
     }
 
-    console.log(`[${now.toISOString()}] Returning wheel state:`, wheelState)
+    console.log(`[${now.toISOString()}] Returning wheel state:`, wheelState);
 
     return new Response(
       JSON.stringify(wheelState),
@@ -43,10 +47,14 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error in wheel-state function:', error)
+    console.error('Error in wheel-state function:', error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: 'Internal Server Error',
+        message: error.message,
+        timestamp: new Date().toISOString()
+      }),
       { 
         headers: { 
           ...corsHeaders,
