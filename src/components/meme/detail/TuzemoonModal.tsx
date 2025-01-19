@@ -32,36 +32,37 @@ export const TuzemoonModal = ({
   memeId
 }: TuzemoonModalProps) => {
   const [walletStatus, setWalletStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'processing' | 'success' | 'error'>('pending');
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'ready' | 'processing' | 'success' | 'error'>('pending');
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
+    if (!phantomWallet.isPhantomInstalled) {
+      toast({
+        title: "Phantom Wallet Required",
+        description: "Please install Phantom wallet to continue",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       setWalletStatus('connecting');
-      
-      if (!phantomWallet.isPhantomInstalled) {
-        toast({
-          title: "Phantom Wallet Required",
-          description: "Please install Phantom wallet to continue",
-          variant: "destructive",
-        });
-        return;
-      }
-
       const publicKey = await phantomWallet.connect();
-      console.log('Connected wallet:', publicKey);
       
-      setWalletStatus('connected');
-      toast({
-        title: "Wallet Connected",
-        description: `Connected with ${publicKey.slice(0, 6)}...${publicKey.slice(-4)}`,
-      });
+      if (publicKey) {
+        setWalletStatus('connected');
+        setPaymentStatus('ready');
+        toast({
+          title: "Wallet Connected",
+          description: `Ready to process payment of 0.1 SOL`,
+        });
+      }
     } catch (error) {
       console.error('Wallet connection error:', error);
       setWalletStatus('disconnected');
       toast({
         title: "Connection Failed",
-        description: "Failed to connect to Phantom wallet",
+        description: "Could not connect to Phantom wallet",
         variant: "destructive",
       });
     }
@@ -70,8 +71,8 @@ export const TuzemoonModal = ({
   const handlePayment = async () => {
     try {
       setPaymentStatus('processing');
-      
       const walletAddress = await phantomWallet.getAddress();
+      
       if (!walletAddress) {
         throw new Error('No wallet connected');
       }
@@ -88,12 +89,9 @@ export const TuzemoonModal = ({
         }
       });
 
-      if (logError) {
-        console.error('Error logging transaction:', logError);
-        throw new Error('Failed to initiate transaction');
-      }
+      if (logError) throw logError;
 
-      // For testing, we'll simulate a successful payment
+      // For demo, simulate successful payment
       setPaymentStatus('success');
       onConfirm();
       
@@ -106,7 +104,7 @@ export const TuzemoonModal = ({
       setPaymentStatus('error');
       toast({
         title: "Payment Failed",
-        description: error.message || "Failed to process payment",
+        description: error.message || "Could not process payment",
         variant: "destructive",
       });
     }
@@ -116,22 +114,13 @@ export const TuzemoonModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Confirm Tuzemoon Activation</DialogTitle>
+          <DialogTitle>Tuzemoon Activation</DialogTitle>
           <DialogDescription>
-            Feature "{memeTitle}" on the Tuzemoon page for 24 hours.
+            Feature "{memeTitle}" on Tuzemoon for 24 hours
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-lg bg-secondary p-4">
-            <p className="text-sm font-medium mb-2">Payment Details:</p>
-            <ul className="space-y-2 text-sm">
-              <li>• Amount: 0.1 SOL</li>
-              <li>• Duration: 24 hours featured placement</li>
-              <li>• Meme: {memeTitle}</li>
-            </ul>
-          </div>
-
           {walletStatus === 'disconnected' && (
             <Button 
               onClick={handleConnectWallet} 
@@ -143,33 +132,46 @@ export const TuzemoonModal = ({
             </Button>
           )}
 
-          {walletStatus === 'connected' && (
-            <Alert>
-              <AlertDescription className="text-green-600">
-                Wallet connected successfully! Ready to process payment.
-              </AlertDescription>
-            </Alert>
+          {walletStatus === 'connected' && paymentStatus === 'ready' && (
+            <div className="space-y-4">
+              <Alert>
+                <AlertDescription className="text-green-600">
+                  Wallet connected! Ready for payment.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="rounded-lg bg-secondary p-4">
+                <p className="text-sm font-medium mb-2">Payment Details:</p>
+                <ul className="space-y-2 text-sm">
+                  <li>• Amount: 0.1 SOL</li>
+                  <li>• Duration: 24 hours featured</li>
+                  <li>• Meme: {memeTitle}</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          {paymentStatus === 'processing' && (
+            <div className="flex items-center justify-center p-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Processing payment...</span>
+            </div>
           )}
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose} disabled={isProcessing}>
+          <Button variant="outline" onClick={onClose} disabled={paymentStatus === 'processing'}>
             Cancel
           </Button>
-          <Button 
-            onClick={handlePayment} 
-            disabled={isProcessing || walletStatus !== 'connected' || paymentStatus === 'processing'}
-            className="min-w-[140px]"
-          >
-            {isProcessing || paymentStatus === 'processing' ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
-              </>
-            ) : (
-              "Confirm Payment"
-            )}
-          </Button>
+          {walletStatus === 'connected' && paymentStatus === 'ready' && (
+            <Button 
+              onClick={handlePayment}
+              disabled={paymentStatus === 'processing'}
+              className="min-w-[140px]"
+            >
+              Pay 0.1 SOL
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
