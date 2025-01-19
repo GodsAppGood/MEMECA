@@ -7,6 +7,9 @@ import { useQuery } from "@tanstack/react-query";
 const WHEEL_API_URL = "https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state";
 const REFRESH_INTERVAL = 300000; // 5 minutes
 const MAX_RETRIES = 3;
+const REQUEST_TIMEOUT = 5000; // 5 seconds
+const STALE_TIME = 30000; // 30 seconds
+
 const FALLBACK_STATE: WheelState = {
   currentSlot: 1,
   nextUpdateIn: 300,
@@ -19,20 +22,30 @@ export const WheelWidget = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [retryCount, setRetryCount] = useState(0);
   const [isUsingFallback, setIsUsingFallback] = useState(false);
+  const [responseTime, setResponseTime] = useState<number>(0);
 
   const { data: wheelState } = useQuery({
     queryKey: ['wheelState', retryCount],
     queryFn: async (): Promise<WheelState> => {
+      const startTime = performance.now();
+      
       try {
         console.log("Attempting to fetch wheel state", {
           timestamp: new Date().toISOString(),
           attempt: retryCount + 1,
           url: WHEEL_API_URL,
-          origin: window.location.origin
+          origin: window.location.origin,
+          headers: {
+            'Accept': 'application/json',
+            'Origin': window.location.origin
+          }
         });
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          throw new Error('Request timeout');
+        }, REQUEST_TIMEOUT);
 
         const response = await fetch(WHEEL_API_URL, {
           method: 'GET',
@@ -47,27 +60,36 @@ export const WheelWidget = () => {
         });
 
         clearTimeout(timeoutId);
+        
+        const endTime = performance.now();
+        setResponseTime(endTime - startTime);
 
         if (!response.ok) {
           throw new Error(`API error: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
+        
         console.log("Wheel state fetched successfully", {
           timestamp: new Date().toISOString(),
-          data,
+          responseTime: `${endTime - startTime}ms`,
           status: response.status,
-          headers: Object.fromEntries(response.headers.entries())
+          headers: Object.fromEntries(response.headers.entries()),
+          data
         });
 
         setIsUsingFallback(false);
         setConnectionStatus('connected');
         return data;
       } catch (err) {
+        const endTime = performance.now();
+        setResponseTime(endTime - startTime);
+        
         console.error("Failed to fetch wheel state", {
           error: err,
           timestamp: new Date().toISOString(),
           retryCount,
+          responseTime: `${endTime - startTime}ms`,
           url: WHEEL_API_URL,
           origin: window.location.origin
         });
@@ -85,11 +107,15 @@ export const WheelWidget = () => {
     },
     refetchInterval: REFRESH_INTERVAL,
     retry: MAX_RETRIES,
-    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 10000), // Exponential backoff
+    staleTime: STALE_TIME,
     meta: {
       onSuccess: () => {
         if (!isUsingFallback) {
-          console.log("Wheel state updated successfully");
+          console.log("Wheel state updated successfully", {
+            timestamp: new Date().toISOString(),
+            responseTime: `${responseTime}ms`
+          });
           setConnectionStatus('connected');
           toast({
             title: "Wheel Connected",
@@ -102,7 +128,8 @@ export const WheelWidget = () => {
         console.log("Error fetching wheel state", {
           error,
           attempt: retryCount + 1,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          responseTime: `${responseTime}ms`
         });
         
         setConnectionStatus('error');
