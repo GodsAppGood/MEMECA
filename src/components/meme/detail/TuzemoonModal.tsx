@@ -23,23 +23,6 @@ interface TuzemoonModalProps {
   memeId: string;
 }
 
-const WalletStatus = {
-  DISCONNECTED: 'disconnected',
-  CONNECTING: 'connecting',
-  CONNECTED: 'connected',
-} as const;
-
-const PaymentStatus = {
-  PENDING: 'pending',
-  PROCESSING: 'processing',
-  READY: 'ready',
-  SUCCESS: 'success',
-  ERROR: 'error',
-} as const;
-
-type WalletStatusType = typeof WalletStatus[keyof typeof WalletStatus];
-type PaymentStatusType = typeof PaymentStatus[keyof typeof PaymentStatus];
-
 export const TuzemoonModal = ({
   isOpen,
   onClose,
@@ -48,8 +31,8 @@ export const TuzemoonModal = ({
   memeTitle,
   memeId
 }: TuzemoonModalProps) => {
-  const [walletStatus, setWalletStatus] = useState<WalletStatusType>(WalletStatus.DISCONNECTED);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatusType>(PaymentStatus.PENDING);
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
@@ -63,12 +46,10 @@ export const TuzemoonModal = ({
     }
 
     try {
-      setWalletStatus(WalletStatus.CONNECTING);
       const publicKey = await phantomWallet.connect();
       
       if (publicKey) {
-        setWalletStatus(WalletStatus.CONNECTED);
-        setPaymentStatus(PaymentStatus.READY);
+        setIsWalletConnected(true);
         toast({
           title: "Wallet Connected",
           description: `Ready to process payment of 0.1 SOL`,
@@ -76,7 +57,7 @@ export const TuzemoonModal = ({
       }
     } catch (error) {
       console.error('Wallet connection error:', error);
-      setWalletStatus(WalletStatus.DISCONNECTED);
+      setIsWalletConnected(false);
       toast({
         title: "Connection Failed",
         description: "Could not connect to Phantom wallet",
@@ -87,7 +68,7 @@ export const TuzemoonModal = ({
 
   const handlePayment = async () => {
     try {
-      setPaymentStatus(PaymentStatus.PROCESSING);
+      setIsPaymentProcessing(true);
       const walletAddress = await phantomWallet.getAddress();
       
       if (!walletAddress) {
@@ -107,7 +88,6 @@ export const TuzemoonModal = ({
 
       if (logError) throw logError;
 
-      setPaymentStatus(PaymentStatus.SUCCESS);
       onConfirm();
       
       toast({
@@ -116,12 +96,13 @@ export const TuzemoonModal = ({
       });
     } catch (error: any) {
       console.error('Payment error:', error);
-      setPaymentStatus(PaymentStatus.ERROR);
       toast({
         title: "Payment Failed",
         description: error.message || "Could not process payment",
         variant: "destructive",
       });
+    } finally {
+      setIsPaymentProcessing(false);
     }
   };
 
@@ -136,7 +117,7 @@ export const TuzemoonModal = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          {walletStatus === WalletStatus.DISCONNECTED && (
+          {!isWalletConnected && (
             <Button 
               onClick={handleConnectWallet} 
               className="w-full"
@@ -147,7 +128,7 @@ export const TuzemoonModal = ({
             </Button>
           )}
 
-          {walletStatus === WalletStatus.CONNECTED && paymentStatus === PaymentStatus.READY && (
+          {isWalletConnected && !isPaymentProcessing && (
             <div className="space-y-4">
               <Alert>
                 <AlertDescription className="text-green-600">
@@ -166,7 +147,7 @@ export const TuzemoonModal = ({
             </div>
           )}
 
-          {paymentStatus === PaymentStatus.PROCESSING && (
+          {isPaymentProcessing && (
             <div className="flex items-center justify-center p-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span className="ml-2">Processing payment...</span>
@@ -178,14 +159,14 @@ export const TuzemoonModal = ({
           <Button 
             variant="outline" 
             onClick={onClose} 
-            disabled={paymentStatus === PaymentStatus.PROCESSING}
+            disabled={isPaymentProcessing}
           >
             Cancel
           </Button>
-          {walletStatus === WalletStatus.CONNECTED && paymentStatus === PaymentStatus.READY && (
+          {isWalletConnected && !isPaymentProcessing && (
             <Button 
               onClick={handlePayment}
-              disabled={paymentStatus === PaymentStatus.PROCESSING}
+              disabled={isPaymentProcessing}
               className="min-w-[140px]"
             >
               Pay 0.1 SOL
