@@ -1,78 +1,27 @@
-import { useState, useEffect } from "react";
-import { cn } from "@/lib/utils";
-import { WheelState } from "@/types/wheel";
-import { supabase } from "@/integrations/supabase/client";
-
-const FALLBACK_STATE: WheelState = {
-  currentSlot: 1,
-  nextUpdateIn: 300,
-  imageUrl: null,
-  totalSlots: 24,
-  isActive: true
-};
+import { useEffect } from "react";
 
 export const WheelWidget = () => {
-  const [wheelState, setWheelState] = useState<WheelState>(FALLBACK_STATE);
-
   useEffect(() => {
-    const fetchWheelState = async () => {
-      try {
-        const { data } = await supabase
-          .from('WidgetSlots')
-          .select(`
-            id,
-            slot_number,
-            meme_id,
-            Memes (
-              image_url
-            )
-          `)
-          .eq('is_active', true)
-          .maybeSingle();
+    // Создаем контейнер для виджета
+    const widgetContainer = document.createElement('div');
+    widgetContainer.id = 'meme-widget';
+    widgetContainer.setAttribute('data-mode', 'embed');
+    widgetContainer.setAttribute('data-section', 'wheel-only');
+    widgetContainer.className = 'fixed bottom-36 right-4 z-50';
+    
+    // Добавляем контейнер в DOM
+    document.body.appendChild(widgetContainer);
 
-        if (data) {
-          setWheelState({
-            currentSlot: data.slot_number,
-            nextUpdateIn: 300, // 5 minutes in seconds
-            imageUrl: data.Memes?.image_url || null,
-            totalSlots: 24,
-            isActive: true
-          });
-        }
-      } catch (err) {
-        console.error('Error fetching wheel state:', err);
-      }
+    // Инициализируем виджет
+    if (window.MemeWidget) {
+      window.MemeWidget.init('meme-widget');
+    }
+
+    // Очистка при размонтировании
+    return () => {
+      widgetContainer.remove();
     };
-
-    fetchWheelState();
-    const interval = setInterval(fetchWheelState, 5000);
-
-    return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="fixed bottom-36 right-4 z-50">
-      <div className={cn(
-        "w-28 h-28 relative rounded-full overflow-hidden border-2 shadow-lg bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105",
-        "hover:border-[#02E6F6] hover:shadow-[0_0_15px_rgba(2,230,246,0.5)]" // Эффект наведения из memecawheel.xyz
-      )}>
-        <div className="absolute top-2 left-2 right-2 z-10 flex justify-between items-center">
-          <span className="text-xs bg-black/50 text-white px-2 py-1 rounded-full">
-            Slot {wheelState.currentSlot}
-          </span>
-          <span className="text-xs bg-black/50 text-white px-2 py-1 rounded-full">
-            {Math.floor(wheelState.nextUpdateIn / 60)}:{(wheelState.nextUpdateIn % 60).toString().padStart(2, '0')}
-          </span>
-        </div>
-        
-        {wheelState.imageUrl && (
-          <img 
-            src={wheelState.imageUrl} 
-            alt={`Slot ${wheelState.currentSlot}`}
-            className="w-full h-full object-cover"
-          />
-        )}
-      </div>
-    </div>
-  );
+  return null;
 };
