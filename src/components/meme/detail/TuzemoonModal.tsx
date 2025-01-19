@@ -24,7 +24,7 @@ interface TuzemoonModalProps {
 }
 
 type WalletStatus = 'disconnected' | 'connecting' | 'connected';
-type PaymentStatus = 'pending' | 'ready' | 'processing' | 'success' | 'error';
+type PaymentStatus = 'pending' | 'processing' | 'ready' | 'success' | 'error';
 
 export const TuzemoonModal = ({
   isOpen,
@@ -80,7 +80,6 @@ export const TuzemoonModal = ({
         throw new Error('No wallet connected');
       }
 
-      // Log transaction start
       const { data: { user } } = await supabase.auth.getUser();
       const { error: logError } = await supabase.functions.invoke('log-transaction', {
         body: {
@@ -94,7 +93,6 @@ export const TuzemoonModal = ({
 
       if (logError) throw logError;
 
-      // For demo, simulate successful payment
       setPaymentStatus('success');
       onConfirm();
       
@@ -163,7 +161,11 @@ export const TuzemoonModal = ({
         </div>
 
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose} disabled={paymentStatus === 'processing'}>
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={paymentStatus === 'processing'}
+          >
             Cancel
           </Button>
           {walletStatus === 'connected' && paymentStatus === 'ready' && (
