@@ -4,14 +4,25 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, origin, accept',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
   'Cache-Control': 'no-store, no-cache, must-revalidate',
   'Pragma': 'no-cache'
 }
 
 serve(async (req) => {
+  const startTime = Date.now();
+  const requestId = crypto.randomUUID();
+  const origin = req.headers.get('origin');
+  
+  console.log(`[${new Date().toISOString()}] Request ${requestId} started:`, {
+    method: req.method,
+    origin,
+    url: req.url
+  });
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('[wheel-state] Handling OPTIONS request from:', req.headers.get('origin'));
+    console.log(`[${new Date().toISOString()}] Handling OPTIONS request from:`, origin);
     return new Response(null, { 
       headers: corsHeaders,
       status: 204
@@ -19,26 +30,24 @@ serve(async (req) => {
   }
 
   try {
-    // Get current timestamp and log request details
+    // Get current timestamp
     const now = new Date();
-    const origin = req.headers.get('origin');
-    console.log(`[${now.toISOString()}] Processing wheel-state request:`, {
-      origin,
-      method: req.method,
-      url: req.url
-    });
-
+    
     // Mock wheel state data for now
-    // This should be replaced with actual data from your database
     const wheelState = {
-      currentSlot: Math.floor(Math.random() * 24) + 1, // Random slot between 1-24
-      nextUpdateIn: 300, // 5 minutes in seconds
+      currentSlot: Math.floor(Math.random() * 24) + 1,
+      nextUpdateIn: 300,
       imageUrl: null,
       totalSlots: 24,
       isActive: true
     }
 
-    console.log(`[${now.toISOString()}] Returning wheel state:`, wheelState);
+    const responseTime = Date.now() - startTime;
+    console.log(`[${now.toISOString()}] Request ${requestId} completed:`, {
+      responseTime: `${responseTime}ms`,
+      origin,
+      wheelState
+    });
 
     return new Response(
       JSON.stringify(wheelState),
@@ -51,10 +60,11 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('[wheel-state] Error:', {
+    const responseTime = Date.now() - startTime;
+    console.error(`[${new Date().toISOString()}] Error in request ${requestId}:`, {
       error,
-      timestamp: new Date().toISOString(),
-      origin: req.headers.get('origin'),
+      responseTime: `${responseTime}ms`,
+      origin,
       url: req.url
     });
     
@@ -62,6 +72,7 @@ serve(async (req) => {
       JSON.stringify({ 
         error: 'Internal Server Error',
         message: error.message,
+        requestId,
         timestamp: new Date().toISOString()
       }),
       { 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
 import { toast } from "@/hooks/use-toast";
@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 const WHEEL_API_URL = "https://omdhcgwcplbgfvjtrswe.functions.supabase.co/wheel-state";
 const REFRESH_INTERVAL = 300000; // 5 minutes
 const MAX_RETRIES = 3;
-const REQUEST_TIMEOUT = 10000; // 10 seconds
+const REQUEST_TIMEOUT = 15000; // 15 seconds
 const STALE_TIME = 30000; // 30 seconds
 
 const FALLBACK_STATE: WheelState = {
@@ -23,6 +23,22 @@ export const WheelWidget = () => {
   const [retryCount, setRetryCount] = useState(0);
   const [isUsingFallback, setIsUsingFallback] = useState(false);
   const [responseTime, setResponseTime] = useState<number>(0);
+  
+  // Refs for cleanup
+  const abortControllerRef = useRef<AbortController>();
+  const timeoutIdRef = useRef<number>();
+
+  // Cleanup function
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current);
+      }
+    };
+  }, []);
 
   const { data: wheelState } = useQuery({
     queryKey: ['wheelState', retryCount],
@@ -34,20 +50,30 @@ export const WheelWidget = () => {
           timestamp: new Date().toISOString(),
           attempt: retryCount + 1,
           url: WHEEL_API_URL,
-          origin: window.location.origin,
-          headers: {
-            'Accept': 'application/json',
-            'Origin': window.location.origin
-          }
+          origin: window.location.origin
         });
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          controller.abort();
-          throw new Error('Request timeout');
-        }, REQUEST_TIMEOUT);
+        // Create new AbortController for this request
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        abortControllerRef.current = new AbortController();
 
-        const response = await fetch(WHEEL_API_URL, {
+        // Set timeout
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+        }
+        
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutIdRef.current = window.setTimeout(() => {
+            if (abortControllerRef.current) {
+              abortControllerRef.current.abort();
+            }
+            reject(new Error('Request timeout'));
+          }, REQUEST_TIMEOUT);
+        });
+
+        const fetchPromise = fetch(WHEEL_API_URL, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -56,10 +82,15 @@ export const WheelWidget = () => {
           },
           mode: 'cors',
           credentials: 'omit',
-          signal: controller.signal
+          signal: abortControllerRef.current.signal
         });
 
-        clearTimeout(timeoutId);
+        const response = await Promise.race([fetchPromise, timeoutPromise]);
+        
+        // Clear timeout if fetch completed
+        if (timeoutIdRef.current) {
+          clearTimeout(timeoutIdRef.current);
+        }
         
         const endTime = performance.now();
         setResponseTime(endTime - startTime);
@@ -74,7 +105,6 @@ export const WheelWidget = () => {
           timestamp: new Date().toISOString(),
           responseTime: `${endTime - startTime}ms`,
           status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
           data
         });
 
