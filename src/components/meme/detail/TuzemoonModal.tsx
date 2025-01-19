@@ -23,6 +23,9 @@ interface TuzemoonModalProps {
   memeId: string;
 }
 
+type WalletStatus = 'disconnected' | 'connecting' | 'connected';
+type PaymentStatus = 'pending' | 'ready' | 'processing' | 'success' | 'error';
+
 export const TuzemoonModal = ({
   isOpen,
   onClose,
@@ -31,8 +34,8 @@ export const TuzemoonModal = ({
   memeTitle,
   memeId
 }: TuzemoonModalProps) => {
-  const [walletStatus, setWalletStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'ready' | 'processing' | 'success' | 'error'>('pending');
+  const [walletStatus, setWalletStatus] = useState<WalletStatus>('disconnected');
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
