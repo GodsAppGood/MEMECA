@@ -23,8 +23,22 @@ interface TuzemoonModalProps {
   memeId: string;
 }
 
-type WalletStatus = 'disconnected' | 'connecting' | 'connected';
-type PaymentStatus = 'pending' | 'processing' | 'ready' | 'success' | 'error';
+const WalletStatus = {
+  DISCONNECTED: 'disconnected',
+  CONNECTING: 'connecting',
+  CONNECTED: 'connected',
+} as const;
+
+const PaymentStatus = {
+  PENDING: 'pending',
+  PROCESSING: 'processing',
+  READY: 'ready',
+  SUCCESS: 'success',
+  ERROR: 'error',
+} as const;
+
+type WalletStatusType = typeof WalletStatus[keyof typeof WalletStatus];
+type PaymentStatusType = typeof PaymentStatus[keyof typeof PaymentStatus];
 
 export const TuzemoonModal = ({
   isOpen,
@@ -34,8 +48,8 @@ export const TuzemoonModal = ({
   memeTitle,
   memeId
 }: TuzemoonModalProps) => {
-  const [walletStatus, setWalletStatus] = useState<WalletStatus>('disconnected');
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('pending');
+  const [walletStatus, setWalletStatus] = useState<WalletStatusType>(WalletStatus.DISCONNECTED);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatusType>(PaymentStatus.PENDING);
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
@@ -49,12 +63,12 @@ export const TuzemoonModal = ({
     }
 
     try {
-      setWalletStatus('connecting');
+      setWalletStatus(WalletStatus.CONNECTING);
       const publicKey = await phantomWallet.connect();
       
       if (publicKey) {
-        setWalletStatus('connected');
-        setPaymentStatus('ready');
+        setWalletStatus(WalletStatus.CONNECTED);
+        setPaymentStatus(PaymentStatus.READY);
         toast({
           title: "Wallet Connected",
           description: `Ready to process payment of 0.1 SOL`,
@@ -62,7 +76,7 @@ export const TuzemoonModal = ({
       }
     } catch (error) {
       console.error('Wallet connection error:', error);
-      setWalletStatus('disconnected');
+      setWalletStatus(WalletStatus.DISCONNECTED);
       toast({
         title: "Connection Failed",
         description: "Could not connect to Phantom wallet",
@@ -73,7 +87,7 @@ export const TuzemoonModal = ({
 
   const handlePayment = async () => {
     try {
-      setPaymentStatus('processing');
+      setPaymentStatus(PaymentStatus.PROCESSING);
       const walletAddress = await phantomWallet.getAddress();
       
       if (!walletAddress) {
@@ -93,7 +107,7 @@ export const TuzemoonModal = ({
 
       if (logError) throw logError;
 
-      setPaymentStatus('success');
+      setPaymentStatus(PaymentStatus.SUCCESS);
       onConfirm();
       
       toast({
@@ -102,7 +116,7 @@ export const TuzemoonModal = ({
       });
     } catch (error: any) {
       console.error('Payment error:', error);
-      setPaymentStatus('error');
+      setPaymentStatus(PaymentStatus.ERROR);
       toast({
         title: "Payment Failed",
         description: error.message || "Could not process payment",
@@ -122,7 +136,7 @@ export const TuzemoonModal = ({
         </DialogHeader>
 
         <div className="space-y-4">
-          {walletStatus === 'disconnected' && (
+          {walletStatus === WalletStatus.DISCONNECTED && (
             <Button 
               onClick={handleConnectWallet} 
               className="w-full"
@@ -133,7 +147,7 @@ export const TuzemoonModal = ({
             </Button>
           )}
 
-          {walletStatus === 'connected' && paymentStatus === 'ready' && (
+          {walletStatus === WalletStatus.CONNECTED && paymentStatus === PaymentStatus.READY && (
             <div className="space-y-4">
               <Alert>
                 <AlertDescription className="text-green-600">
@@ -152,7 +166,7 @@ export const TuzemoonModal = ({
             </div>
           )}
 
-          {paymentStatus === 'processing' && (
+          {paymentStatus === PaymentStatus.PROCESSING && (
             <div className="flex items-center justify-center p-4">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span className="ml-2">Processing payment...</span>
@@ -164,14 +178,14 @@ export const TuzemoonModal = ({
           <Button 
             variant="outline" 
             onClick={onClose} 
-            disabled={paymentStatus === 'processing'}
+            disabled={paymentStatus === PaymentStatus.PROCESSING}
           >
             Cancel
           </Button>
-          {walletStatus === 'connected' && paymentStatus === 'ready' && (
+          {walletStatus === WalletStatus.CONNECTED && paymentStatus === PaymentStatus.READY && (
             <Button 
               onClick={handlePayment}
-              disabled={paymentStatus === 'processing'}
+              disabled={paymentStatus === PaymentStatus.PROCESSING}
               className="min-w-[140px]"
             >
               Pay 0.1 SOL
