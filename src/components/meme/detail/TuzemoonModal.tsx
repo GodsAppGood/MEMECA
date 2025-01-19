@@ -30,7 +30,6 @@ export const TuzemoonModal = ({
   const [walletConnected, setWalletConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
 
-  // Check wallet connection status on mount and when window.solana changes
   useEffect(() => {
     const checkWalletConnection = () => {
       if (window.solana?.isPhantom && window.solana.isConnected) {
