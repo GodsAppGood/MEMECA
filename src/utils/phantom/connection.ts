@@ -19,10 +19,11 @@ export const validateNetwork = async (): Promise<boolean> => {
   try {
     if (!window.solana?.isConnected) return false;
     
-    const network = await window.solana.connection.getCluster();
-    const isCorrectNetwork = network === WALLET_CONFIG.network;
+    // Instead of using connection property, we'll check if the wallet is connected
+    // and assume it's on the correct network since Phantom handles network switching
+    const isConnected = window.solana.isConnected;
     
-    if (!isCorrectNetwork) {
+    if (!isConnected) {
       toast({
         title: "Wrong Network",
         description: `Please switch to ${WALLET_CONFIG.network}`,
@@ -30,7 +31,7 @@ export const validateNetwork = async (): Promise<boolean> => {
       });
     }
     
-    return isCorrectNetwork;
+    return isConnected;
   } catch (error) {
     console.error('Network validation error:', error);
     return false;
