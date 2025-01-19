@@ -17,23 +17,25 @@ const FALLBACK_STATE: WheelState = {
 export const WheelWidget = () => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [retryCount, setRetryCount] = useState(0);
+  const [isUsingFallback, setIsUsingFallback] = useState(false);
 
-  const { data: wheelState, error } = useQuery({
+  const { data: wheelState } = useQuery({
     queryKey: ['wheelState', retryCount],
     queryFn: async (): Promise<WheelState> => {
       try {
-        console.log("Fetching wheel state from API", {
+        console.log("Attempting to fetch wheel state", {
           timestamp: new Date().toISOString(),
-          url: WHEEL_API_URL,
-          retryCount
+          attempt: retryCount + 1
         });
 
         const response = await fetch(WHEEL_API_URL, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Cache-Control': 'no-cache'
-          }
+            'Cache-Control': 'no-cache',
+            'Origin': window.location.origin
+          },
+          credentials: 'omit'
         });
 
         if (!response.ok) {
@@ -41,24 +43,29 @@ export const WheelWidget = () => {
         }
 
         const data = await response.json();
-        console.log("API response received:", {
+        console.log("Wheel state fetched successfully", {
           timestamp: new Date().toISOString(),
           data
         });
 
+        setIsUsingFallback(false);
+        setConnectionStatus('connected');
         return data;
       } catch (err) {
         console.error("Failed to fetch wheel state", {
           error: err,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          retryCount
         });
         
-        // If API is down, use fallback state
         if (retryCount > 2) {
           console.log("Using fallback state after multiple retries");
+          setIsUsingFallback(true);
+          setConnectionStatus('error');
           return FALLBACK_STATE;
         }
         
+        setRetryCount(prev => prev + 1);
         throw err;
       }
     },
@@ -66,34 +73,27 @@ export const WheelWidget = () => {
     retry: 2,
     meta: {
       onSuccess: () => {
-        console.log("Wheel state updated successfully", {
-          timestamp: new Date().toISOString()
-        });
-        setConnectionStatus('connected');
-        toast({
-          title: "Success",
-          description: "Wheel state updated",
-          variant: "default",
-        });
+        if (!isUsingFallback) {
+          console.log("Wheel state updated successfully");
+          setConnectionStatus('connected');
+          toast({
+            title: "Connected",
+            description: "Wheel state updated",
+            variant: "default",
+          });
+        }
       },
-      onError: (error: Error) => {
-        console.error("Failed to fetch wheel state", {
-          error,
-          timestamp: new Date().toISOString()
-        });
+      onError: () => {
+        console.log("Error fetching wheel state, attempt:", retryCount + 1);
         setConnectionStatus('error');
         
-        // Only show error toast if we're not using fallback
         if (retryCount <= 2) {
           toast({
-            title: "Warning",
+            title: "Connection Error",
             description: "Using cached wheel state",
             variant: "destructive",
           });
         }
-        
-        // Increment retry counter
-        setRetryCount(prev => prev + 1);
       }
     }
   });
@@ -118,10 +118,10 @@ export const WheelWidget = () => {
           </div>
         )}
         
-        {error && connectionStatus === 'error' && retryCount <= 2 && (
+        {connectionStatus === 'error' && !isUsingFallback && (
           <div className="absolute inset-0 flex items-center justify-center bg-red-50">
             <div className="text-xs text-red-500 text-center p-2">
-              Connecting to wheel...
+              Connecting...
             </div>
           </div>
         )}
