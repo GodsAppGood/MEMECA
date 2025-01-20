@@ -13,7 +13,7 @@ import { phantomWallet } from "@/services/phantom-wallet";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -35,6 +35,7 @@ export const TuzemoonModal = ({
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
+  const [transactionStatus, setTransactionStatus] = useState<'initial' | 'sending' | 'confirming' | 'success' | 'error'>('initial');
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
@@ -68,12 +69,25 @@ export const TuzemoonModal = ({
     }
   };
 
-  const verifyPayment = async (signature: string) => {
+  const monitorTransaction = async (signature: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) throw new Error('User not authenticated');
 
+      // Log initial transaction status
+      const { error: logError } = await supabase.functions.invoke('log-transaction', {
+        body: {
+          user_id: user.id,
+          meme_id: memeId,
+          amount: 0.1,
+          transaction_status: 'confirming',
+          transaction_signature: signature
+        }
+      });
+
+      if (logError) console.error('Error logging transaction:', logError);
+
+      // Start verification process
       const { data, error } = await supabase.functions.invoke('verify-solana-payment', {
         body: {
           transaction_signature: signature,
@@ -85,57 +99,8 @@ export const TuzemoonModal = ({
 
       if (error) throw error;
 
-      return data.success;
-    } catch (error) {
-      console.error('Payment verification error:', error);
-      return false;
-    }
-  };
-
-  const handlePayment = async () => {
-    try {
-      setIsPaymentProcessing(true);
-      const walletAddress = await phantomWallet.getAddress();
-      
-      if (!walletAddress) {
-        throw new Error('No wallet connected');
-      }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Log initial transaction
-      const { error: logError } = await supabase.functions.invoke('log-transaction', {
-        body: {
-          user_id: user?.id,
-          meme_id: memeId,
-          amount: 0.1,
-          transaction_status: 'pending',
-          wallet_address: walletAddress
-        }
-      });
-
-      if (logError) throw logError;
-
-      // Get the recipient's public key
-      const { data: { TUZEMOON_WALLET_ADDRESS } } = await supabase.functions.invoke('get-tuzemoon-wallet');
-      if (!TUZEMOON_WALLET_ADDRESS) throw new Error('Recipient wallet not configured');
-
-      const recipientPubKey = new PublicKey(TUZEMOON_WALLET_ADDRESS);
-      const amount = 0.1 * LAMPORTS_PER_SOL; // Convert SOL to lamports
-
-      // Create and send transaction
-      const transaction = await phantomWallet.createTransferTransaction(
-        recipientPubKey,
-        amount
-      );
-
-      const signature = await phantomWallet.signAndSendTransaction(transaction);
-      setTransactionSignature(signature);
-
-      // Wait for confirmation and verify the payment
-      const isVerified = await verifyPayment(signature);
-
-      if (isVerified) {
+      if (data.success) {
+        setTransactionStatus('success');
         onConfirm();
         toast({
           title: "Payment Successful",
@@ -145,7 +110,47 @@ export const TuzemoonModal = ({
         throw new Error('Payment verification failed');
       }
     } catch (error: any) {
+      console.error('Transaction monitoring error:', error);
+      setTransactionStatus('error');
+      toast({
+        title: "Payment Failed",
+        description: error.message || "Could not verify payment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePayment = async () => {
+    try {
+      setIsPaymentProcessing(true);
+      setTransactionStatus('sending');
+      
+      const walletAddress = await phantomWallet.getAddress();
+      if (!walletAddress) throw new Error('No wallet connected');
+
+      // Get the recipient's public key
+      const { data: { TUZEMOON_WALLET_ADDRESS } } = await supabase.functions.invoke('get-tuzemoon-wallet');
+      if (!TUZEMOON_WALLET_ADDRESS) throw new Error('Recipient wallet not configured');
+
+      const recipientPubKey = new PublicKey(TUZEMOON_WALLET_ADDRESS);
+      const amount = 0.1 * LAMPORTS_PER_SOL;
+
+      // Create and send transaction immediately
+      const transaction = await phantomWallet.createTransferTransaction(
+        recipientPubKey,
+        amount
+      );
+
+      const signature = await phantomWallet.signAndSendTransaction(transaction);
+      setTransactionSignature(signature);
+      setTransactionStatus('confirming');
+
+      // Start monitoring in background
+      monitorTransaction(signature);
+
+    } catch (error: any) {
       console.error('Payment error:', error);
+      setTransactionStatus('error');
       toast({
         title: "Payment Failed",
         description: error.message || "Could not process payment",
@@ -153,6 +158,21 @@ export const TuzemoonModal = ({
       });
     } finally {
       setIsPaymentProcessing(false);
+    }
+  };
+
+  const getStatusMessage = () => {
+    switch (transactionStatus) {
+      case 'sending':
+        return 'Initiating payment...';
+      case 'confirming':
+        return 'Confirming transaction...';
+      case 'success':
+        return 'Payment successful!';
+      case 'error':
+        return 'Payment failed';
+      default:
+        return '';
     }
   };
 
@@ -178,7 +198,7 @@ export const TuzemoonModal = ({
             </Button>
           )}
 
-          {isWalletConnected && !isPaymentProcessing && (
+          {isWalletConnected && !isPaymentProcessing && transactionStatus === 'initial' && (
             <div className="space-y-4">
               <Alert>
                 <AlertDescription className="text-green-600">
@@ -197,10 +217,12 @@ export const TuzemoonModal = ({
             </div>
           )}
 
-          {isPaymentProcessing && (
-            <div className="flex items-center justify-center p-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <span className="ml-2">Processing payment...</span>
+          {(isPaymentProcessing || transactionStatus !== 'initial') && (
+            <div className="flex flex-col items-center justify-center p-4 space-y-4">
+              {transactionStatus !== 'success' && (
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              )}
+              <span className="text-center">{getStatusMessage()}</span>
             </div>
           )}
 
@@ -217,11 +239,11 @@ export const TuzemoonModal = ({
           <Button 
             variant="outline" 
             onClick={onClose} 
-            disabled={isPaymentProcessing}
+            disabled={isPaymentProcessing || transactionStatus === 'confirming'}
           >
             Cancel
           </Button>
-          {isWalletConnected && !isPaymentProcessing && (
+          {isWalletConnected && transactionStatus === 'initial' && !isPaymentProcessing && (
             <Button 
               onClick={handlePayment}
               disabled={isPaymentProcessing}
