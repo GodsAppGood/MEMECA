@@ -1,6 +1,13 @@
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { PublicKey, Transaction, SystemProgram, Connection } from '@solana/web3.js';
 
 class PhantomWallet {
+  private connection: Connection;
+
+  constructor() {
+    // Используем публичную конечную точку Solana для тестовой сети
+    this.connection = new Connection('https://api.devnet.solana.com');
+  }
+
   get isPhantomInstalled() {
     const phantom = (window as any).phantom?.solana;
     return phantom && phantom.isPhantom;
@@ -42,7 +49,15 @@ class PhantomWallet {
     const senderPubKey = phantom.publicKey;
     if (!senderPubKey) throw new Error('Wallet not connected');
 
-    const transaction = new Transaction().add(
+    // Получаем последний блокхеш
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+
+    // Создаем транзакцию с блокхешем
+    const transaction = new Transaction({
+      feePayer: senderPubKey,
+      blockhash,
+      lastValidBlockHeight
+    }).add(
       SystemProgram.transfer({
         fromPubkey: senderPubKey,
         toPubkey: recipientPubKey,
@@ -59,6 +74,18 @@ class PhantomWallet {
 
     try {
       const { signature } = await phantom.signAndSendTransaction(transaction);
+      
+      // Ждем подтверждения транзакции
+      const confirmation = await this.connection.confirmTransaction({
+        signature,
+        blockhash: transaction.blockhash,
+        lastValidBlockHeight: transaction.lastValidBlockHeight
+      });
+
+      if (confirmation.value.err) {
+        throw new Error('Transaction failed');
+      }
+
       return signature;
     } catch (error) {
       console.error('Transaction error:', error);
