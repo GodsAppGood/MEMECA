@@ -1,29 +1,21 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 
-class PhantomWalletService {
-  private provider: any = null;
-  private publicKey: string | null = null;
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      this.provider = (window as any)?.phantom?.solana;
-    }
-  }
-
-  get isPhantomInstalled(): boolean {
-    return this.provider?.isPhantom || false;
+class PhantomWallet {
+  get isPhantomInstalled() {
+    const phantom = (window as any).phantom?.solana;
+    return phantom && phantom.isPhantom;
   }
 
   async connect(): Promise<string | null> {
     try {
-      if (!this.provider) {
-        console.error('Phantom wallet not found');
-        return null;
+      const phantom = (window as any).phantom?.solana;
+      
+      if (!phantom) {
+        throw new Error('Phantom wallet not installed');
       }
 
-      const { publicKey } = await this.provider.connect();
-      this.publicKey = publicKey.toString();
-      return this.publicKey;
+      const { publicKey } = await phantom.connect();
+      return publicKey.toString();
     } catch (error) {
       console.error('Error connecting to Phantom wallet:', error);
       return null;
@@ -31,19 +23,48 @@ class PhantomWalletService {
   }
 
   async getAddress(): Promise<string | null> {
-    return this.publicKey;
+    try {
+      const phantom = (window as any).phantom?.solana;
+      return phantom?.publicKey?.toString() || null;
+    } catch (error) {
+      console.error('Error getting wallet address:', error);
+      return null;
+    }
   }
 
-  async disconnect(): Promise<void> {
+  async createTransferTransaction(
+    recipientPubKey: PublicKey,
+    amount: number
+  ): Promise<Transaction> {
+    const phantom = (window as any).phantom?.solana;
+    if (!phantom) throw new Error('Phantom wallet not installed');
+
+    const senderPubKey = phantom.publicKey;
+    if (!senderPubKey) throw new Error('Wallet not connected');
+
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: senderPubKey,
+        toPubkey: recipientPubKey,
+        lamports: amount,
+      })
+    );
+
+    return transaction;
+  }
+
+  async signAndSendTransaction(transaction: Transaction): Promise<string> {
+    const phantom = (window as any).phantom?.solana;
+    if (!phantom) throw new Error('Phantom wallet not installed');
+
     try {
-      if (this.provider) {
-        await this.provider.disconnect();
-        this.publicKey = null;
-      }
+      const { signature } = await phantom.signAndSendTransaction(transaction);
+      return signature;
     } catch (error) {
-      console.error('Error disconnecting wallet:', error);
+      console.error('Transaction error:', error);
+      throw error;
     }
   }
 }
 
-export const phantomWallet = new PhantomWalletService();
+export const phantomWallet = new PhantomWallet();

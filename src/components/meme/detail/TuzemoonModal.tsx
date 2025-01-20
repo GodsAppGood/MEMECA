@@ -13,6 +13,7 @@ import { phantomWallet } from "@/services/phantom-wallet";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { LAMPORTS_PER_SOL, PublicKey, Transaction } from "@solana/web3.js";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -115,16 +116,24 @@ export const TuzemoonModal = ({
 
       if (logError) throw logError;
 
-      // Here we would initiate the actual Solana transaction
-      // For now, we'll simulate it with a delay
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate getting transaction signature
-      const mockSignature = `mock_${Date.now()}`;
-      setTransactionSignature(mockSignature);
+      // Get the recipient's public key
+      const { data: { TUZEMOON_WALLET_ADDRESS } } = await supabase.functions.invoke('get-tuzemoon-wallet');
+      if (!TUZEMOON_WALLET_ADDRESS) throw new Error('Recipient wallet not configured');
 
-      // Verify the payment
-      const isVerified = await verifyPayment(mockSignature);
+      const recipientPubKey = new PublicKey(TUZEMOON_WALLET_ADDRESS);
+      const amount = 0.1 * LAMPORTS_PER_SOL; // Convert SOL to lamports
+
+      // Create and send transaction
+      const transaction = await phantomWallet.createTransferTransaction(
+        recipientPubKey,
+        amount
+      );
+
+      const signature = await phantomWallet.signAndSendTransaction(transaction);
+      setTransactionSignature(signature);
+
+      // Wait for confirmation and verify the payment
+      const isVerified = await verifyPayment(signature);
 
       if (isVerified) {
         onConfirm();
