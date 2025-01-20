@@ -11,7 +11,7 @@ export const WheelWidget = () => {
   return (
     <div className="fixed bottom-36 right-4 z-50">
       <div className={cn(
-        "w-28 h-28 relative rounded-full overflow-hidden border-2 border-[#02E6F6] shadow-lg bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105",
+        "w-28 h-28 relative rounded-full overflow-hidden border-2 border-[#02E6F6] shadow-lg bg-white/80 backdrop-blur-sm transition-all duration-300 hover:scale-105 animate-pulse-border-cyan",
         isLoaded ? 'opacity-100' : 'opacity-0',
       )}>
         {!isLoaded && (

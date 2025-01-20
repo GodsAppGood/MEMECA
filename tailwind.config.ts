@@ -37,6 +37,16 @@ const config = {
             borderColor: "rgba(255, 183, 77, 0.7)"
           }
         },
+        "pulse-border-cyan": {
+          "0%, 100%": { 
+            boxShadow: "0 0 0 0 rgba(2, 230, 246, 0.4)",
+            borderColor: "rgba(2, 230, 246, 0.4)"
+          },
+          "50%": { 
+            boxShadow: "0 0 20px 0px rgba(2, 230, 246, 0.7)",
+            borderColor: "rgba(2, 230, 246, 0.7)"
+          }
+        },
         "bounce-rotate": {
           "0%, 100%": { 
             transform: "translateY(0) rotate(0deg)",
@@ -70,6 +80,7 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-border": "pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "pulse-border-cyan": "pulse-border-cyan 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
         "bounce-rotate": "bounce-rotate 0.5s ease-in-out",
         "float": "float 4s ease-in-out infinite",
         "neon": "neon 2.5s ease-in-out infinite",
