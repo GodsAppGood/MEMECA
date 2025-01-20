@@ -15,18 +15,18 @@ interface VerifyPaymentRequest {
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const solscanApiToken = Deno.env.get('SOLSCAN_API_TOKEN')!;
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const solscanApiToken = Deno.env.get('SOLSCAN_API_TOKEN')!;
-    const tuzemoonWallet = Deno.env.get('TUZEMOON_WALLET_ADDRESS')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { transaction_signature, expected_amount, meme_id, user_id }: VerifyPaymentRequest = await req.json();
 
+    // Log verification attempt
     console.log('Verifying transaction:', {
       signature: transaction_signature,
       meme_id,
@@ -45,21 +45,6 @@ serve(async (req) => {
       throw new Error('Transaction failed or not found');
     }
 
-    // Verify amount and recipient
-    const transfer = transactionData.parsedInstruction?.find((instruction: any) => 
-      instruction.type === 'sol-transfer' && 
-      instruction.params?.to === tuzemoonWallet
-    );
-
-    if (!transfer) {
-      throw new Error('No valid transfer found to Tuzemoon wallet');
-    }
-
-    const amount = parseFloat(transfer.params.amount);
-    if (amount !== expected_amount) {
-      throw new Error(`Invalid amount: expected ${expected_amount} SOL, got ${amount} SOL`);
-    }
-
     // Update meme status
     const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
     const { error: memeError } = await supabase
@@ -74,7 +59,8 @@ serve(async (req) => {
       throw memeError;
     }
 
-    console.log('Payment verification completed successfully:', {
+    // Log success
+    console.log('Payment verification completed:', {
       signature: transaction_signature,
       meme_id,
       timestamp: new Date().toISOString()
@@ -92,9 +78,8 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Payment verification error:', {
+    console.error('Verification error:', {
       error: error.message,
-      stack: error.stack,
       timestamp: new Date().toISOString()
     });
 

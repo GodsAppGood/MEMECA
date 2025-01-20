@@ -15,7 +15,8 @@ serve(async (req) => {
     const TUZEMOON_WALLET_ADDRESS = Deno.env.get('TUZEMOON_WALLET_ADDRESS');
     
     if (!TUZEMOON_WALLET_ADDRESS) {
-      throw new Error('Tuzemoon wallet address not configured');
+      console.error('Wallet address not configured');
+      throw new Error('Wallet configuration missing');
     }
 
     console.log('Returning wallet address:', {
@@ -32,13 +33,13 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error getting Tuzemoon wallet:', error);
+    console.error('Error:', error.message);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400
+        status: 500
       }
     );
   }
