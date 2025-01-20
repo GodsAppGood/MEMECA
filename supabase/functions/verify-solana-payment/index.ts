@@ -26,9 +26,10 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { transaction_signature, expected_amount, meme_id, user_id }: VerifyPaymentRequest = await req.json();
 
-    // Log verification attempt
-    console.log('Verifying transaction:', {
+    // Log verification start
+    console.log('Starting payment verification:', {
       signature: transaction_signature,
+      expected_amount,
       meme_id,
       timestamp: new Date().toISOString()
     });
@@ -41,8 +42,24 @@ serve(async (req) => {
 
     const transactionData = await solscanResponse.json();
     
+    // Log transaction data
+    console.log('Solscan response:', {
+      status: transactionData.status,
+      amount: transactionData.lamport,
+      timestamp: new Date().toISOString()
+    });
+
+    // Verify transaction status and amount
     if (!transactionData || transactionData.status !== 'Success') {
       throw new Error('Transaction failed or not found');
+    }
+
+    // Convert lamports to SOL (1 SOL = 1,000,000,000 lamports)
+    const transactionAmount = transactionData.lamport / 1000000000;
+    
+    // Verify amount with 0.001 SOL tolerance for rounding
+    if (Math.abs(transactionAmount - expected_amount) > 0.001) {
+      throw new Error(`Invalid transaction amount. Expected ${expected_amount} SOL, got ${transactionAmount} SOL`);
     }
 
     // Update meme status
@@ -60,9 +77,10 @@ serve(async (req) => {
     }
 
     // Log success
-    console.log('Payment verification completed:', {
+    console.log('Payment verification completed successfully:', {
       signature: transaction_signature,
       meme_id,
+      amount: transactionAmount,
       timestamp: new Date().toISOString()
     });
 
