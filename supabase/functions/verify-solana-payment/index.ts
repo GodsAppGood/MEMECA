@@ -14,12 +14,6 @@ interface VerifyPaymentRequest {
 }
 
 serve(async (req) => {
-  console.log('Payment verification started:', {
-    method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString()
-  });
-
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -31,8 +25,6 @@ serve(async (req) => {
     const tuzemoonWallet = Deno.env.get('TUZEMOON_WALLET_ADDRESS')!;
     
     const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Parse and validate request
     const { transaction_signature, expected_amount, meme_id, user_id }: VerifyPaymentRequest = await req.json();
 
     console.log('Verifying transaction:', {
@@ -41,27 +33,14 @@ serve(async (req) => {
       timestamp: new Date().toISOString()
     });
 
-    if (!transaction_signature || !expected_amount || !meme_id || !user_id) {
-      throw new Error('Missing required parameters');
-    }
-
-    // Check transaction on Solscan
+    // Verify transaction on Solscan
     const solscanResponse = await fetch(
       `https://public-api.solscan.io/transaction/${transaction_signature}`,
-      {
-        headers: {
-          'token': solscanApiToken
-        }
-      }
+      { headers: { 'token': solscanApiToken } }
     );
 
     const transactionData = await solscanResponse.json();
-    console.log('Solscan response:', {
-      status: solscanResponse.status,
-      timestamp: new Date().toISOString()
-    });
-
-    // Verify transaction details
+    
     if (!transactionData || transactionData.status !== 'Success') {
       throw new Error('Transaction failed or not found');
     }
@@ -79,22 +58,6 @@ serve(async (req) => {
     const amount = parseFloat(transfer.params.amount);
     if (amount !== expected_amount) {
       throw new Error(`Invalid amount: expected ${expected_amount} SOL, got ${amount} SOL`);
-    }
-
-    // Update transaction status in database
-    const { error: updateError } = await supabase
-      .from('TransactionLogs')
-      .update({
-        transaction_status: 'success',
-        transaction_signature,
-        amount: expected_amount,
-      })
-      .eq('meme_id', meme_id)
-      .eq('user_id', user_id)
-      .eq('transaction_status', 'pending');
-
-    if (updateError) {
-      throw updateError;
     }
 
     // Update meme status

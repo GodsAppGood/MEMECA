@@ -6,6 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -17,10 +18,13 @@ serve(async (req) => {
       throw new Error('Tuzemoon wallet address not configured');
     }
 
+    console.log('Returning wallet address:', {
+      timestamp: new Date().toISOString(),
+      address_length: TUZEMOON_WALLET_ADDRESS.length
+    });
+
     return new Response(
-      JSON.stringify({ 
-        TUZEMOON_WALLET_ADDRESS
-      }),
+      JSON.stringify({ TUZEMOON_WALLET_ADDRESS }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 
@@ -31,9 +35,7 @@ serve(async (req) => {
     console.error('Error getting Tuzemoon wallet:', error);
     
     return new Response(
-      JSON.stringify({ 
-        error: error.message 
-      }),
+      JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
