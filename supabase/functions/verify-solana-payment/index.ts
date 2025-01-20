@@ -6,21 +6,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+const LAMPORTS_PER_SOL = 1000000000; // 1 SOL = 1 billion lamports
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Clone request body for multiple reads
-    const reqBody = await req.json();
+    // Clone request for multiple reads
+    const reqClone = req.clone();
+    const reqData = await reqClone.json();
     console.log('Received verification request:', {
-      ...reqBody,
+      ...reqData,
       user_id: '[REDACTED]'
     });
 
-    const { transaction_signature, expected_amount, meme_id, user_id } = reqBody;
+    const { transaction_signature, expected_amount, meme_id, user_id } = reqData;
     const solscanApiToken = Deno.env.get('SOLSCAN_API_TOKEN')!;
+    
+    // Wait for transaction to be indexed by Solscan
+    console.log('Waiting for transaction to be indexed...');
+    await delay(5000); // Wait 5 seconds
     
     // Verify transaction on Solscan
     const solscanResponse = await fetch(
@@ -40,11 +49,11 @@ serve(async (req) => {
     }
 
     // Convert lamports to SOL (1 SOL = 1,000,000,000 lamports)
-    const transactionAmount = Number((transactionData.lamport / 1000000000).toFixed(2));
-    console.log('Transaction amount:', transactionAmount, 'Expected:', expected_amount);
+    const transactionAmount = Number((transactionData.lamport / LAMPORTS_PER_SOL).toFixed(9));
+    console.log('Transaction amount:', transactionAmount, 'SOL', 'Expected:', expected_amount, 'SOL');
     
-    // Allow for small rounding differences (within 0.001 SOL)
-    if (Math.abs(transactionAmount - expected_amount) > 0.001) {
+    // Allow for small rounding differences (within 0.000000001 SOL)
+    if (Math.abs(transactionAmount - expected_amount) > 0.000000001) {
       throw new Error(`Invalid amount: expected ${expected_amount} SOL, got ${transactionAmount} SOL`);
     }
 
@@ -110,7 +119,9 @@ serve(async (req) => {
     console.error('Verification error:', error);
     
     try {
-      const { user_id, meme_id } = await req.json();
+      const reqData = await req.json();
+      const { user_id, meme_id } = reqData;
+      
       if (user_id && meme_id) {
         const supabase = createClient(
           Deno.env.get('SUPABASE_URL')!,
