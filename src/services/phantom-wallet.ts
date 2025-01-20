@@ -49,9 +49,10 @@ class PhantomWallet {
     if (!senderPubKey) throw new Error('Wallet not connected');
 
     // Get the latest blockhash
-    const { blockhash } = await this.connection.getLatestBlockhash();
+    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+    console.log('Got blockhash:', blockhash, 'lastValidBlockHeight:', lastValidBlockHeight);
 
-    // Create transaction with blockhash
+    // Create transaction with transfer instruction
     const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: senderPubKey,
@@ -60,10 +61,11 @@ class PhantomWallet {
       })
     );
 
-    // Set the blockhash
+    // Set the blockhash and feePayer
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = senderPubKey;
-
+    
+    console.log('Transaction created with blockhash:', transaction.recentBlockhash);
     return transaction;
   }
 
@@ -72,15 +74,23 @@ class PhantomWallet {
     if (!phantom) throw new Error('Phantom wallet not installed');
 
     try {
+      console.log('Sending transaction to Phantom for signing...');
       const { signature } = await phantom.signAndSendTransaction(transaction);
+      console.log('Transaction signed and sent, signature:', signature);
       
       // Wait for confirmation
-      const confirmation = await this.connection.confirmTransaction(signature);
+      const confirmation = await this.connection.confirmTransaction({
+        signature,
+        blockhash: transaction.recentBlockhash!,
+        lastValidBlockHeight: await this.connection.getBlockHeight()
+      });
 
       if (confirmation.value.err) {
+        console.error('Transaction confirmation error:', confirmation.value.err);
         throw new Error('Transaction failed');
       }
 
+      console.log('Transaction confirmed:', signature);
       return signature;
     } catch (error) {
       console.error('Transaction error:', error);
