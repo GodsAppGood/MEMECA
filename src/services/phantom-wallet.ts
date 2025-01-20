@@ -4,7 +4,8 @@ class PhantomWallet {
   private connection: Connection;
 
   constructor() {
-    this.connection = new Connection('https://api.devnet.solana.com');
+    // Changed from devnet to mainnet-beta
+    this.connection = new Connection('https://api.mainnet-beta.solana.com');
   }
 
   get isPhantomInstalled() {
@@ -49,7 +50,7 @@ class PhantomWallet {
     if (!senderPubKey) throw new Error('Wallet not connected');
 
     const { blockhash } = await this.connection.getLatestBlockhash('finalized');
-    console.log('Got new blockhash:', blockhash);
+    console.log('Got new blockhash from mainnet:', blockhash);
 
     const transaction = new Transaction().add(
       SystemProgram.transfer({
@@ -71,7 +72,7 @@ class PhantomWallet {
 
     // Быстрая отправка транзакции без ожидания подтверждения
     const { signature } = await phantom.signAndSendTransaction(transaction);
-    console.log('Transaction sent with signature:', signature);
+    console.log('Transaction sent to mainnet with signature:', signature);
     
     return signature;
   }
