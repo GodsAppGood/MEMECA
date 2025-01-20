@@ -1,11 +1,26 @@
 import { PublicKey, Transaction, SystemProgram, Connection } from '@solana/web3.js';
+import { supabase } from "@/integrations/supabase/client";
 
 class PhantomWallet {
-  private connection: Connection;
+  private connection: Connection | null = null;
 
   constructor() {
-    // Changed from devnet to mainnet-beta
-    this.connection = new Connection('https://api.mainnet-beta.solana.com');
+    this.initConnection();
+  }
+
+  private async initConnection() {
+    try {
+      const { data: { HELIUS_RPC_URL } } = await supabase.functions.invoke('get-tuzemoon-wallet');
+      if (!HELIUS_RPC_URL) {
+        console.error('No RPC URL configured');
+        return;
+      }
+      
+      this.connection = new Connection(HELIUS_RPC_URL, 'confirmed');
+      console.log('Solana RPC connection initialized');
+    } catch (error) {
+      console.error('Failed to initialize Solana connection:', error);
+    }
   }
 
   get isPhantomInstalled() {
@@ -43,6 +58,10 @@ class PhantomWallet {
     recipientPubKey: PublicKey,
     amount: number
   ): Promise<Transaction> {
+    if (!this.connection) {
+      throw new Error('Solana connection not initialized');
+    }
+
     const phantom = (window as any).phantom?.solana;
     if (!phantom) throw new Error('Phantom wallet not installed');
 
@@ -50,7 +69,7 @@ class PhantomWallet {
     if (!senderPubKey) throw new Error('Wallet not connected');
 
     const { blockhash } = await this.connection.getLatestBlockhash('finalized');
-    console.log('Got new blockhash from mainnet:', blockhash);
+    console.log('Got new blockhash:', blockhash);
 
     const transaction = new Transaction().add(
       SystemProgram.transfer({
@@ -70,9 +89,8 @@ class PhantomWallet {
     const phantom = (window as any).phantom?.solana;
     if (!phantom) throw new Error('Phantom wallet not installed');
 
-    // Быстрая отправка транзакции без ожидания подтверждения
     const { signature } = await phantom.signAndSendTransaction(transaction);
-    console.log('Transaction sent to mainnet with signature:', signature);
+    console.log('Transaction sent with signature:', signature);
     
     return signature;
   }

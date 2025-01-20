@@ -11,21 +11,36 @@ serve(async (req) => {
   }
 
   try {
-    const TUZEMOON_WALLET_ADDRESS = Deno.env.get('TUZEMOON_WALLET_ADDRESS');
-    
+    const HELIUS_RPC_URL = Deno.env.get('HELIUS_RPC_URL')
+    const TUZEMOON_WALLET_ADDRESS = Deno.env.get('TUZEMOON_WALLET_ADDRESS')
+
+    if (!HELIUS_RPC_URL) {
+      throw new Error('RPC URL not configured')
+    }
+
     if (!TUZEMOON_WALLET_ADDRESS) {
-      throw new Error('Wallet configuration missing');
+      throw new Error('Tuzemoon wallet address not configured')
     }
 
     return new Response(
-      JSON.stringify({ TUZEMOON_WALLET_ADDRESS }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
-
+      JSON.stringify({ 
+        HELIUS_RPC_URL,
+        TUZEMOON_WALLET_ADDRESS
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    )
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
-    );
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
+      }
+    )
   }
 })
