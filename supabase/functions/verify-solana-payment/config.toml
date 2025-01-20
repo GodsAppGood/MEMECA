@@ -1,0 +1,12 @@
+project_id = "dpybiegurkiqwponvxac"
+
+[global.env]
+SUPABASE_URL = "env"
+SUPABASE_SERVICE_ROLE_KEY = "env"
+SOLSCAN_API_TOKEN = "env"
+TUZEMOON_WALLET_ADDRESS = "env"
+
+[[verify-solana-payment]]
+name = "verify-solana-payment"
+path = "/verify-solana-payment"
+verify_jwt = false
