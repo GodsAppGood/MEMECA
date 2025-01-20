@@ -12,21 +12,25 @@ serve(async (req) => {
   }
 
   try {
-    const { transaction_signature, expected_amount, meme_id, user_id } = await req.json();
-    const solscanApiToken = Deno.env.get('SOLSCAN_API_TOKEN')!;
-    
-    console.log('Starting verification process:', {
-      signature: transaction_signature,
-      expected_amount,
-      meme_id,
-      user_id
+    // Clone request body for multiple reads
+    const reqBody = await req.json();
+    console.log('Received verification request:', {
+      ...reqBody,
+      user_id: '[REDACTED]'
     });
 
+    const { transaction_signature, expected_amount, meme_id, user_id } = reqBody;
+    const solscanApiToken = Deno.env.get('SOLSCAN_API_TOKEN')!;
+    
     // Verify transaction on Solscan
     const solscanResponse = await fetch(
       `https://public-api.solscan.io/transaction/${transaction_signature}`,
       { headers: { 'token': solscanApiToken } }
     );
+
+    if (!solscanResponse.ok) {
+      throw new Error(`Solscan API error: ${solscanResponse.status}`);
+    }
 
     const transactionData = await solscanResponse.json();
     console.log('Solscan response:', transactionData);
@@ -44,7 +48,6 @@ serve(async (req) => {
       throw new Error(`Invalid amount: expected ${expected_amount} SOL, got ${transactionAmount} SOL`);
     }
 
-    // Update meme status
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -57,6 +60,7 @@ serve(async (req) => {
       tuzemoonUntil
     });
 
+    // First update the meme status
     const { error: memeError } = await supabase
       .from('Memes')
       .update({
@@ -70,7 +74,7 @@ serve(async (req) => {
       throw memeError;
     }
 
-    // Log successful transaction
+    // Then log successful transaction
     const { error: logError } = await supabase
       .from('TransactionLogs')
       .insert({
@@ -90,14 +94,21 @@ serve(async (req) => {
     console.log('Verification completed successfully');
 
     return new Response(
-      JSON.stringify({ success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        success: true,
+        message: 'Payment verified and meme updated successfully'
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     );
 
   } catch (error) {
     console.error('Verification error:', error);
     
-    // Create error log if we have the required data
     try {
       const { user_id, meme_id } = await req.json();
       if (user_id && meme_id) {
@@ -120,8 +131,18 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      JSON.stringify({ 
+        success: false, 
+        error: error.message,
+        details: 'Payment verification failed'
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }, 
+        status: 400 
+      }
     );
   }
 })
