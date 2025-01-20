@@ -33,6 +33,7 @@ export const TuzemoonModal = ({
 }: TuzemoonModalProps) => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+  const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleConnectWallet = async () => {
@@ -66,6 +67,30 @@ export const TuzemoonModal = ({
     }
   };
 
+  const verifyPayment = async (signature: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('verify-solana-payment', {
+        body: {
+          transaction_signature: signature,
+          expected_amount: 0.1,
+          meme_id: Number(memeId),
+          user_id: user.id
+        }
+      });
+
+      if (error) throw error;
+
+      return data.success;
+    } catch (error) {
+      console.error('Payment verification error:', error);
+      return false;
+    }
+  };
+
   const handlePayment = async () => {
     try {
       setIsPaymentProcessing(true);
@@ -76,6 +101,8 @@ export const TuzemoonModal = ({
       }
 
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Log initial transaction
       const { error: logError } = await supabase.functions.invoke('log-transaction', {
         body: {
           user_id: user?.id,
@@ -88,12 +115,26 @@ export const TuzemoonModal = ({
 
       if (logError) throw logError;
 
-      onConfirm();
+      // Here we would initiate the actual Solana transaction
+      // For now, we'll simulate it with a delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast({
-        title: "Payment Successful",
-        description: "Your meme has been featured on Tuzemoon!",
-      });
+      // Simulate getting transaction signature
+      const mockSignature = `mock_${Date.now()}`;
+      setTransactionSignature(mockSignature);
+
+      // Verify the payment
+      const isVerified = await verifyPayment(mockSignature);
+
+      if (isVerified) {
+        onConfirm();
+        toast({
+          title: "Payment Successful",
+          description: "Your meme has been featured on Tuzemoon!",
+        });
+      } else {
+        throw new Error('Payment verification failed');
+      }
     } catch (error: any) {
       console.error('Payment error:', error);
       toast({
@@ -152,6 +193,14 @@ export const TuzemoonModal = ({
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <span className="ml-2">Processing payment...</span>
             </div>
+          )}
+
+          {transactionSignature && (
+            <Alert>
+              <AlertDescription className="text-xs break-all">
+                Transaction ID: {transactionSignature}
+              </AlertDescription>
+            </Alert>
           )}
         </div>
 
