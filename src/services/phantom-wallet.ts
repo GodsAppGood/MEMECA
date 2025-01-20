@@ -4,7 +4,6 @@ class PhantomWallet {
   private connection: Connection;
 
   constructor() {
-    // Используем публичную конечную точку Solana для тестовой сети
     this.connection = new Connection('https://api.devnet.solana.com');
   }
 
@@ -49,21 +48,21 @@ class PhantomWallet {
     const senderPubKey = phantom.publicKey;
     if (!senderPubKey) throw new Error('Wallet not connected');
 
-    // Получаем последний блокхеш
-    const { blockhash, lastValidBlockHeight } = await this.connection.getLatestBlockhash();
+    // Get the latest blockhash
+    const { blockhash } = await this.connection.getLatestBlockhash();
 
-    // Создаем транзакцию с блокхешем
-    const transaction = new Transaction({
-      feePayer: senderPubKey,
-      blockhash,
-      lastValidBlockHeight
-    }).add(
+    // Create transaction with blockhash
+    const transaction = new Transaction().add(
       SystemProgram.transfer({
         fromPubkey: senderPubKey,
         toPubkey: recipientPubKey,
         lamports: amount,
       })
     );
+
+    // Set the blockhash
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = senderPubKey;
 
     return transaction;
   }
@@ -75,12 +74,8 @@ class PhantomWallet {
     try {
       const { signature } = await phantom.signAndSendTransaction(transaction);
       
-      // Ждем подтверждения транзакции
-      const confirmation = await this.connection.confirmTransaction({
-        signature,
-        blockhash: transaction.blockhash,
-        lastValidBlockHeight: transaction.lastValidBlockHeight
-      });
+      // Wait for confirmation
+      const confirmation = await this.connection.confirmTransaction(signature);
 
       if (confirmation.value.err) {
         throw new Error('Transaction failed');
