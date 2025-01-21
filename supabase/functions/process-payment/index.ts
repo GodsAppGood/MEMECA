@@ -7,33 +7,26 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
+    // 1. Получаем данные
     const { user_id, meme_id, transaction_signature, wallet_address } = await req.json()
+    console.log('Processing payment:', { user_id, meme_id, transaction_signature, wallet_address })
     
+    // 2. Инициализируем Supabase клиент
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Устанавливаем время действия Tuzemoon
+    // 3. Устанавливаем время действия Tuzemoon (24 часа)
     const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-    
-    // Обновляем статус мема
-    const { error: memeError } = await supabase
-      .from('Memes')
-      .update({
-        is_featured: true,
-        tuzemoon_until: tuzemoonUntil
-      })
-      .eq('id', meme_id)
 
-    if (memeError) throw memeError
-
-    // Логируем успешный платёж
+    // 4. Логируем платёж
     const { error: paymentError } = await supabase
       .from('TuzemoonPayments')
       .insert({
@@ -47,13 +40,28 @@ serve(async (req) => {
 
     if (paymentError) {
       console.error('Payment logging error:', paymentError)
-      // Не выбрасываем ошибку, так как основная операция уже выполнена
+      throw paymentError
     }
 
+    // 5. Активируем Tuzemoon статус
+    const { error: memeError } = await supabase
+      .from('Memes')
+      .update({
+        is_featured: true,
+        tuzemoon_until: tuzemoonUntil
+      })
+      .eq('id', meme_id)
+
+    if (memeError) {
+      console.error('Meme update error:', memeError)
+      throw memeError
+    }
+
+    // 6. Возвращаем успешный ответ
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Meme updated successfully',
+        message: 'Payment processed successfully',
         tuzemoon_until: tuzemoonUntil
       }),
       { 
@@ -63,13 +71,14 @@ serve(async (req) => {
         } 
       }
     )
+
   } catch (error) {
     console.error('Process payment error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
-        status: 400 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400
       }
     )
   }
