@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting Solscan API v2 test:', {
+    console.log('Starting Solscan API test:', {
       timestamp: new Date().toISOString(),
       environment: Deno.env.get('ENVIRONMENT'),
     });
@@ -26,23 +26,23 @@ serve(async (req) => {
     // Test transaction signature
     const testTxSignature = 'DoP3KMgutvXKeGnU8TeJxyM4hVPBcnNgswRwLWNEy8AUTYYnjV7EVcGZWniQGMj1ndyLgtyrRXJiFY8uaNKF2vj';
     
-    console.log('Making request to Solscan API v2:', {
-      url: 'https://pro-api.solscan.io/v2.0/transaction/detail',
+    console.log('Making request to Solscan API:', {
+      url: 'https://api.solscan.io/v2/transaction',
       hasToken: !!SOLSCAN_API_TOKEN,
       txSignature: testTxSignature,
     });
 
     const response = await fetch(
-      `https://pro-api.solscan.io/v2.0/transaction/detail?tx=${testTxSignature}`,
+      `https://api.solscan.io/v2/transaction?tx=${testTxSignature}`,
       {
         headers: {
-          'token': SOLSCAN_API_TOKEN,
+          'Authorization': `Bearer ${SOLSCAN_API_TOKEN}`,
           'Accept': 'application/json',
         },
       }
     );
 
-    console.log('Solscan API v2 response:', {
+    console.log('Solscan API response:', {
       status: response.status,
       statusText: response.statusText,
       headers: Object.fromEntries(response.headers.entries()),
@@ -50,7 +50,7 @@ serve(async (req) => {
 
     const data = await response.json();
     
-    console.log('Solscan API v2 data:', {
+    console.log('Solscan API data:', {
       success: response.ok,
       data: data,
     });
@@ -70,7 +70,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Error testing Solscan API v2:', {
+    console.error('Error testing Solscan API:', {
       error: error.message,
       stack: error.stack,
     });
