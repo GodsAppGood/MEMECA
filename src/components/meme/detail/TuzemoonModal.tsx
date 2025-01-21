@@ -35,8 +35,10 @@ export const TuzemoonModal = ({
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
-  const [transactionStatus, setTransactionStatus] = useState<'initial' | 'sending' | 'confirming' | 'success' | 'error'>('initial');
+  const [transactionStatus, setTransactionStatus] = useState<'initial' | 'confirming' | 'success' | 'error'>('initial');
   const { toast } = useToast();
+
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const handleConnectWallet = async () => {
     if (!phantomWallet.isPhantomInstalled) {
@@ -50,7 +52,6 @@ export const TuzemoonModal = ({
 
     try {
       const publicKey = await phantomWallet.connect();
-      
       if (publicKey) {
         setIsWalletConnected(true);
         toast({
@@ -69,52 +70,63 @@ export const TuzemoonModal = ({
     }
   };
 
-  const monitorTransaction = async (signature: string) => {
+  const verifyTransaction = async (signature: string, attempt: number = 1): Promise<boolean> => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Log initial transaction status
-      const { error: logError } = await supabase.functions.invoke('log-transaction', {
-        body: {
-          user_id: user.id,
-          meme_id: memeId,
-          amount: 0.1,
-          transaction_status: 'confirming',
-          transaction_signature: signature
-        }
-      });
-
-      if (logError) console.error('Error logging transaction:', logError);
-
-      // Start verification process
       const { data, error } = await supabase.functions.invoke('verify-solana-payment', {
         body: {
           transaction_signature: signature,
           expected_amount: 0.1,
           meme_id: Number(memeId),
-          user_id: user.id
+          user_id: (await supabase.auth.getUser()).data.user?.id
         }
       });
 
       if (error) throw error;
+      return data.success;
+    } catch (error) {
+      console.error(`Verification attempt ${attempt} failed:`, error);
+      return false;
+    }
+  };
 
-      if (data.success) {
-        setTransactionStatus('success');
-        onConfirm();
-        toast({
-          title: "Payment Successful",
-          description: "Your meme has been featured on Tuzemoon!",
-        });
-      } else {
-        throw new Error('Payment verification failed');
+  const monitorTransaction = async (signature: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Initial delay for network propagation
+      await delay(15000);
+
+      // Try verification up to 3 times
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        console.log(`Verification attempt ${attempt} for signature ${signature}`);
+        
+        const isVerified = await verifyTransaction(signature, attempt);
+        
+        if (isVerified) {
+          setTransactionStatus('success');
+          onConfirm();
+          toast({
+            title: "Payment Successful",
+            description: "Your meme has been featured on Tuzemoon!",
+          });
+          return;
+        }
+
+        if (attempt < 3) {
+          await delay(15000); // Wait 15 seconds before next attempt
+        }
       }
+
+      // If we get here, all attempts failed
+      throw new Error('Transaction verification failed after 3 attempts');
+
     } catch (error: any) {
       console.error('Transaction monitoring error:', error);
       setTransactionStatus('error');
       toast({
         title: "Payment Failed",
-        description: error.message || "Could not verify payment",
+        description: "Transaction could not be verified after multiple attempts",
         variant: "destructive",
       });
     }
@@ -123,19 +135,17 @@ export const TuzemoonModal = ({
   const handlePayment = async () => {
     try {
       setIsPaymentProcessing(true);
-      setTransactionStatus('sending');
+      setTransactionStatus('confirming');
       
       const walletAddress = await phantomWallet.getAddress();
       if (!walletAddress) throw new Error('No wallet connected');
 
-      // Get the recipient's public key
       const { data: { TUZEMOON_WALLET_ADDRESS } } = await supabase.functions.invoke('get-tuzemoon-wallet');
       if (!TUZEMOON_WALLET_ADDRESS) throw new Error('Recipient wallet not configured');
 
       const recipientPubKey = new PublicKey(TUZEMOON_WALLET_ADDRESS);
       const amount = 0.1 * LAMPORTS_PER_SOL;
 
-      // Create and send transaction immediately
       const transaction = await phantomWallet.createTransferTransaction(
         recipientPubKey,
         amount
@@ -143,8 +153,7 @@ export const TuzemoonModal = ({
 
       const signature = await phantomWallet.signAndSendTransaction(transaction);
       setTransactionSignature(signature);
-      setTransactionStatus('confirming');
-
+      
       // Start monitoring in background
       monitorTransaction(signature);
 
@@ -163,10 +172,8 @@ export const TuzemoonModal = ({
 
   const getStatusMessage = () => {
     switch (transactionStatus) {
-      case 'sending':
-        return 'Initiating payment...';
       case 'confirming':
-        return 'Confirming transaction...';
+        return 'Verifying transaction (this may take up to 45 seconds)...';
       case 'success':
         return 'Payment successful!';
       case 'error':
