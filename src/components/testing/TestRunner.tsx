@@ -3,7 +3,6 @@ import { Card } from "@/components/ui/card";
 import { AuthTestModule } from "./modules/AuthTestModule";
 import { DatabaseTestModule } from "./modules/DatabaseTestModule";
 import { UITestModule } from "./modules/UITestModule";
-import { SolanaTestModule } from "./modules/SolanaTestModule";
 
 export const TestRunnerComponent = () => {
   return (
@@ -13,7 +12,6 @@ export const TestRunnerComponent = () => {
         <AuthTestModule />
         <DatabaseTestModule />
         <UITestModule />
-        <SolanaTestModule />
       </div>
     </Card>
   );
