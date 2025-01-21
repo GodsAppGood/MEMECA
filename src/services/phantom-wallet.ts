@@ -94,6 +94,21 @@ class PhantomWallet {
     
     return signature;
   }
+
+  async getTransactionStatus(signature: string) {
+    if (!this.connection) {
+      throw new Error('Solana connection not initialized');
+    }
+
+    try {
+      const status = await this.connection.getSignatureStatus(signature);
+      console.log('Got transaction status:', status);
+      return status?.value;
+    } catch (error) {
+      console.error('Error getting transaction status:', error);
+      return null;
+    }
+  }
 }
 
 export const phantomWallet = new PhantomWallet();
