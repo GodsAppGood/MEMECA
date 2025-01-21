@@ -41,41 +41,6 @@ export const TuzemoonModal = ({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const verifyTransaction = async (signature: string): Promise<boolean> => {
-    try {
-      const status = await phantomWallet.getTransactionStatus(signature);
-      console.log('Transaction status:', status);
-      
-      if (status && status.confirmationStatus === 'finalized') {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('User not authenticated');
-
-        // Process payment through edge function
-        const { data, error } = await supabase.functions.invoke('process-payment', {
-          body: {
-            user_id: user.id,
-            meme_id: memeId,
-            transaction_signature: signature,
-            wallet_address: await phantomWallet.getAddress(),
-          }
-        });
-
-        if (error) throw error;
-
-        // Invalidate queries to refresh the UI
-        await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
-        await queryClient.invalidateQueries({ queryKey: ['memes'] });
-
-        console.log('Payment processed successfully:', data);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Transaction verification error:', error);
-      return false;
-    }
-  };
-
   const handlePayment = async () => {
     try {
       setIsPaymentProcessing(true);
@@ -97,23 +62,34 @@ export const TuzemoonModal = ({
 
       const signature = await phantomWallet.signAndSendTransaction(transaction);
       setTransactionSignature(signature);
-      
-      let verified = false;
-      for (let i = 0; i < 30; i++) {
-        verified = await verifyTransaction(signature);
-        if (verified) {
-          setTransactionStatus('success');
-          onConfirm();
-          toast({
-            title: "Payment Successful",
-            description: "Your meme has been featured on Tuzemoon!",
-          });
-          return;
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
 
-      throw new Error('Transaction verification timeout');
+      // Если Phantom подтвердил транзакцию, считаем её успешной
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Обрабатываем платёж
+      const { error } = await supabase.functions.invoke('process-payment', {
+        body: {
+          user_id: user.id,
+          meme_id: memeId,
+          transaction_signature: signature,
+          wallet_address: walletAddress,
+        }
+      });
+
+      if (error) throw error;
+
+      // Обновляем UI
+      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
+      await queryClient.invalidateQueries({ queryKey: ['memes'] });
+
+      setTransactionStatus('success');
+      onConfirm();
+      
+      toast({
+        title: "Payment Successful",
+        description: "Your meme has been featured on Tuzemoon!",
+      });
 
     } catch (error: any) {
       console.error('Payment error:', error);
