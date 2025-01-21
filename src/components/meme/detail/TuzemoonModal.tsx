@@ -15,6 +15,7 @@ import { phantomWallet } from "@/services/phantom-wallet";
 import { WalletConnection } from "./tuzemoon/WalletConnection";
 import { PaymentDetails } from "./tuzemoon/PaymentDetails";
 import { TransactionStatus } from "./tuzemoon/TransactionStatus";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ export const TuzemoonModal = ({
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const [transactionStatus, setTransactionStatus] = useState<'initial' | 'confirming' | 'success' | 'error'>('initial');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const verifyTransaction = async (signature: string): Promise<boolean> => {
     try {
@@ -48,16 +50,23 @@ export const TuzemoonModal = ({
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('User not authenticated');
 
-        await supabase.functions.invoke('log-transaction', {
+        // Process payment through edge function
+        const { data, error } = await supabase.functions.invoke('process-payment', {
           body: {
             user_id: user.id,
             meme_id: memeId,
             transaction_signature: signature,
-            transaction_status: 'success',
-            amount: 0.1,
+            wallet_address: await phantomWallet.getAddress(),
           }
         });
 
+        if (error) throw error;
+
+        // Invalidate queries to refresh the UI
+        await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
+        await queryClient.invalidateQueries({ queryKey: ['memes'] });
+
+        console.log('Payment processed successfully:', data);
         return true;
       }
       return false;
