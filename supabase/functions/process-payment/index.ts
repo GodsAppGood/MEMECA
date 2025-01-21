@@ -23,10 +23,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // 3. Устанавливаем время действия Tuzemoon (24 часа)
-    const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
-
-    // 4. Логируем платёж
+    // 3. Логируем платёж
     const { error: paymentError } = await supabase
       .from('TuzemoonPayments')
       .insert({
@@ -43,26 +40,13 @@ serve(async (req) => {
       throw paymentError
     }
 
-    // 5. Активируем Tuzemoon статус
-    const { error: memeError } = await supabase
-      .from('Memes')
-      .update({
-        is_featured: true,
-        tuzemoon_until: tuzemoonUntil
-      })
-      .eq('id', meme_id)
-
-    if (memeError) {
-      console.error('Meme update error:', memeError)
-      throw memeError
-    }
-
-    // 6. Возвращаем успешный ответ
+    console.log('Payment logged successfully')
+    
+    // 4. Возвращаем успешный ответ
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Payment processed successfully',
-        tuzemoon_until: tuzemoonUntil
+        message: 'Payment processed successfully'
       }),
       { 
         headers: { 
