@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { Tuzemoon as TuzemoonContent } from "@/components/dashboard/Tuzemoon";
+import { WheelWidget } from "@/components/wheel/WheelWidget";
 
 const Tuzemoon = () => {
   return (
@@ -11,6 +12,7 @@ const Tuzemoon = () => {
         <TuzemoonContent />
       </main>
       <Support />
+      <WheelWidget />
       <Footer />
     </div>
   );

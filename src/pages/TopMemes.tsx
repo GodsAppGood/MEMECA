@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { TopMemeGrid } from "@/components/meme/TopMemeGrid";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
+import { WheelWidget } from "@/components/wheel/WheelWidget";
 
 const TopMemes = () => {
   return (
@@ -23,6 +24,7 @@ const TopMemes = () => {
         </div>
       </main>
       <Support />
+      <WheelWidget />
       <Footer />
     </div>
   );

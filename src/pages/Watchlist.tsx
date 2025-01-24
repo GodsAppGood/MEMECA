@@ -2,6 +2,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
 import { Watchlist as WatchlistContent } from "@/components/dashboard/Watchlist";
+import { WheelWidget } from "@/components/wheel/WheelWidget";
 
 const Watchlist = () => {
   return (
@@ -11,6 +12,7 @@ const Watchlist = () => {
         <WatchlistContent />
       </main>
       <Support />
+      <WheelWidget />
       <Footer />
     </div>
   );

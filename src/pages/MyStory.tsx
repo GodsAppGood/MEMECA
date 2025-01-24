@@ -3,6 +3,7 @@ import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
+import { WheelWidget } from "@/components/wheel/WheelWidget";
 
 const MyStory = () => {
   const { toast } = useToast();
@@ -167,6 +168,7 @@ const MyStory = () => {
         </section>
       </main>
       <Support />
+      <WheelWidget />
       <Footer />
     </div>
   );
