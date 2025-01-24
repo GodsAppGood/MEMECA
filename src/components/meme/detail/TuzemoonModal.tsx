@@ -63,12 +63,12 @@ export const TuzemoonModal = ({
       const signature = await phantomWallet.signAndSendTransaction(transaction);
       setTransactionSignature(signature);
 
-      // Если Phantom подтвердил транзакцию, считаем её успешной
+      // Если Phantom подтвердил транзакцию, записываем платёж
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Обрабатываем платёж
-      const { error } = await supabase.functions.invoke('process-payment', {
+      // Записываем платёж
+      const { error: processError } = await supabase.functions.invoke('process-payment', {
         body: {
           user_id: user.id,
           meme_id: memeId,
@@ -77,7 +77,17 @@ export const TuzemoonModal = ({
         }
       });
 
-      if (error) throw error;
+      if (processError) throw processError;
+
+      // Активируем Tuzemoon
+      const { error: activationError } = await supabase.functions.invoke('activate-tuzemoon', {
+        body: {
+          user_id: user.id,
+          meme_id: memeId
+        }
+      });
+
+      if (activationError) throw activationError;
 
       // Обновляем UI
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
