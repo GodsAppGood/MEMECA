@@ -107,7 +107,8 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
       
-      // Инвалидируем все запросы, связанные с мемами
+      // Invalidate all related queries
+      queryClient.invalidateQueries({ queryKey: ['memes'] });
       queryClient.invalidateQueries({ queryKey: ['featured-memes'] });
       queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       
