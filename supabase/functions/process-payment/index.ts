@@ -20,18 +20,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Проверяем существование мема
-    const { data: meme, error: memeError } = await supabase
-      .from('Memes')
-      .select('id, title')
-      .eq('id', meme_id)
-      .single()
-
-    if (memeError || !meme) {
-      throw new Error('Meme not found')
-    }
-
-    // Создаем запись о платеже - триггер activate_tuzemoon сделает остальное
+    // Создаем запись о платеже
     const { error: paymentError } = await supabase
       .from('TuzemoonPayments')
       .insert({
@@ -40,11 +29,7 @@ serve(async (req) => {
         amount: 0.1,
         transaction_signature,
         wallet_address,
-        transaction_status: 'success',
-        meme_metadata: {
-          id: meme.id,
-          title: meme.title
-        }
+        transaction_status: 'success'
       })
 
     if (paymentError) {
