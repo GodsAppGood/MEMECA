@@ -53,7 +53,7 @@ export const TuzemoonModal = ({
       if (!TUZEMOON_WALLET_ADDRESS) throw new Error('Recipient wallet not configured');
 
       const recipientPubKey = new PublicKey(TUZEMOON_WALLET_ADDRESS);
-      const amount = 0.1 * 1000000000; // Convert to lamports
+      const amount = 0.1 * 1000000000;
 
       const transaction = await phantomWallet.createTransferTransaction(
         recipientPubKey,
@@ -63,7 +63,6 @@ export const TuzemoonModal = ({
       const signature = await phantomWallet.signAndSendTransaction(transaction);
       setTransactionSignature(signature);
 
-      // Record the payment
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
@@ -84,7 +83,7 @@ export const TuzemoonModal = ({
       
       toast({
         title: "Payment Successful",
-        description: "Now you can activate Tuzemoon",
+        description: "You can now activate Tuzemoon",
       });
 
     } catch (error: any) {
@@ -112,19 +111,18 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
 
-      // Обновляем кэш только после успешного обновления в базе
-      await queryClient.invalidateQueries({ queryKey: ['memes'] });
-      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
-
+      // Закрываем модальное окно сразу после успешного обновления
       onClose();
       
+      // Показываем уведомление
       toast({
         title: "Tuzemoon Activated",
         description: "Your meme will be featured for 24 hours",
       });
 
-      // Вызываем onConfirm в последнюю очередь
-      await onConfirm();
+      // Обновляем кэш в самом конце
+      queryClient.invalidateQueries({ queryKey: ['memes'] });
+      
     } catch (error: any) {
       console.error('Activation error:', error);
       toast({
