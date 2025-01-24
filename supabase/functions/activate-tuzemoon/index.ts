@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { createClient } from '@supabase/supabase-js'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req) => {
@@ -7,7 +7,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { meme_id, user_id } = await req.json()
+    const { user_id, meme_id } = await req.json()
     console.log(`Activating Tuzemoon for meme ${meme_id} by user ${user_id}`)
 
     const supabase = createClient(
