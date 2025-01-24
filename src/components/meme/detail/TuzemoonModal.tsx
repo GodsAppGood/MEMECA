@@ -20,7 +20,7 @@ import { useQueryClient } from "@tanstack/react-query";
 interface TuzemoonModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   isProcessing: boolean;
   memeTitle: string;
   memeId: string;
@@ -113,11 +113,11 @@ export const TuzemoonModal = ({
         title: "Tuzemoon Activated",
         description: "Your meme will be featured for 24 hours",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Activation error:', error);
       toast({
         title: "Activation Error",
-        description: "Failed to activate Tuzemoon",
+        description: error.message || "Failed to activate Tuzemoon",
         variant: "destructive",
       });
     }
