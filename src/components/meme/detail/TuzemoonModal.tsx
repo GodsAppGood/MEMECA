@@ -97,7 +97,6 @@ export const TuzemoonModal = ({
 
   const handleActivation = async () => {
     try {
-      // Простое обновление статуса мема
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -108,13 +107,10 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
 
-      // Обновляем кэш
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       
-      // Закрываем модальное окно
       onClose();
       
-      // Показываем уведомление об успехе
       toast({
         title: "Tuzemoon Activated",
         description: "Your meme will be featured for 24 hours",

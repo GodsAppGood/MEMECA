@@ -112,19 +112,6 @@ export const TuzemoonButton = ({
     }
   };
 
-  const handlePaymentSuccess = async () => {
-    try {
-      await onUpdate();
-      setIsModalOpen(false);
-      toast({
-        title: "Payment Successful",
-        description: "You can now activate Tuzemoon for your meme",
-      });
-    } catch (error) {
-      console.error('Error updating meme status:', error);
-    }
-  };
-
   // Check if there's a successful payment
   const { data: hasPayment } = useQuery({
     queryKey: ["tuzemoon-payment", memeId],
@@ -194,8 +181,6 @@ export const TuzemoonButton = ({
           <TuzemoonModal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            onConfirm={handlePaymentSuccess}
-            isProcessing={isProcessing}
             memeTitle={memeTitle}
             memeId={memeId}
           />
