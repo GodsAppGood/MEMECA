@@ -48,14 +48,14 @@ export const TuzemoonButton = ({
       await onUpdate();
       
       toast({
-        title: !isFeatured ? "Tuzemoon Активирован" : "Tuzemoon Деактивирован",
-        description: `Успешно ${!isFeatured ? 'активирован' : 'деактивирован'} статус Tuzemoon`,
+        title: !isFeatured ? "Tuzemoon Activated" : "Tuzemoon Deactivated",
+        description: `Successfully ${!isFeatured ? 'activated' : 'deactivated'} Tuzemoon status`,
       });
     } catch (error: any) {
       console.error('Admin activation error:', error);
       toast({
-        title: "Ошибка Активации",
-        description: error.message || "Не удалось обновить статус",
+        title: "Activation Error",
+        description: error.message || "Failed to update status",
         variant: "destructive",
       });
     } finally {
@@ -69,7 +69,7 @@ export const TuzemoonButton = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
-      // Проверяем наличие успешного платежа
+      // Verify successful payment
       const { data: payment, error: paymentError } = await supabase
         .from('TuzemoonPayments')
         .select('*')
@@ -79,7 +79,7 @@ export const TuzemoonButton = ({
         .single();
 
       if (paymentError || !payment) {
-        throw new Error('Не найден успешный платёж');
+        throw new Error('No successful payment found');
       }
 
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -97,14 +97,14 @@ export const TuzemoonButton = ({
       await onUpdate();
       
       toast({
-        title: "Tuzemoon Активирован",
-        description: "Ваш мем будет показываться в течение 24 часов",
+        title: "Tuzemoon Activated",
+        description: "Your meme will be featured for 24 hours",
       });
     } catch (error: any) {
       console.error('User activation error:', error);
       toast({
-        title: "Ошибка Активации",
-        description: error.message || "Не удалось активировать Tuzemoon",
+        title: "Activation Error",
+        description: error.message || "Failed to activate Tuzemoon",
         variant: "destructive",
       });
     } finally {
@@ -116,12 +116,16 @@ export const TuzemoonButton = ({
     try {
       await onUpdate();
       setIsModalOpen(false);
+      toast({
+        title: "Payment Successful",
+        description: "You can now activate Tuzemoon for your meme",
+      });
     } catch (error) {
       console.error('Error updating meme status:', error);
     }
   };
 
-  // Проверяем, есть ли успешный платёж
+  // Check if there's a successful payment
   const { data: hasPayment } = useQuery({
     queryKey: ["tuzemoon-payment", memeId],
     queryFn: async () => {
@@ -173,7 +177,7 @@ export const TuzemoonButton = ({
           ) : (
             <Rocket className="h-4 w-4" />
           )}
-          {isFeatured ? "Featured" : "Активировать Tuzemoon"}
+          {isFeatured ? "Featured" : "Activate Tuzemoon"}
         </Button>
       ) : (
         <>
