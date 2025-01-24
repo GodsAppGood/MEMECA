@@ -101,6 +101,7 @@ export const TuzemoonModal = ({
 
   const handleActivation = async () => {
     try {
+      // Сначала обновляем базу данных
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -111,17 +112,16 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
 
-      // Закрываем модальное окно сразу после успешного обновления
+      // Затем обновляем кэш
+      await queryClient.invalidateQueries({ queryKey: ['memes'] });
+      
+      // И только потом закрываем модальное окно и показываем уведомление
       onClose();
       
-      // Показываем уведомление
       toast({
         title: "Tuzemoon Activated",
         description: "Your meme will be featured for 24 hours",
       });
-
-      // Обновляем кэш в самом конце
-      queryClient.invalidateQueries({ queryKey: ['memes'] });
       
     } catch (error: any) {
       console.error('Activation error:', error);
