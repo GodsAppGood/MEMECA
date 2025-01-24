@@ -97,6 +97,7 @@ export const TuzemoonModal = ({
 
   const handleActivation = async () => {
     try {
+      // Простое обновление статуса мема без дополнительных проверок
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -107,6 +108,7 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
 
+      // Обновляем кэш запросов
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       
       onClose();
