@@ -80,11 +80,6 @@ export const TuzemoonModal = ({
 
       if (paymentError) throw paymentError;
 
-      // Update UI
-      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
-      await queryClient.invalidateQueries({ queryKey: ['memes'] });
-      await queryClient.invalidateQueries({ queryKey: ['tuzemoon-payment', memeId] });
-
       setTransactionStatus('success');
       
       toast({
@@ -107,7 +102,6 @@ export const TuzemoonModal = ({
 
   const handleActivation = async () => {
     try {
-      // Обновляем статус мема напрямую
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -118,18 +112,19 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
 
-      // Обновляем кэш запросов
-      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
+      // Обновляем кэш только после успешного обновления в базе
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
+      await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
 
-      // Закрываем модальное окно
       onClose();
-
-      // Показываем уведомление об успехе
+      
       toast({
         title: "Tuzemoon Activated",
         description: "Your meme will be featured for 24 hours",
       });
+
+      // Вызываем onConfirm в последнюю очередь
+      await onConfirm();
     } catch (error: any) {
       console.error('Activation error:', error);
       toast({
