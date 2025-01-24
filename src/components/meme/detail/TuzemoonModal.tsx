@@ -63,50 +63,40 @@ export const TuzemoonModal = ({
       const signature = await phantomWallet.signAndSendTransaction(transaction);
       setTransactionSignature(signature);
 
-      // Если Phantom подтвердил транзакцию, записываем платёж
+      // Записываем платёж
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Записываем платёж
-      const { error: processError } = await supabase.functions.invoke('process-payment', {
-        body: {
+      const { error: paymentError } = await supabase
+        .from('TuzemoonPayments')
+        .insert({
           user_id: user.id,
-          meme_id: memeId,
+          meme_id: parseInt(memeId),
           transaction_signature: signature,
-          wallet_address: walletAddress,
-        }
-      });
+          amount: 0.1,
+          transaction_status: 'success',
+          wallet_address: walletAddress
+        });
 
-      if (processError) throw processError;
-
-      // Активируем Tuzemoon
-      const { error: activationError } = await supabase.functions.invoke('activate-tuzemoon', {
-        body: {
-          user_id: user.id,
-          meme_id: memeId
-        }
-      });
-
-      if (activationError) throw activationError;
+      if (paymentError) throw paymentError;
 
       // Обновляем UI
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
 
       setTransactionStatus('success');
-      onConfirm();
       
       toast({
-        title: "Payment Successful",
-        description: "Your meme has been featured on Tuzemoon!",
+        title: "Оплата успешна",
+        description: "Теперь вы можете активировать Tuzemoon",
       });
 
     } catch (error: any) {
       console.error('Payment error:', error);
       setTransactionStatus('error');
       toast({
-        title: "Payment Failed",
-        description: error.message || "Could not process payment",
+        title: "Ошибка оплаты",
+        description: error.message || "Не удалось обработать платёж",
         variant: "destructive",
       });
     } finally {
@@ -147,7 +137,7 @@ export const TuzemoonModal = ({
             onClick={onClose} 
             disabled={isPaymentProcessing || transactionStatus === 'confirming'}
           >
-            Cancel
+            Отмена
           </Button>
           {isWalletConnected && transactionStatus === 'initial' && !isPaymentProcessing && (
             <Button 
@@ -155,7 +145,7 @@ export const TuzemoonModal = ({
               disabled={isPaymentProcessing}
               className="min-w-[140px]"
             >
-              Pay 0.1 SOL
+              Оплатить 0.1 SOL
             </Button>
           )}
         </DialogFooter>
