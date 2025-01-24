@@ -27,21 +27,7 @@ export const TuzemoonButton = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  console.log('TuzemoonButton render:', {
-    isAdmin,
-    isVerified,
-    isFeatured,
-    memeId,
-    memeTitle
-  });
-
-  // Админская функция активации/деактивации
   const handleAdminActivation = async () => {
-    console.log('Admin activation triggered:', {
-      memeId,
-      currentFeaturedState: isFeatured
-    });
-    
     setIsProcessing(true);
     try {
       const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -57,8 +43,6 @@ export const TuzemoonButton = ({
       if (updateError) throw updateError;
 
       await onUpdate();
-      
-      console.log('Admin activation successful');
       
       toast({
         title: !isFeatured ? "Tuzemoon Activated" : "Tuzemoon Deactivated",
@@ -76,9 +60,7 @@ export const TuzemoonButton = ({
     }
   };
 
-  // Если админ - показываем только админскую кнопку
   if (isAdmin) {
-    console.log('Rendering admin button');
     return (
       <Button
         onClick={handleAdminActivation}
@@ -96,18 +78,13 @@ export const TuzemoonButton = ({
     );
   }
 
-  // Если не верифицирован - ничего не показываем
   if (!isVerified) {
-    console.log('User not verified, hiding button');
     return null;
   }
 
-  // Проверяем оплату только для верифицированных не-админов
   const { data: hasPayment } = useQuery({
     queryKey: ["tuzemoon-payment", memeId],
     queryFn: async () => {
-      console.log('Checking payment status for meme:', memeId);
-      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return false;
 
@@ -124,15 +101,12 @@ export const TuzemoonButton = ({
         return false;
       }
 
-      console.log('Payment status:', !!data);
       return !!data;
     },
     enabled: isVerified && !isAdmin
   });
 
-  // Если есть оплата - показываем кнопку активации
   if (hasPayment) {
-    console.log('User has payment, showing activation button');
     return (
       <Button
         onClick={() => setIsModalOpen(true)}
@@ -146,8 +120,6 @@ export const TuzemoonButton = ({
     );
   }
 
-  // По умолчанию - кнопка для оплаты
-  console.log('Showing payment button');
   return (
     <>
       <Button
