@@ -20,8 +20,6 @@ import { useQueryClient } from "@tanstack/react-query";
 interface TuzemoonModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => Promise<void>;
-  isProcessing: boolean;
   memeTitle: string;
   memeId: string;
 }
@@ -29,8 +27,6 @@ interface TuzemoonModalProps {
 export const TuzemoonModal = ({
   isOpen,
   onClose,
-  onConfirm,
-  isProcessing,
   memeTitle,
   memeId
 }: TuzemoonModalProps) => {
@@ -101,7 +97,7 @@ export const TuzemoonModal = ({
 
   const handleActivation = async () => {
     try {
-      // Сначала обновляем базу данных
+      // Простое обновление статуса мема
       const { error: updateError } = await supabase
         .from('Memes')
         .update({
@@ -112,12 +108,13 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
 
-      // Затем обновляем кэш
+      // Обновляем кэш
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       
-      // И только потом закрываем модальное окно и показываем уведомление
+      // Закрываем модальное окно
       onClose();
       
+      // Показываем уведомление об успехе
       toast({
         title: "Tuzemoon Activated",
         description: "Your meme will be featured for 24 hours",
