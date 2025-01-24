@@ -83,6 +83,7 @@ export const TuzemoonModal = ({
       // Обновляем UI
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
+      await queryClient.invalidateQueries({ queryKey: ['tuzemoon-payment', memeId] });
 
       setTransactionStatus('success');
       
@@ -108,9 +109,9 @@ export const TuzemoonModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Tuzemoon Activation</DialogTitle>
+          <DialogTitle>Активация Tuzemoon</DialogTitle>
           <DialogDescription>
-            Feature "{memeTitle}" on Tuzemoon for 24 hours
+            Разместите "{memeTitle}" на Tuzemoon на 24 часа
           </DialogDescription>
         </DialogHeader>
 
