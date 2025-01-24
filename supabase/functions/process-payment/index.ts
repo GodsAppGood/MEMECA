@@ -20,7 +20,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Создаем запись о платеже
+    // Просто записываем платёж
     const { error: paymentError } = await supabase
       .from('TuzemoonPayments')
       .insert({
@@ -33,14 +33,14 @@ serve(async (req) => {
       })
 
     if (paymentError) {
-      console.error('Payment error:', paymentError)
+      console.error('Payment recording error:', paymentError)
       throw paymentError
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Payment processed successfully'
+        message: 'Payment recorded successfully'
       }),
       { 
         headers: { 
