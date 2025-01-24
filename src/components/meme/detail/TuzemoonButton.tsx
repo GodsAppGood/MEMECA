@@ -63,55 +63,6 @@ export const TuzemoonButton = ({
     }
   };
 
-  const handleUserActivation = async () => {
-    setIsProcessing(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
-
-      // Verify successful payment
-      const { data: payment, error: paymentError } = await supabase
-        .from('TuzemoonPayments')
-        .select('*')
-        .eq('meme_id', parseInt(memeId))
-        .eq('user_id', user.id)
-        .eq('transaction_status', 'success')
-        .single();
-
-      if (paymentError || !payment) {
-        throw new Error('No successful payment found');
-      }
-
-      const tuzemoonUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      
-      const { error: updateError } = await supabase
-        .from('Memes')
-        .update({
-          is_featured: true,
-          tuzemoon_until: tuzemoonUntil
-        })
-        .eq('id', parseInt(memeId));
-
-      if (updateError) throw updateError;
-
-      await onUpdate();
-      
-      toast({
-        title: "Tuzemoon Activated",
-        description: "Your meme will be featured for 24 hours",
-      });
-    } catch (error: any) {
-      console.error('User activation error:', error);
-      toast({
-        title: "Activation Error",
-        description: error.message || "Failed to activate Tuzemoon",
-        variant: "destructive",
-      });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   // Check if there's a successful payment
   const { data: hasPayment } = useQuery({
     queryKey: ["tuzemoon-payment", memeId],
@@ -154,7 +105,7 @@ export const TuzemoonButton = ({
         </Button>
       ) : hasPayment ? (
         <Button
-          onClick={handleUserActivation}
+          onClick={() => setIsModalOpen(true)}
           variant={isFeatured ? "secondary" : "destructive"}
           className="flex items-center gap-2"
           disabled={isProcessing || isFeatured}
