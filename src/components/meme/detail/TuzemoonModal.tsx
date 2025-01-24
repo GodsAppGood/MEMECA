@@ -63,7 +63,7 @@ export const TuzemoonModal = ({
       const signature = await phantomWallet.signAndSendTransaction(transaction);
       setTransactionSignature(signature);
 
-      // Записываем платёж
+      // Record the payment
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
@@ -80,7 +80,7 @@ export const TuzemoonModal = ({
 
       if (paymentError) throw paymentError;
 
-      // Обновляем UI
+      // Update UI
       await queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       await queryClient.invalidateQueries({ queryKey: ['memes'] });
       await queryClient.invalidateQueries({ queryKey: ['tuzemoon-payment', memeId] });
@@ -88,16 +88,22 @@ export const TuzemoonModal = ({
       setTransactionStatus('success');
       
       toast({
-        title: "Оплата успешна",
-        description: "Теперь вы можете активировать Tuzemoon",
+        title: "Payment Successful",
+        description: "Now you can activate Tuzemoon",
       });
+
+      // Close modal and trigger confirmation
+      setTimeout(() => {
+        onConfirm();
+        onClose();
+      }, 2000);
 
     } catch (error: any) {
       console.error('Payment error:', error);
       setTransactionStatus('error');
       toast({
-        title: "Ошибка оплаты",
-        description: error.message || "Не удалось обработать платёж",
+        title: "Payment Error",
+        description: error.message || "Failed to process payment",
         variant: "destructive",
       });
     } finally {
@@ -109,9 +115,9 @@ export const TuzemoonModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Активация Tuzemoon</DialogTitle>
+          <DialogTitle>Activate Tuzemoon</DialogTitle>
           <DialogDescription>
-            Разместите "{memeTitle}" на Tuzemoon на 24 часа
+            Feature "{memeTitle}" on Tuzemoon for 24 hours
           </DialogDescription>
         </DialogHeader>
 
@@ -138,7 +144,7 @@ export const TuzemoonModal = ({
             onClick={onClose} 
             disabled={isPaymentProcessing || transactionStatus === 'confirming'}
           >
-            Отмена
+            Cancel
           </Button>
           {isWalletConnected && transactionStatus === 'initial' && !isPaymentProcessing && (
             <Button 
@@ -146,7 +152,7 @@ export const TuzemoonModal = ({
               disabled={isPaymentProcessing}
               className="min-w-[140px]"
             >
-              Оплатить 0.1 SOL
+              Pay 0.1 SOL
             </Button>
           )}
         </DialogFooter>

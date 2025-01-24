@@ -17,9 +17,9 @@ export const TransactionStatus = ({ status, signature }: TransactionStatusProps)
           <CheckCircle2 className="h-8 w-8 text-green-500" />
         )}
         <span className="text-center font-medium">
-          {status === 'confirming' ? 'Подтверждение транзакции...' :
-           status === 'success' ? 'Оплата успешна!' :
-           status === 'error' ? 'Ошибка оплаты' : ''}
+          {status === 'confirming' ? 'Confirming transaction...' :
+           status === 'success' ? 'Payment successful!' :
+           status === 'error' ? 'Payment error' : ''}
         </span>
       </div>
 
