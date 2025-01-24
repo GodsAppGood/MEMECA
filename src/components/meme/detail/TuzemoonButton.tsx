@@ -4,6 +4,7 @@ import { Loader2, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -163,7 +164,7 @@ export const TuzemoonButton = ({
       ) : hasPayment ? (
         <Button
           onClick={handleUserActivation}
-          variant={isFeatured ? "secondary" : "warning"}
+          variant={isFeatured ? "secondary" : "destructive"}
           className="flex items-center gap-2"
           disabled={isProcessing || isFeatured}
         >
