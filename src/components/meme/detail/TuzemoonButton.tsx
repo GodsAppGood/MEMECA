@@ -27,6 +27,7 @@ export const TuzemoonButton = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
+  // Админская функция активации/деактивации
   const handleAdminActivation = async () => {
     setIsProcessing(true);
     try {
@@ -60,6 +61,31 @@ export const TuzemoonButton = ({
     }
   };
 
+  // Если админ - показываем только админскую кнопку
+  if (isAdmin) {
+    return (
+      <Button
+        onClick={handleAdminActivation}
+        variant={isFeatured ? "secondary" : "default"}
+        className="flex items-center gap-2"
+        disabled={isProcessing}
+      >
+        {isProcessing ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Rocket className="h-4 w-4" />
+        )}
+        {isFeatured ? "Featured" : "Tuzemoon"}
+      </Button>
+    );
+  }
+
+  // Если не верифицирован - ничего не показываем
+  if (!isVerified) {
+    return null;
+  }
+
+  // Проверяем оплату только для верифицированных не-админов
   const { data: hasPayment } = useQuery({
     queryKey: ["tuzemoon-payment", memeId],
     queryFn: async () => {
@@ -81,31 +107,10 @@ export const TuzemoonButton = ({
 
       return !!data;
     },
-    enabled: !isAdmin && isVerified
+    enabled: isVerified && !isAdmin
   });
 
-  if (!isVerified && !isAdmin) {
-    return null;
-  }
-
-  if (isAdmin) {
-    return (
-      <Button
-        onClick={handleAdminActivation}
-        variant={isFeatured ? "secondary" : "default"}
-        className="flex items-center gap-2"
-        disabled={isProcessing}
-      >
-        {isProcessing ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Rocket className="h-4 w-4" />
-        )}
-        {isFeatured ? "Featured" : "Tuzemoon"}
-      </Button>
-    );
-  }
-
+  // Если есть оплата - показываем кнопку активации
   if (hasPayment) {
     return (
       <Button
@@ -120,6 +125,7 @@ export const TuzemoonButton = ({
     );
   }
 
+  // По умолчанию - кнопка для оплаты
   return (
     <>
       <Button
