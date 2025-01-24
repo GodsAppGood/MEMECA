@@ -107,10 +107,9 @@ export const TuzemoonModal = ({
 
       if (updateError) throw updateError;
       
-      // Invalidate all related queries
+      // Invalidate all related queries with consistent keys
       queryClient.invalidateQueries({ queryKey: ['memes'] });
-      queryClient.invalidateQueries({ queryKey: ['featured-memes'] });
-      queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
+      queryClient.invalidateQueries({ queryKey: ['memes', memeId] });
       
       onClose();
       

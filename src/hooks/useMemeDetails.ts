@@ -4,7 +4,7 @@ import type { Meme } from "@/types/meme";
 
 export const useMemeDetails = (id: string | undefined) => {
   return useQuery({
-    queryKey: ["meme", id],
+    queryKey: ["memes", id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("Memes")
