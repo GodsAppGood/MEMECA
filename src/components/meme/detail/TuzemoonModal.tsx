@@ -15,6 +15,7 @@ import { phantomWallet } from "@/services/phantom-wallet";
 import { WalletConnection } from "./tuzemoon/WalletConnection";
 import { PaymentDetails } from "./tuzemoon/PaymentDetails";
 import { TransactionStatus } from "./tuzemoon/TransactionStatus";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface TuzemoonModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const TuzemoonModal = ({
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const [transactionStatus, setTransactionStatus] = useState<'initial' | 'confirming' | 'success' | 'error'>('initial');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handlePayment = async () => {
     try {
@@ -104,6 +106,10 @@ export const TuzemoonModal = ({
         .eq('id', parseInt(memeId));
 
       if (updateError) throw updateError;
+      
+      // Инвалидируем все запросы, связанные с мемами
+      queryClient.invalidateQueries({ queryKey: ['featured-memes'] });
+      queryClient.invalidateQueries({ queryKey: ['meme', memeId] });
       
       onClose();
       
