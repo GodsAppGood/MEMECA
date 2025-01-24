@@ -92,12 +92,6 @@ export const TuzemoonModal = ({
         description: "Now you can activate Tuzemoon",
       });
 
-      // Close modal and trigger confirmation
-      setTimeout(() => {
-        onConfirm();
-        onClose();
-      }, 2000);
-
     } catch (error: any) {
       console.error('Payment error:', error);
       setTransactionStatus('error');
@@ -108,6 +102,24 @@ export const TuzemoonModal = ({
       });
     } finally {
       setIsPaymentProcessing(false);
+    }
+  };
+
+  const handleActivation = async () => {
+    try {
+      await onConfirm();
+      onClose();
+      toast({
+        title: "Tuzemoon Activated",
+        description: "Your meme will be featured for 24 hours",
+      });
+    } catch (error) {
+      console.error('Activation error:', error);
+      toast({
+        title: "Activation Error",
+        description: "Failed to activate Tuzemoon",
+        variant: "destructive",
+      });
     }
   };
 
@@ -153,6 +165,15 @@ export const TuzemoonModal = ({
               className="min-w-[140px]"
             >
               Pay 0.1 SOL
+            </Button>
+          )}
+          {transactionStatus === 'success' && (
+            <Button
+              onClick={handleActivation}
+              variant="default"
+              className="min-w-[140px] bg-yellow-500 hover:bg-yellow-600"
+            >
+              Tuzemoon
             </Button>
           )}
         </DialogFooter>
