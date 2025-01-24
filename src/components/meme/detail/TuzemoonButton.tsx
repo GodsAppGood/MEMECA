@@ -4,6 +4,7 @@ import { Loader2, Rocket } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TuzemoonModal } from "./TuzemoonModal";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface TuzemoonButtonProps {
   memeId: string;
@@ -26,7 +27,6 @@ export const TuzemoonButton = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  // Админская функция активации/деактивации
   const handleAdminActivation = async () => {
     setIsProcessing(true);
     try {
@@ -60,7 +60,6 @@ export const TuzemoonButton = ({
     }
   };
 
-  // Проверяем, есть ли успешный платеж
   const { data: hasPayment } = useQuery({
     queryKey: ["tuzemoon-payment", memeId],
     queryFn: async () => {
@@ -85,12 +84,10 @@ export const TuzemoonButton = ({
     enabled: !isAdmin && isVerified
   });
 
-  // Если не верифицирован и не админ - не показываем кнопку
   if (!isVerified && !isAdmin) {
     return null;
   }
 
-  // Для админов
   if (isAdmin) {
     return (
       <Button
@@ -109,7 +106,6 @@ export const TuzemoonButton = ({
     );
   }
 
-  // Для верифицированных пользователей с оплатой
   if (hasPayment) {
     return (
       <Button
@@ -124,7 +120,6 @@ export const TuzemoonButton = ({
     );
   }
 
-  // Для верифицированных пользователей без оплаты
   return (
     <>
       <Button
