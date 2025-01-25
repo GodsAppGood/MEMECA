@@ -21,14 +21,15 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
     if (date && timeValue) {
       const [hours, minutes] = timeValue.split(':').map(Number);
       const newDate = new Date(date);
-      newDate.setHours(hours, minutes);
+      // Set time in UTC
+      newDate.setUTCHours(hours, minutes);
       setDate(newDate);
     }
   };
 
   return (
     <div className="space-y-4">
-      <label className="block text-sm font-serif mb-2">Listing Time</label>
+      <label className="block text-sm font-serif mb-2">Listing Time (UTC+00:00)</label>
       <div className="flex gap-4">
         <Popover>
           <PopoverTrigger asChild>
@@ -43,9 +44,9 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
               selected={date}
               onSelect={(newDate) => {
                 if (newDate) {
-                  // Keep existing time if available, otherwise use current time
-                  const currentTime = timeInput ? timeInput.split(':').map(Number) : [new Date().getHours(), new Date().getMinutes()];
-                  newDate.setHours(currentTime[0], currentTime[1]);
+                  // Keep existing UTC time if available, otherwise use current UTC time
+                  const currentTime = timeInput ? timeInput.split(':').map(Number) : [new Date().getUTCHours(), new Date().getUTCMinutes()];
+                  newDate.setUTCHours(currentTime[0], currentTime[1]);
                   setDate(newDate);
                   if (!timeInput) {
                     setTimeInput(format(newDate, "HH:mm"));
@@ -72,7 +73,7 @@ export const DateSelector = ({ date, setDate }: DateSelectorProps) => {
       </div>
       {date && (
         <p className="text-sm text-muted-foreground">
-          Meme will be listed on: {format(date, "PPP 'at' HH:mm")}
+          Meme will be listed on: {format(date, "PPP 'at' HH:mm")} (UTC+00:00)
         </p>
       )}
     </div>
