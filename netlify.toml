@@ -24,3 +24,21 @@
     Cache-Control = '''
     public,
     max-age=31536000'''
+
+[[headers]]
+  for = "/og-image.png"
+  [headers.values]
+    Cache-Control = '''
+    public,
+    max-age=31536000'''
+    Content-Type = "image/png"
+    Access-Control-Allow-Origin = "*"
+
+[[headers]]
+  for = "/favicon.ico"
+  [headers.values]
+    Cache-Control = '''
+    public,
+    max-age=31536000'''
+    Content-Type = "image/x-icon"
+    Access-Control-Allow-Origin = "*"
