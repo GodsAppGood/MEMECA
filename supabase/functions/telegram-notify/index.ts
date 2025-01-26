@@ -32,10 +32,10 @@ serve(async (req) => {
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
     const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')
 
-    console.log('Starting Telegram notification with:', {
+    console.log('Starting Telegram notification process:', {
+      timestamp: new Date().toISOString(),
       hasBotToken: !!TELEGRAM_BOT_TOKEN,
-      hasChatId: !!TELEGRAM_CHAT_ID,
-      timestamp: new Date().toISOString()
+      hasChatId: !!TELEGRAM_CHAT_ID
     })
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
@@ -44,7 +44,7 @@ serve(async (req) => {
 
     const payload: WebhookPayload = await req.json()
     
-    console.log('Processing webhook payload:', {
+    console.log('Received webhook payload:', {
       type: payload.type,
       table: payload.table,
       memeId: payload.record?.id,
@@ -70,10 +70,10 @@ serve(async (req) => {
       `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
       `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}` : ''}`
 
-    console.log('Sending message to Telegram:', {
-      chatId: TELEGRAM_CHAT_ID,
+    console.log('Preparing to send message:', {
       messageLength: message.length,
-      hasImage: !!meme.image_url
+      hasImage: !!meme.image_url,
+      timestamp: new Date().toISOString()
     })
 
     // Send text message
@@ -85,15 +85,19 @@ serve(async (req) => {
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'Markdown'
+          parse_mode: 'HTML'
         }),
       }
     )
 
     if (!textResponse.ok) {
-      const error = await textResponse.text()
-      console.error('Telegram API error:', error)
-      throw new Error(`Telegram API error: ${error}`)
+      const errorText = await textResponse.text()
+      console.error('Telegram API error:', {
+        status: textResponse.status,
+        error: errorText,
+        timestamp: new Date().toISOString()
+      })
+      throw new Error(`Telegram API error: ${errorText}`)
     }
 
     console.log('Text message sent successfully')
@@ -115,7 +119,12 @@ serve(async (req) => {
       )
 
       if (!imageResponse.ok) {
-        console.error('Failed to send image:', await imageResponse.text())
+        const imageError = await imageResponse.text()
+        console.error('Failed to send image:', {
+          status: imageResponse.status,
+          error: imageError,
+          timestamp: new Date().toISOString()
+        })
       } else {
         console.log('Image sent successfully')
       }
@@ -129,7 +138,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error:', {
+    console.error('Error in telegram-notify:', {
       message: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()
