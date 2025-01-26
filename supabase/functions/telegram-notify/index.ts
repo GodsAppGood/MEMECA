@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,12 +23,6 @@ interface WebhookPayload {
 }
 
 serve(async (req) => {
-  console.log('Telegram notify function triggered', {
-    method: req.method,
-    url: req.url,
-    timestamp: new Date().toISOString()
-  });
-
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -39,33 +32,28 @@ serve(async (req) => {
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
     const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')
 
-    console.log('Checking environment variables:', {
+    console.log('Starting Telegram notification with:', {
       hasBotToken: !!TELEGRAM_BOT_TOKEN,
       hasChatId: !!TELEGRAM_CHAT_ID,
-      chatIdValue: TELEGRAM_CHAT_ID
-    });
+      timestamp: new Date().toISOString()
+    })
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
       throw new Error('Missing Telegram configuration')
     }
 
-    // Get the request body
     const payload: WebhookPayload = await req.json()
     
-    console.log('Received webhook payload:', {
+    console.log('Processing webhook payload:', {
       type: payload.type,
       table: payload.table,
       memeId: payload.record?.id,
-      memeTitle: payload.record?.title,
       timestamp: new Date().toISOString()
-    });
+    })
 
     // Only process new meme insertions
     if (payload.type !== 'INSERT' || payload.table !== 'Memes') {
-      console.log('Skipping notification - not a new meme insertion', {
-        type: payload.type,
-        table: payload.table
-      });
+      console.log('Skipping - not a new meme insertion')
       return new Response(JSON.stringify({ message: 'Not a new meme' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
@@ -74,88 +62,78 @@ serve(async (req) => {
 
     const meme = payload.record
     
-    // Format the message for Telegram with emojis and better formatting
-    const message = `🎉 New Meme Added! 🎉\n\n` +
-      `📌 *${meme.title}*\n\n` +
+    // Simple message format
+    const message = `🎉 New Meme: ${meme.title}\n\n` +
       `${meme.description ? `📝 ${meme.description}\n\n` : ''}` +
-      `${meme.blockchain ? `⛓️ *Blockchain:* ${meme.blockchain}\n` : ''}` +
-      `\n*Links:*\n` +
-      `${meme.trade_link ? `🔄 [Trade](${meme.trade_link})\n` : ''}` +
-      `${meme.twitter_link ? `🐦 [Twitter](${meme.twitter_link})\n` : ''}` +
-      `${meme.telegram_link ? `📱 [Telegram](${meme.telegram_link})\n` : ''}`
+      `${meme.blockchain ? `⛓️ Chain: ${meme.blockchain}\n\n` : ''}` +
+      `${meme.trade_link ? `🔄 Trade: ${meme.trade_link}\n` : ''}` +
+      `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
+      `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}` : ''}`
 
-    console.log('Sending Telegram message:', {
+    console.log('Sending message to Telegram:', {
       chatId: TELEGRAM_CHAT_ID,
       messageLength: message.length,
       hasImage: !!meme.image_url
-    });
+    })
 
-    // First send the text message with markdown formatting
+    // Send text message
     const textResponse = await fetch(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: TELEGRAM_CHAT_ID,
           text: message,
-          parse_mode: 'Markdown',
-          disable_web_page_preview: true // Disable preview as we'll send image separately
+          parse_mode: 'Markdown'
         }),
       }
     )
 
-    const textResponseData = await textResponse.json();
-    console.log('Telegram text message response:', textResponseData);
-
     if (!textResponse.ok) {
-      throw new Error(`Failed to send Telegram message: ${JSON.stringify(textResponseData)}`)
+      const error = await textResponse.text()
+      console.error('Telegram API error:', error)
+      throw new Error(`Telegram API error: ${error}`)
     }
 
-    // If there's an image, send it as a separate message
-    if (meme.image_url) {
-      console.log('Sending image to Telegram:', {
-        imageUrl: meme.image_url
-      });
+    console.log('Text message sent successfully')
 
+    // Send image if present
+    if (meme.image_url) {
+      console.log('Sending image:', { url: meme.image_url })
+      
       const imageResponse = await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
         {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: TELEGRAM_CHAT_ID,
-            photo: meme.image_url,
-            caption: `🖼️ Image for: ${meme.title}`
+            photo: meme.image_url
           }),
         }
       )
 
-      const imageResponseData = await imageResponse.json();
-      console.log('Telegram image response:', imageResponseData);
-
       if (!imageResponse.ok) {
-        console.error('Failed to send image:', imageResponseData);
+        console.error('Failed to send image:', await imageResponse.text())
+      } else {
+        console.log('Image sent successfully')
       }
     }
 
     return new Response(
-      JSON.stringify({ message: 'Notification sent successfully' }),
+      JSON.stringify({ success: true }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     )
   } catch (error) {
-    console.error('Error processing webhook:', {
-      error: error.message,
+    console.error('Error:', {
+      message: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()
-    });
+    })
 
     return new Response(
       JSON.stringify({ error: error.message }),
