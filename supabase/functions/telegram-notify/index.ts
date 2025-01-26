@@ -32,24 +32,23 @@ interface WebhookPayload {
 }
 
 async function handleCommand(chatId: number, command: string, botToken: string) {
+  console.log('Handling command:', command, 'for chat:', chatId);
+  
   const messages = {
-    '/start': '👋 Привет! Я бот MemeCAI. Я буду отправлять уведомления о новых мемах и помогать вам следить за обновлениями.',
+    '/start': '👋 Привет! Я бот MemeCAI. Я буду отправлять уведомления о новых мемах.',
     '/help': `🔍 Доступные команды:
 /start - Начать использование бота
 /help - Получить помощь
 /about - О проекте MemeCAI
-/status - Проверить статус бота
-/subscribe - Подписаться на уведомления
-/unsubscribe - Отписаться от уведомлений`,
-    '/about': '📱 MemeCAI - это проект для создания и обмена мемами с использованием AI.',
-    '/status': '✅ Бот активен и работает нормально.',
-    '/subscribe': '🔔 Вы подписались на уведомления о новых мемах!',
-    '/unsubscribe': '🔕 Вы отписались от уведомлений о новых мемах.'
+/status - Проверить статус бота`,
+    '/about': '📱 MemeCAI - это проект для создания и обмена мемами.',
+    '/status': '✅ Бот активен и работает нормально.'
   };
 
-  const message = messages[command as keyof typeof messages] || 'Неизвестная команда. Используйте /help для списка команд.';
+  const message = messages[command as keyof typeof messages] || 'Используйте /help для списка команд.';
 
   try {
+    console.log('Sending response:', message);
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
@@ -64,14 +63,20 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
     );
 
     if (!response.ok) {
-      console.error('Failed to send command response:', await response.text());
+      const errorText = await response.text();
+      console.error('Failed to send command response:', errorText);
+      throw new Error(`Telegram API error: ${errorText}`);
     }
+
+    console.log('Command response sent successfully');
   } catch (error) {
     console.error('Error sending command response:', error);
+    throw error;
   }
 }
 
 serve(async (req) => {
+  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -80,20 +85,24 @@ serve(async (req) => {
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN')
     const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')
 
-    console.log('Starting Telegram notification process:', {
+    console.log('Processing request:', {
+      method: req.method,
+      url: req.url,
       timestamp: new Date().toISOString(),
       hasBotToken: !!TELEGRAM_BOT_TOKEN,
       hasChatId: !!TELEGRAM_CHAT_ID
-    })
+    });
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
       throw new Error('Missing Telegram configuration')
     }
 
-    // Check if this is a Telegram update
     const update: TelegramUpdate = await req.json()
+    
+    // Handle Telegram commands
     if (update.message?.chat?.id && update.message?.text) {
-      // This is a command from Telegram
+      console.log('Received message:', update.message.text);
+      
       if (update.message.text.startsWith('/')) {
         await handleCommand(update.message.chat.id, update.message.text, TELEGRAM_BOT_TOKEN)
         return new Response(JSON.stringify({ ok: true }), {
@@ -107,7 +116,6 @@ serve(async (req) => {
     if (payload.type === 'INSERT' && payload.table === 'Memes') {
       const meme = payload.record
       
-      // Simple message format
       const message = `🎉 New Meme: ${meme.title}\n\n` +
         `${meme.description ? `📝 ${meme.description}\n\n` : ''}` +
         `${meme.blockchain ? `⛓️ Chain: ${meme.blockchain}\n\n` : ''}` +
@@ -115,11 +123,11 @@ serve(async (req) => {
         `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
         `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}` : ''}`
 
-      console.log('Preparing to send message:', {
+      console.log('Sending notification:', {
         messageLength: message.length,
         hasImage: !!meme.image_url,
         timestamp: new Date().toISOString()
-      })
+      });
 
       // Send text message
       const textResponse = await fetch(
@@ -137,19 +145,19 @@ serve(async (req) => {
 
       if (!textResponse.ok) {
         const errorText = await textResponse.text()
-        console.error('Telegram API error:', {
+        console.error('Failed to send text message:', {
           status: textResponse.status,
           error: errorText,
           timestamp: new Date().toISOString()
-        })
+        });
         throw new Error(`Telegram API error: ${errorText}`)
       }
 
-      console.log('Text message sent successfully')
+      console.log('Text message sent successfully');
 
       // Send image if present
       if (meme.image_url) {
-        console.log('Sending image:', { url: meme.image_url })
+        console.log('Sending image:', { url: meme.image_url });
         
         const imageResponse = await fetch(
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
@@ -169,9 +177,9 @@ serve(async (req) => {
             status: imageResponse.status,
             error: imageError,
             timestamp: new Date().toISOString()
-          })
+          });
         } else {
-          console.log('Image sent successfully')
+          console.log('Image sent successfully');
         }
       }
     }
@@ -188,7 +196,7 @@ serve(async (req) => {
       message: error.message,
       stack: error.stack,
       timestamp: new Date().toISOString()
-    })
+    });
 
     return new Response(
       JSON.stringify({ error: error.message }),
