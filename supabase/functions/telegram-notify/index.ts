@@ -48,7 +48,12 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
   const message = messages[command as keyof typeof messages] || 'Используйте /help для списка команд.';
 
   try {
-    console.log('Sending response:', message);
+    console.log('Sending message to Telegram API:', {
+      chat_id: chatId,
+      text: message,
+      parse_mode: 'HTML'
+    });
+
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
@@ -64,11 +69,16 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Failed to send command response:', errorText);
+      console.error('Failed to send command response:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText
+      });
       throw new Error(`Telegram API error: ${errorText}`);
     }
 
-    console.log('Command response sent successfully');
+    const responseData = await response.json();
+    console.log('Telegram API response:', responseData);
   } catch (error) {
     console.error('Error sending command response:', error);
     throw error;
@@ -94,6 +104,10 @@ serve(async (req) => {
     });
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.error('Missing Telegram configuration:', {
+        hasBotToken: !!TELEGRAM_BOT_TOKEN,
+        hasChatId: !!TELEGRAM_CHAT_ID
+      });
       throw new Error('Missing Telegram configuration')
     }
 
@@ -101,7 +115,11 @@ serve(async (req) => {
     
     // Handle Telegram commands
     if (update.message?.chat?.id && update.message?.text) {
-      console.log('Received message:', update.message.text);
+      console.log('Received Telegram update:', {
+        chatId: update.message.chat.id,
+        text: update.message.text,
+        timestamp: new Date().toISOString()
+      });
       
       if (update.message.text.startsWith('/')) {
         await handleCommand(update.message.chat.id, update.message.text, TELEGRAM_BOT_TOKEN)
