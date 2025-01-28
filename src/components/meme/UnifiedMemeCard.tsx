@@ -50,27 +50,34 @@ export const UnifiedMemeCard = ({
 
   return (
     <Card 
-      className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative flex flex-col min-h-[450px] max-h-[600px]
-        ${isFirst ? 'border-2 border-yellow-400' : ''}
+      className={`group overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer relative flex flex-col min-h-[450px] max-h-[600px] bg-gradient-to-b from-background to-gray-50 dark:from-gray-900 dark:to-gray-800
+        ${isFirst ? 'ring-2 ring-yellow-400 shadow-lg shadow-yellow-100/20' : 'hover:shadow-xl'}
         ${isTuzemoon ? 'animate-pulse-border' : ''}`}
       onClick={handleCardClick}
     >
-      <MemeCardImage
-        imageUrl={meme.image_url}
-        title={meme.title}
-        position={position}
-        isFirst={isFirst}
-        className="h-48 md:h-56 lg:h-64 object-cover"
-      />
-      <div className="p-4 flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-2">
+      <div className="relative overflow-hidden">
+        <MemeCardImage
+          imageUrl={meme.image_url}
+          title={meme.title}
+          position={position}
+          isFirst={isFirst}
+          className="h-48 md:h-56 lg:h-64 object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        {isTuzemoon && (
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
+        )}
+      </div>
+
+      <div className="p-6 flex flex-col flex-grow space-y-4">
+        <div className="flex justify-between items-start gap-2">
           <div className="space-y-2 flex-grow">
             <div className="flex items-center gap-2">
-              <h3 className="text-lg font-semibold line-clamp-1 break-words" title={meme.title}>
+              <h3 className="text-lg font-semibold line-clamp-1 break-words group-hover:text-primary transition-colors" 
+                  title={meme.title}>
                 {truncateTitle(meme.title)}
               </h3>
               {isTuzemoon && (
-                <Badge className="bg-red-500 text-white animate-pulse shrink-0">
+                <Badge className="bg-gradient-to-r from-red-500 to-orange-500 text-white animate-pulse shrink-0">
                   <Flame className="w-4 h-4 mr-1" />
                   Hot
                 </Badge>
@@ -81,22 +88,26 @@ export const UnifiedMemeCard = ({
             )}
           </div>
         </div>
+
         {meme.description && (
-          <p className="text-sm text-muted-foreground mb-4 line-clamp-4 break-words flex-grow overflow-hidden">
+          <p className="text-sm text-muted-foreground line-clamp-3 break-words flex-grow">
             {meme.description}
           </p>
         )}
-        <span className="text-sm text-muted-foreground">
-          {format(new Date(meme.created_at), 'PPP')}
-        </span>
-        <MemeCardActions
-          meme={meme}
-          userLikes={userLikes}
-          userPoints={userPoints}
-          userId={userId}
-          isFirst={isFirst}
-          className="mt-auto"
-        />
+
+        <div className="flex flex-col space-y-4 mt-auto pt-4 border-t border-gray-100 dark:border-gray-700">
+          <span className="text-xs text-muted-foreground">
+            {format(new Date(meme.created_at), 'PPP')}
+          </span>
+          <MemeCardActions
+            meme={meme}
+            userLikes={userLikes}
+            userPoints={userPoints}
+            userId={userId}
+            isFirst={isFirst}
+            className="mt-auto"
+          />
+        </div>
       </div>
     </Card>
   );
