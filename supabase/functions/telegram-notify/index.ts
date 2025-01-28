@@ -6,6 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -15,23 +16,27 @@ serve(async (req) => {
     const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.error('Missing Telegram configuration')
       throw new Error('Missing Telegram configuration')
     }
 
     const payload = await req.json()
+    console.log('Received payload:', payload)
     
-    // Обрабатываем только новые мемы
+    // Only process new memes
     if (payload.type === 'INSERT' && payload.table === 'Memes') {
       const meme = payload.record
       
-      const message = `🎉 Новый Мем: ${meme.title}\n\n` +
+      const message = `🎉 New Meme: ${meme.title}\n\n` +
         `${meme.description ? `📝 ${meme.description}\n\n` : ''}` +
         `${meme.blockchain ? `⛓️ Chain: ${meme.blockchain}\n\n` : ''}` +
         `${meme.trade_link ? `🔄 Trade: ${meme.trade_link}\n` : ''}` +
         `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
         `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}` : ''}`
 
-      // Отправляем текст
+      console.log('Sending message to Telegram:', message)
+
+      // Send text message
       const textResponse = await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
@@ -46,11 +51,16 @@ serve(async (req) => {
       )
 
       if (!textResponse.ok) {
+        console.error('Telegram API error:', await textResponse.text())
         throw new Error(`Telegram API error: ${await textResponse.text()}`)
       }
 
-      // Отправляем изображение если есть
+      console.log('Text message sent successfully')
+
+      // Send image if available
       if (meme.image_url) {
+        console.log('Sending image:', meme.image_url)
+        
         const imageResponse = await fetch(
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
           {
@@ -65,6 +75,8 @@ serve(async (req) => {
 
         if (!imageResponse.ok) {
           console.error('Failed to send image:', await imageResponse.text())
+        } else {
+          console.log('Image sent successfully')
         }
       }
     }
