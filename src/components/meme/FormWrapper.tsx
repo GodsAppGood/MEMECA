@@ -32,6 +32,7 @@ export const FormWrapper = ({
   const [tradeLink, setTradeLink] = useState(initialData?.trade_link || "");
   const [imageUrl, setImageUrl] = useState(initialData?.image_url || "");
   const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
 
   const { validateForm } = useFormValidation();
   const { handleSubmission, isSubmitting } = useFormSubmission();
@@ -85,25 +86,38 @@ export const FormWrapper = ({
       return;
     }
 
-    const memeData = {
-      title,
-      description,
-      blockchain,
-      twitter_link: twitterLink || null,
-      telegram_link: telegramLink || null,
-      trade_link: tradeLink || null,
-      image_url: imageUrl,
-      created_by: user.id,
-      created_at: createdAt?.toISOString() || new Date().toISOString(),
-      time_until_listing: createdAt?.toISOString() || new Date().toISOString()
-    };
+    try {
+      const memeData = {
+        title,
+        description,
+        blockchain,
+        twitter_link: twitterLink || null,
+        telegram_link: telegramLink || null,
+        trade_link: tradeLink || null,
+        image_url: imageUrl,
+        created_by: user.id,
+        created_at: createdAt?.toISOString() || new Date().toISOString(),
+        time_until_listing: createdAt?.toISOString() || new Date().toISOString()
+      };
 
-    console.log("Submitting meme data:", { memeData, isEditMode, memeId: initialData?.id });
-    
-    const success = await handleSubmission(memeData, isEditMode, initialData?.id);
-    
-    if (success) {
-      navigate("/my-memes");
+      console.log("Submitting meme data:", { memeData, isEditMode, memeId: initialData?.id });
+      
+      const success = await handleSubmission(memeData, isEditMode, initialData?.id);
+      
+      if (success) {
+        toast({
+          title: isEditMode ? "Мем обновлен" : "Мем создан",
+          description: isEditMode ? "Ваш мем был успешно обновлен" : "Ваш мем был успешно создан",
+        });
+        navigate("/my-memes");
+      }
+    } catch (error: any) {
+      console.error("Error submitting meme:", error);
+      toast({
+        variant: "destructive",
+        title: "Ошибка",
+        description: error.message || "Произошла ошибка при сохранении мема",
+      });
     }
   };
 
