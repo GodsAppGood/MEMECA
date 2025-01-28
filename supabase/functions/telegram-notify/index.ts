@@ -71,8 +71,7 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
       throw new Error(`Telegram API error: ${errorText}`);
     }
 
-    const responseData = await response.json();
-    console.log('Successfully sent message:', responseData);
+    console.log('Successfully sent message to Telegram');
   } catch (error) {
     console.error('Error sending command response:', error);
     throw error;
@@ -96,8 +95,11 @@ serve(async (req) => {
       hasChatId: !!TELEGRAM_CHAT_ID
     });
 
-    if (!TELEGRAM_BOT_TOKEN) {
-      console.error('Missing TELEGRAM_BOT_TOKEN');
+    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
+      console.error('Missing Telegram configuration:', {
+        hasBotToken: !!TELEGRAM_BOT_TOKEN,
+        hasChatId: !!TELEGRAM_CHAT_ID
+      });
       throw new Error('Missing Telegram configuration')
     }
 
@@ -121,7 +123,7 @@ serve(async (req) => {
 
     // Handle webhook notification for new memes
     const payload = update as unknown as WebhookPayload
-    if (payload.type === 'INSERT' && payload.table === 'Memes' && TELEGRAM_CHAT_ID) {
+    if (payload.type === 'INSERT' && payload.table === 'Memes') {
       const meme = payload.record
       
       const message = `🎉 New Meme: ${meme.title}\n\n` +
