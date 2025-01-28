@@ -8,6 +8,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { AdminButton } from "@/components/admin/AdminButton";
 import { useSearchParams } from "react-router-dom";
 import { WheelWidget } from "@/components/wheel/WheelWidget";
+import { createTestMeme } from "@/utils/testMeme";
+import { toast } from "sonner";
 
 const Index = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,7 +19,20 @@ const Index = () => {
   const [appliedBlockchain, setAppliedBlockchain] = useState<string>();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Initialize page from URL on component mount
+  useEffect(() => {
+    const testNotification = async () => {
+      try {
+        await createTestMeme();
+        toast.success("Test meme created successfully! Check Telegram for notification.");
+      } catch (error) {
+        console.error('Failed to create test meme:', error);
+        toast.error("Failed to create test meme");
+      }
+    };
+    
+    testNotification();
+  }, []);
+
   useEffect(() => {
     const pageParam = searchParams.get('page');
     if (pageParam) {
