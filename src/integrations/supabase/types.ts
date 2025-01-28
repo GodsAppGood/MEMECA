@@ -9,24 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      backup_functions: {
-        Row: {
-          backup_timestamp: string | null
-          function_definition: string | null
-          function_name: string | null
-        }
-        Insert: {
-          backup_timestamp?: string | null
-          function_definition?: string | null
-          function_name?: string | null
-        }
-        Update: {
-          backup_timestamp?: string | null
-          function_definition?: string | null
-          function_name?: string | null
-        }
-        Relationships: []
-      }
       Likes: {
         Row: {
           created_at: string
