@@ -6,7 +6,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -16,68 +15,40 @@ serve(async (req) => {
     const TELEGRAM_CHAT_ID = Deno.env.get('TELEGRAM_CHAT_ID')
 
     if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-      console.error('Missing Telegram configuration')
       throw new Error('Missing Telegram configuration')
     }
 
     const payload = await req.json()
     console.log('Received payload:', payload)
     
-    // Only process new memes
+    // Обрабатываем только новые мемы
     if (payload.type === 'INSERT' && payload.table === 'Memes') {
       const meme = payload.record
       
-      const message = `🎉 New Meme: ${meme.title}\n\n` +
+      const caption = `🎉 New Meme: ${meme.title}\n\n` +
         `${meme.description ? `📝 ${meme.description}\n\n` : ''}` +
         `${meme.blockchain ? `⛓️ Chain: ${meme.blockchain}\n\n` : ''}` +
         `${meme.trade_link ? `🔄 Trade: ${meme.trade_link}\n` : ''}` +
         `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
         `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}` : ''}`
 
-      console.log('Sending message to Telegram:', message)
-
-      // Send text message
-      const textResponse = await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      // Отправляем одно сообщение с картинкой и текстом
+      const response = await fetch(
+        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: TELEGRAM_CHAT_ID,
-            text: message,
+            photo: meme.image_url,
+            caption: caption,
             parse_mode: 'HTML'
           }),
         }
       )
 
-      if (!textResponse.ok) {
-        console.error('Telegram API error:', await textResponse.text())
-        throw new Error(`Telegram API error: ${await textResponse.text()}`)
-      }
-
-      console.log('Text message sent successfully')
-
-      // Send image if available
-      if (meme.image_url) {
-        console.log('Sending image:', meme.image_url)
-        
-        const imageResponse = await fetch(
-          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chat_id: TELEGRAM_CHAT_ID,
-              photo: meme.image_url
-            }),
-          }
-        )
-
-        if (!imageResponse.ok) {
-          console.error('Failed to send image:', await imageResponse.text())
-        } else {
-          console.log('Image sent successfully')
-        }
+      if (!response.ok) {
+        throw new Error(`Telegram API error: ${await response.text()}`)
       }
     }
 
