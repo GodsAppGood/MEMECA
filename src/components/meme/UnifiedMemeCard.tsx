@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { MemeCardActions } from "./MemeCardActions";
 import { MemeCardImage } from "./MemeCardImage";
 import { CountdownTimer } from "./CountdownTimer";
-import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Flame } from "lucide-react";
+import { format } from "date-fns";
 
 interface UnifiedMemeCardProps {
   meme: {
@@ -50,8 +50,8 @@ export const UnifiedMemeCard = ({
 
   return (
     <Card 
-      className={`group overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer relative flex flex-col min-h-[450px] max-h-[600px] bg-gradient-to-b from-background to-gray-50 dark:from-gray-900 dark:to-gray-800
-        ${isFirst ? 'ring-2 ring-yellow-400 shadow-lg shadow-yellow-100/20' : 'hover:shadow-xl'}
+      className={`group overflow-hidden transition-all duration-300 hover:scale-105 cursor-pointer relative flex flex-col min-h-[450px] max-h-[600px] bg-gradient-to-b from-background to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl border-2
+        ${isFirst ? 'ring-2 ring-[#FFB74D] shadow-lg shadow-[#FFB74D]/20' : 'border-[#FFB74D] hover:shadow-xl'}
         ${isTuzemoon ? 'animate-pulse-border' : ''}`}
       onClick={handleCardClick}
     >
