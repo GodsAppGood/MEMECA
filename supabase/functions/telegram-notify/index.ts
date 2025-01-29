@@ -53,6 +53,8 @@ async function sendTelegramMessage(meme: MemeNotification) {
   
   message += `\n🌐 [Visit Memeca](${websiteUrl})`;
 
+  console.log('Sending Telegram message:', message);
+
   const apiUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
   const params = {
     chat_id: TELEGRAM_CHAT_ID,
@@ -70,6 +72,8 @@ async function sendTelegramMessage(meme: MemeNotification) {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Telegram API error:', errorText);
     throw new Error(`Telegram API error: ${response.statusText}`);
   }
 
@@ -84,7 +88,10 @@ serve(async (req) => {
 
   try {
     const meme: MemeNotification = await req.json();
+    console.log('Received meme notification request:', meme);
+    
     const result = await sendTelegramMessage(meme);
+    console.log('Telegram API response:', result);
 
     return new Response(
       JSON.stringify(result),
@@ -96,6 +103,7 @@ serve(async (req) => {
       }
     );
   } catch (error) {
+    console.error('Error in telegram-notify function:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
