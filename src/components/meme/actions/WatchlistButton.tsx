@@ -23,28 +23,18 @@ export const WatchlistButton = ({
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Check if meme is in watchlist on component mount
   useEffect(() => {
     const checkWatchlistStatus = async () => {
       if (!userId) return;
 
-      try {
-        const { data, error } = await supabase
-          .from('Watchlist')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('meme_id', Number(memeId))
-          .single();
+      const { data } = await supabase
+        .from('Watchlist')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('meme_id', Number(memeId))
+        .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking watchlist status:', error);
-          return;
-        }
-
-        setIsInWatchlist(!!data);
-      } catch (error) {
-        console.error('Error checking watchlist:', error);
-      }
+      setIsInWatchlist(!!data);
     };
 
     void checkWatchlistStatus();
@@ -59,14 +49,11 @@ export const WatchlistButton = ({
     setIsLoading(true);
     try {
       if (isInWatchlist) {
-        // Remove from watchlist
-        const { error: deleteError } = await supabase
+        await supabase
           .from('Watchlist')
           .delete()
           .eq('user_id', userId)
           .eq('meme_id', Number(memeId));
-
-        if (deleteError) throw deleteError;
 
         setIsInWatchlist(false);
         toast({
@@ -74,21 +61,12 @@ export const WatchlistButton = ({
           description: "This meme has been removed from your watchlist.",
         });
       } else {
-        // Add to watchlist
-        const { error: insertError } = await supabase
+        await supabase
           .from('Watchlist')
           .insert([{ 
             user_id: userId, 
             meme_id: Number(memeId) 
           }]);
-
-        if (insertError) {
-          if (insertError.code === '23505') {
-            console.log("Meme already in watchlist");
-            return;
-          }
-          throw insertError;
-        }
 
         setIsInWatchlist(true);
         toast({
@@ -96,7 +74,7 @@ export const WatchlistButton = ({
           description: "This meme has been added to your watchlist.",
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error updating watchlist:", error);
       toast({
         title: "Error",

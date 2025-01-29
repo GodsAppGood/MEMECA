@@ -1,4 +1,3 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -14,10 +13,9 @@ export function Watchlist() {
   useEffect(() => {
     const getSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        const { data: { session } } = await supabase.auth.getSession();
         setUserId(session?.user?.id ?? null);
-      } catch (error: any) {
+      } catch (error) {
         console.error("Session error:", error);
         toast({
           title: "Authentication Error",
@@ -36,65 +34,27 @@ export function Watchlist() {
     queryFn: async () => {
       if (!userId) return [];
       
-      try {
-        console.log("Fetching watchlist for user:", userId);
-        
-        // Сначала получаем записи из Watchlist
-        const { data: watchlistData, error: watchlistError } = await supabase
-          .from('Watchlist')
-          .select(`
-            meme_id,
-            Memes (
-              id,
-              title,
-              description,
-              image_url,
-              created_at,
-              likes,
-              created_by,
-              time_until_listing,
-              is_featured,
-              tuzemoon_until
-            )
-          `)
-          .eq('user_id', userId)
-          .not('meme_id', 'is', null);
-        
-        if (watchlistError) {
-          console.error("Error fetching watchlist:", watchlistError);
-          throw new Error("Failed to fetch watchlist");
-        }
-        
-        console.log("Raw watchlist data:", watchlistData);
-        
-        // Фильтруем null значения и преобразуем данные
-        const memes = watchlistData
-          .filter(item => item.Memes !== null)
-          .map(item => ({
-            ...item.Memes,
-            id: item.Memes.id.toString()
-          }));
-          
-        console.log("Processed memes:", memes);
-        return memes;
-      } catch (error: any) {
-        console.error("Unexpected error:", error);
-        throw error;
-      }
+      const { data: watchlistData, error: watchlistError } = await supabase
+        .from('Watchlist')
+        .select(`
+          meme_id,
+          Memes (*)
+        `)
+        .eq('user_id', userId);
+      
+      if (watchlistError) throw watchlistError;
+      
+      return watchlistData
+        .filter(item => item.Memes)
+        .map(item => ({
+          ...item.Memes,
+          id: item.Memes.id.toString()
+        }));
     },
-    enabled: !!userId,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    staleTime: 1000 * 60,
-    refetchOnWindowFocus: true,
-    meta: {
-      errorMessage: "Failed to fetch watchlist"
-    }
+    enabled: !!userId
   });
 
-  // Use the subscription hook to handle real-time updates
   useWatchlistSubscription(() => {
-    console.log("Watchlist updated, refetching...");
     void refetch();
   });
 
