@@ -38,12 +38,10 @@ export function Watchlist() {
       
       try {
         console.log("Fetching watchlist for user:", userId);
+        // Изменённый запрос для правильного получения мемов
         const { data: watchlistData, error: watchlistError } = await supabase
           .from('Watchlist')
-          .select(`
-            meme_id,
-            Memes (*)
-          `)
+          .select('*, Memes!inner(*)')
           .eq('user_id', userId);
         
         if (watchlistError) {
@@ -53,9 +51,7 @@ export function Watchlist() {
         
         console.log("Watchlist data:", watchlistData);
         
-        if (!watchlistData) return [];
-        
-        // Transform the data to get the Memes objects
+        // Преобразуем данные для получения массива мемов
         const memes = watchlistData.map(item => item.Memes);
         return memes || [];
       } catch (error: any) {
