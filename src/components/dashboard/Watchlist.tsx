@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { UnifiedMemeCard } from "../meme/UnifiedMemeCard";
@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 export function Watchlist() {
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     const getSession = async () => {
@@ -27,32 +26,6 @@ export function Watchlist() {
     void getSession();
   }, [toast]);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel('watchlist_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'Watchlist',
-          filter: userId ? `user_id=eq.${userId}` : undefined
-        },
-        () => {
-          void queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] });
-          void queryClient.invalidateQueries({ 
-            queryKey: ["watchlist-status"],
-            exact: false
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [userId, queryClient]);
-
   const { userPoints, userLikes } = useUserData(userId);
 
   const { data: watchlistMemes = [], isLoading, error } = useQuery({
@@ -60,32 +33,25 @@ export function Watchlist() {
     queryFn: async () => {
       if (!userId) return [];
       
-      // Используем простой подход с двумя запросами
-      // 1. Сначала получаем все ID мемов из watchlist
       const { data: watchlistData, error: watchlistError } = await supabase
         .from('Watchlist')
-        .select('meme_id')
+        .select(`
+          meme_id,
+          Memes (*)
+        `)
         .eq('user_id', userId);
       
       if (watchlistError) throw watchlistError;
       
-      if (!watchlistData?.length) return [];
-      
-      // 2. Затем получаем сами мемы по их ID
-      const memeIds = watchlistData.map(item => item.meme_id);
-      const { data: memesData, error: memesError } = await supabase
-        .from('Memes')
-        .select('*')
-        .in('id', memeIds);
-      
-      if (memesError) throw memesError;
-      
-      return memesData.map(meme => ({
-        ...meme,
-        id: meme.id.toString()
-      }));
+      return watchlistData
+        .filter(item => item.Memes)
+        .map(item => ({
+          ...item.Memes,
+          id: item.Memes.id.toString()
+        }));
     },
-    enabled: !!userId
+    enabled: !!userId,
+    refetchInterval: 5000 // Обновляем каждые 5 секунд
   });
 
   return (

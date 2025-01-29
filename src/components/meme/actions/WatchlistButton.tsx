@@ -3,7 +3,7 @@ import { Bookmark } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 interface WatchlistButtonProps {
   memeId: string;
@@ -21,7 +21,6 @@ export const WatchlistButton = ({
   className = ""
 }: WatchlistButtonProps) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [localWatchlistState, setLocalWatchlistState] = useState(false);
   
   const { data: isInWatchlist = false } = useQuery({
@@ -59,7 +58,10 @@ export const WatchlistButton = ({
           .eq('user_id', userId)
           .eq('meme_id', Number(memeId));
 
-        if (error) throw error;
+        if (error) {
+          console.error("Full error details:", error);
+          throw error;
+        }
         
         setLocalWatchlistState(false);
         toast({
@@ -75,10 +77,7 @@ export const WatchlistButton = ({
           }]);
 
         if (error) {
-          if (error.code === '23505') {
-            console.log("Meme already in watchlist");
-            return;
-          }
+          console.error("Full error details:", error);
           throw error;
         }
         
@@ -88,15 +87,6 @@ export const WatchlistButton = ({
           description: "This meme has been added to your watchlist.",
         });
       }
-
-      // Инвалидируем кэш после успешного действия
-      await queryClient.invalidateQueries({ 
-        queryKey: ["watchlist-status", userId, memeId]
-      });
-      await queryClient.invalidateQueries({
-        queryKey: ["watchlist-memes"]
-      });
-
     } catch (error) {
       console.error("Error updating watchlist:", error);
       toast({
