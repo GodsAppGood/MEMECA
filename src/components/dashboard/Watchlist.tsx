@@ -38,10 +38,27 @@ export function Watchlist() {
       
       try {
         console.log("Fetching watchlist for user:", userId);
+        
+        // Сначала получаем записи из Watchlist
         const { data: watchlistData, error: watchlistError } = await supabase
           .from('Watchlist')
-          .select('meme_id, Memes(*)')
-          .eq('user_id', userId);
+          .select(`
+            meme_id,
+            Memes (
+              id,
+              title,
+              description,
+              image_url,
+              created_at,
+              likes,
+              created_by,
+              time_until_listing,
+              is_featured,
+              tuzemoon_until
+            )
+          `)
+          .eq('user_id', userId)
+          .not('meme_id', 'is', null);
         
         if (watchlistError) {
           console.error("Error fetching watchlist:", watchlistError);
@@ -50,13 +67,16 @@ export function Watchlist() {
         
         console.log("Raw watchlist data:", watchlistData);
         
-        // Преобразуем данные для получения массива мемов
+        // Фильтруем null значения и преобразуем данные
         const memes = watchlistData
-          .map(item => item.Memes)
-          .filter(meme => meme !== null);
+          .filter(item => item.Memes !== null)
+          .map(item => ({
+            ...item.Memes,
+            id: item.Memes.id.toString()
+          }));
           
         console.log("Processed memes:", memes);
-        return memes || [];
+        return memes;
       } catch (error: any) {
         console.error("Unexpected error:", error);
         throw error;
