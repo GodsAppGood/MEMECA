@@ -3,6 +3,7 @@ import { Bookmark } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 
 interface WatchlistButtonProps {
   memeId: string;
@@ -19,26 +20,25 @@ export const WatchlistButton = ({
   showText = false,
   className = ""
 }: WatchlistButtonProps) => {
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const checkWatchlistStatus = async () => {
-      if (!userId) return;
-
+  
+  // Используем useQuery для получения статуса watchlist
+  const { data: isInWatchlist = false, refetch } = useQuery({
+    queryKey: ["watchlist-status", userId, memeId],
+    queryFn: async () => {
+      if (!userId) return false;
+      
       const { data } = await supabase
         .from('Watchlist')
         .select('id')
         .eq('user_id', userId)
         .eq('meme_id', Number(memeId))
         .maybeSingle();
-
-      setIsInWatchlist(!!data);
-    };
-
-    void checkWatchlistStatus();
-  }, [userId, memeId]);
+        
+      return !!data;
+    },
+    enabled: !!userId && !!memeId
+  });
 
   const handleClick = async () => {
     if (!userId && onAuthRequired) {
@@ -46,7 +46,6 @@ export const WatchlistButton = ({
       return;
     }
 
-    setIsLoading(true);
     try {
       if (isInWatchlist) {
         await supabase
@@ -55,7 +54,6 @@ export const WatchlistButton = ({
           .eq('user_id', userId)
           .eq('meme_id', Number(memeId));
 
-        setIsInWatchlist(false);
         toast({
           title: "Removed from Watchlist",
           description: "This meme has been removed from your watchlist.",
@@ -68,12 +66,15 @@ export const WatchlistButton = ({
             meme_id: Number(memeId) 
           }]);
 
-        setIsInWatchlist(true);
         toast({
           title: "Added to Watchlist",
           description: "This meme has been added to your watchlist.",
         });
       }
+      
+      // Обновляем статус после изменения
+      void refetch();
+      
     } catch (error) {
       console.error("Error updating watchlist:", error);
       toast({
@@ -81,8 +82,6 @@ export const WatchlistButton = ({
         description: "Failed to update watchlist. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -92,7 +91,6 @@ export const WatchlistButton = ({
       size={showText ? "default" : "icon"}
       onClick={handleClick}
       className={className}
-      disabled={isLoading}
     >
       <Bookmark 
         className={`h-4 w-4 ${isInWatchlist ? 'fill-primary text-primary' : ''}`} 

@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { UnifiedMemeCard } from "../meme/UnifiedMemeCard";
 import { useUserData } from "@/hooks/useUserData";
-import { useWatchlistSubscription } from "@/hooks/useWatchlistSubscription";
 import { useToast } from "@/hooks/use-toast";
 
 export function Watchlist() {
@@ -29,7 +28,7 @@ export function Watchlist() {
 
   const { userPoints, userLikes } = useUserData(userId);
 
-  const { data: watchlistMemes = [], isLoading, error, refetch } = useQuery({
+  const { data: watchlistMemes = [], isLoading, error } = useQuery({
     queryKey: ["watchlist-memes", userId],
     queryFn: async () => {
       if (!userId) return [];
@@ -51,11 +50,8 @@ export function Watchlist() {
           id: item.Memes.id.toString()
         }));
     },
-    enabled: !!userId
-  });
-
-  useWatchlistSubscription(() => {
-    void refetch();
+    enabled: !!userId,
+    refetchInterval: 5000 // Обновляем каждые 5 секунд
   });
 
   return (
@@ -72,12 +68,6 @@ export function Watchlist() {
         {error && (
           <div className="text-center p-4">
             <p className="text-red-500">Failed to load watchlist</p>
-            <button 
-              onClick={() => void refetch()}
-              className="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
-            >
-              Try Again
-            </button>
           </div>
         )}
 
