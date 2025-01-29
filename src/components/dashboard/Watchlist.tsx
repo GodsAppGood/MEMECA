@@ -39,7 +39,6 @@ export function Watchlist() {
           filter: userId ? `user_id=eq.${userId}` : undefined
         },
         () => {
-          // При любых изменениях в watchlist обновляем данные
           void queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] });
           void queryClient.invalidateQueries({ 
             queryKey: ["watchlist-status"],
@@ -61,22 +60,30 @@ export function Watchlist() {
     queryFn: async () => {
       if (!userId) return [];
       
+      // Используем простой подход с двумя запросами
+      // 1. Сначала получаем все ID мемов из watchlist
       const { data: watchlistData, error: watchlistError } = await supabase
         .from('Watchlist')
-        .select(`
-          meme_id,
-          Memes (*)
-        `)
+        .select('meme_id')
         .eq('user_id', userId);
       
       if (watchlistError) throw watchlistError;
       
-      return watchlistData
-        .filter(item => item.Memes)
-        .map(item => ({
-          ...item.Memes,
-          id: item.Memes.id.toString()
-        }));
+      if (!watchlistData?.length) return [];
+      
+      // 2. Затем получаем сами мемы по их ID
+      const memeIds = watchlistData.map(item => item.meme_id);
+      const { data: memesData, error: memesError } = await supabase
+        .from('Memes')
+        .select('*')
+        .in('id', memeIds);
+      
+      if (memesError) throw memesError;
+      
+      return memesData.map(meme => ({
+        ...meme,
+        id: meme.id.toString()
+      }));
     },
     enabled: !!userId
   });
