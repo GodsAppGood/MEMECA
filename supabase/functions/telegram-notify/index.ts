@@ -32,7 +32,7 @@ interface WebhookPayload {
 }
 
 async function handleCommand(chatId: number, command: string, botToken: string) {
-  console.log('Handling command:', command, 'for chat:', chatId);
+  console.log(`Handling command: ${command} for chat: ${chatId}`);
   
   const messages = {
     '/start': '👋 Привет! Я бот MemeCAI. Я буду отправлять уведомления о новых мемах.',
@@ -48,12 +48,6 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
   const message = messages[command as keyof typeof messages] || 'Используйте /help для списка команд.';
 
   try {
-    console.log('Sending message to Telegram API:', {
-      chat_id: chatId,
-      text: message,
-      parse_mode: 'HTML'
-    });
-
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/sendMessage`,
       {
@@ -78,7 +72,7 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
     }
 
     const responseData = await response.json();
-    console.log('Telegram API response:', responseData);
+    console.log('Successfully sent message:', responseData);
   } catch (error) {
     console.error('Error sending command response:', error);
     throw error;
@@ -86,7 +80,6 @@ async function handleCommand(chatId: number, command: string, botToken: string) 
 }
 
 serve(async (req) => {
-  // Handle CORS
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -103,11 +96,8 @@ serve(async (req) => {
       hasChatId: !!TELEGRAM_CHAT_ID
     });
 
-    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-      console.error('Missing Telegram configuration:', {
-        hasBotToken: !!TELEGRAM_BOT_TOKEN,
-        hasChatId: !!TELEGRAM_CHAT_ID
-      });
+    if (!TELEGRAM_BOT_TOKEN) {
+      console.error('Missing TELEGRAM_BOT_TOKEN');
       throw new Error('Missing Telegram configuration')
     }
 
@@ -131,7 +121,7 @@ serve(async (req) => {
 
     // Handle webhook notification for new memes
     const payload = update as unknown as WebhookPayload
-    if (payload.type === 'INSERT' && payload.table === 'Memes') {
+    if (payload.type === 'INSERT' && payload.table === 'Memes' && TELEGRAM_CHAT_ID) {
       const meme = payload.record
       
       const message = `🎉 New Meme: ${meme.title}\n\n` +
@@ -141,13 +131,13 @@ serve(async (req) => {
         `${meme.twitter_link ? `🐦 Twitter: ${meme.twitter_link}\n` : ''}` +
         `${meme.telegram_link ? `📱 Telegram: ${meme.telegram_link}` : ''}`
 
-      console.log('Sending notification:', {
+      console.log('Sending notification to channel:', {
         messageLength: message.length,
         hasImage: !!meme.image_url,
         timestamp: new Date().toISOString()
       });
 
-      // Send text message
+      // Send text message to channel
       const textResponse = await fetch(
         `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
         {
