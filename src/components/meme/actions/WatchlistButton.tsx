@@ -40,7 +40,6 @@ export const WatchlistButton = ({
     enabled: !!userId && !!memeId
   });
 
-  // Синхронизируем локальное состояние с данными из запроса
   useEffect(() => {
     setLocalWatchlistState(isInWatchlist);
   }, [isInWatchlist]);
@@ -59,7 +58,10 @@ export const WatchlistButton = ({
           .eq('user_id', userId)
           .eq('meme_id', Number(memeId));
 
-        if (error) throw error;
+        if (error) {
+          console.error("Full error details:", error);
+          throw error;
+        }
         
         setLocalWatchlistState(false);
         toast({
@@ -74,7 +76,10 @@ export const WatchlistButton = ({
             meme_id: Number(memeId) 
           }]);
 
-        if (error) throw error;
+        if (error) {
+          console.error("Full error details:", error);
+          throw error;
+        }
         
         setLocalWatchlistState(true);
         toast({
