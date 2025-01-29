@@ -1,5 +1,5 @@
 project_id = "dpybiegurkiqwponvxac"
-
-[global.env]
-TELEGRAM_BOT_TOKEN = "env"
-TELEGRAM_CHAT_ID = "env"
+[secrets]
+webhook_secret = "webhook_secret"
+TELEGRAM_BOT_TOKEN = "TELEGRAM_BOT_TOKEN"
+TELEGRAM_CHAT_ID = "TELEGRAM_CHAT_ID"

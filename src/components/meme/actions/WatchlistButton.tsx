@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Bookmark } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useQuery } from "@tanstack/react-query";
 
 interface WatchlistButtonProps {
   memeId: string;
@@ -20,30 +19,8 @@ export const WatchlistButton = ({
   showText = false,
   className = ""
 }: WatchlistButtonProps) => {
+  const [isInWatchlist, setIsInWatchlist] = useState(false);
   const { toast } = useToast();
-  const [localWatchlistState, setLocalWatchlistState] = useState(false);
-  
-  const { data: isInWatchlist = false } = useQuery({
-    queryKey: ["watchlist-status", userId, memeId],
-    queryFn: async () => {
-      if (!userId) return false;
-      
-      const { data } = await supabase
-        .from('Watchlist')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('meme_id', Number(memeId))
-        .maybeSingle();
-        
-      return !!data;
-    },
-    enabled: !!userId && !!memeId
-  });
-
-  // Синхронизируем локальное состояние с данными из запроса
-  useEffect(() => {
-    setLocalWatchlistState(isInWatchlist);
-  }, [isInWatchlist]);
 
   const handleClick = async () => {
     if (!userId && onAuthRequired) {
@@ -52,31 +29,35 @@ export const WatchlistButton = ({
     }
 
     try {
-      if (localWatchlistState) {
-        const { error } = await supabase
+      const { data, error } = await supabase
+        .from('Watchlist')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('meme_id', Number(memeId))
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw error;
+      }
+
+      if (data) {
+        // Remove from watchlist
+        await supabase
           .from('Watchlist')
           .delete()
           .eq('user_id', userId)
           .eq('meme_id', Number(memeId));
-
-        if (error) throw error;
-        
-        setLocalWatchlistState(false);
+        setIsInWatchlist(false);
         toast({
           title: "Removed from Watchlist",
           description: "This meme has been removed from your watchlist.",
         });
       } else {
-        const { error } = await supabase
+        // Add to watchlist
+        await supabase
           .from('Watchlist')
-          .insert([{ 
-            user_id: userId, 
-            meme_id: Number(memeId) 
-          }]);
-
-        if (error) throw error;
-        
-        setLocalWatchlistState(true);
+          .insert([{ user_id: userId, meme_id: Number(memeId) }]);
+        setIsInWatchlist(true);
         toast({
           title: "Added to Watchlist",
           description: "This meme has been added to your watchlist.",
@@ -86,7 +67,7 @@ export const WatchlistButton = ({
       console.error("Error updating watchlist:", error);
       toast({
         title: "Error",
-        description: "Failed to update watchlist. Please try again.",
+        description: "Failed to update watchlist.",
         variant: "destructive",
       });
     }
@@ -99,14 +80,8 @@ export const WatchlistButton = ({
       onClick={handleClick}
       className={className}
     >
-      <Bookmark 
-        className={`h-4 w-4 ${localWatchlistState ? 'fill-primary text-primary' : ''}`} 
-      />
-      {showText && (
-        <span className="ml-2">
-          {localWatchlistState ? "Remove from Watchlist" : "Add to Watchlist"}
-        </span>
-      )}
+      <Bookmark className="h-4 w-4" />
+      {showText && <span className="ml-2">{isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}</span>}
     </Button>
   );
 };
