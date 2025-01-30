@@ -10,9 +10,11 @@ import {
 } from "@/components/ui/sheet";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Support = () => {
   const { isVerified, isLoading } = useUserRole();
+  const isMobile = useIsMobile();
 
   return (
     <Sheet>
@@ -35,7 +37,7 @@ export const Support = () => {
             Ask me anything about memes, tokens, or get help with the platform.
           </SheetDescription>
         </SheetHeader>
-        <div className="h-[calc(100vh-140px)]">
+        <div className={`${isMobile ? 'h-[calc(100vh-240px)]' : 'h-[calc(100vh-140px)]'}`}>
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
