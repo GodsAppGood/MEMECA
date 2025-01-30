@@ -65,7 +65,7 @@ export const Filters = ({ date, setDate, blockchain, setBlockchain, onSearch }: 
         <div className="flex flex-col items-center gap-4">
           <span className="font-serif text-2xl">2</span>
           <Select value={blockchain} onValueChange={setBlockchain}>
-            <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg transition-all duration-200 hover:scale-105">
+            <SelectTrigger className="w-[280px] h-[48px] font-serif text-lg transition-all duration-200 hover:scale-105 text-center">
               <SelectValue placeholder="Select blockchain" />
             </SelectTrigger>
             <SelectContent className="w-[280px] bg-white">
