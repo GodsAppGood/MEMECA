@@ -38,12 +38,11 @@ export function Watchlist() {
       
       try {
         console.log("Fetching watchlist for user:", userId);
+        
+        // Сначала получаем ID мемов из watchlist
         const { data: watchlistData, error: watchlistError } = await supabase
           .from('Watchlist')
-          .select(`
-            meme_id,
-            Memes (*)
-          `)
+          .select('meme_id')
           .eq('user_id', userId);
         
         if (watchlistError) {
@@ -51,13 +50,28 @@ export function Watchlist() {
           throw new Error("Failed to fetch watchlist");
         }
         
-        console.log("Watchlist data:", watchlistData);
+        if (!watchlistData || watchlistData.length === 0) {
+          console.log("Watchlist is empty");
+          return [];
+        }
         
-        if (!watchlistData) return [];
+        // Получаем мемы по ID из watchlist
+        const memeIds = watchlistData.map(item => item.meme_id);
+        console.log("Fetching memes with IDs:", memeIds);
         
-        // Transform the data to get the Memes objects
-        const memes = watchlistData.map(item => item.Memes);
-        return memes || [];
+        const { data: memesData, error: memesError } = await supabase
+          .from('Memes')
+          .select('*')
+          .in('id', memeIds);
+        
+        if (memesError) {
+          console.error("Error fetching memes:", memesError);
+          throw new Error("Failed to fetch memes");
+        }
+        
+        console.log("Retrieved memes:", memesData);
+        return memesData || [];
+        
       } catch (error: any) {
         console.error("Unexpected error:", error);
         throw error;
