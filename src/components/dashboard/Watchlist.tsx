@@ -39,7 +39,7 @@ export function Watchlist() {
       try {
         console.log("Fetching watchlist for user:", userId);
         
-        // Сначала получаем ID мемов из watchlist
+        // Get meme IDs from watchlist
         const { data: watchlistData, error: watchlistError } = await supabase
           .from('Watchlist')
           .select('meme_id')
@@ -55,7 +55,7 @@ export function Watchlist() {
           return [];
         }
         
-        // Получаем мемы по ID из watchlist
+        // Get memes by IDs from watchlist
         const memeIds = watchlistData.map(item => item.meme_id);
         console.log("Fetching memes with IDs:", memeIds);
         
