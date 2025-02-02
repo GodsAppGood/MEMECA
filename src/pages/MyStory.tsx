@@ -138,6 +138,35 @@ const MyStory = () => {
         </section>
 
         <section className="mb-20">
+          <h2 className="text-3xl font-bold font-serif mb-12 text-center">Tuzemoon Roadmap</h2>
+          <div className="prose prose-lg max-w-4xl mx-auto">
+            <h3 className="text-2xl font-bold mb-6">Strategic Collaborations & Fundraising</h3>
+            <p>At Memeca, we are on the lookout for exciting collaborations that will elevate our ecosystem to new heights. In the first phase, we'll handpick 200 groundbreaking projects, filling our Top 200 leaderboard with the most innovative and influential ideas.</p>
+            <p>During this time, we'll also be cultivating a passionate community around Memeca, growing a strong base of users and creators who believe in the vision we're building.</p>
+            <p>Through our innovative MemecaWheel initiative, we plan to raise 85 Solana, which will be directly invested into the liquidity pool of our native token. At the same time, we'll explore crowdfunding platforms to secure additional funding for further development and growth.</p>
+            <p>To ensure Memeca gains the attention it deserves, we'll kick off global marketing campaigns in partnership with top crypto influencers, generating buzz across the crypto world and growing our project's visibility.</p>
+
+            <h3 className="text-xl font-bold mt-8 mb-4">Next Steps:</h3>
+            <ul className="list-disc ml-6 space-y-2">
+              <li>Token Creation & Liquidity Pool – Launching Memeca with liquidity support via Raydium and preparing for our DEX listing.</li>
+              <li>Token Update & Marketing on DEX – Ongoing updates and promotion to maximize visibility and expand our community.</li>
+            </ul>
+
+            <h3 className="text-xl font-bold mt-8 mb-4">3 Key Strategies for Continued Growth:</h3>
+            <ol className="list-decimal ml-6 space-y-4">
+              <li>Major Ambassador Partnership – Securing a top-tier ambassador, with a 5% reward from the total token pool, paid out via monthly unlocks over 5 months.</li>
+              <li>Token Distribution via Launchpad – Listing Memeca on a major exchange to enhance liquidity and broaden market reach.</li>
+              <li>Token Allocation Across Collaborating Projects – Distributing tokens to incentivize Tuzemoon activations and partnerships with our platform.</li>
+            </ol>
+
+            <h3 className="text-xl font-bold mt-8 mb-4">MemecatLandar Updates & New Features:</h3>
+            <p>We're committed to keeping MemecatLandar on the cutting edge, continuously updating and enhancing our platform. Expect exciting new integrations and features that will bring even more value to our growing user base.</p>
+            
+            <p className="mt-8">🔮 Memeca is all about pushing boundaries, creating innovative solutions, and building a stronger, more connected community. Join us and be a part of the next evolution of memes! 🚀</p>
+          </div>
+        </section>
+
+        <section className="mb-20">
           <div className="w-full">
             <img
               src="/lovable-uploads/7debb387-0e04-4871-9395-44b1a2502a40.png"
