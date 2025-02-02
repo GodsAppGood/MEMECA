@@ -62,13 +62,12 @@ const MyStory = () => {
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
-              <p>Hi, my name is Ann Ostrovsky, and I am absolutely delighted to have you here! Let me share the story behind this project—a labor of love, creativity, and community.</p>
-              <p>In today's fast-paced digital world, memes are everywhere, but they fade as quickly as they rise. Finding the right space to share a meme, grow a community, and leave a lasting impact can feel like an impossible mission. That's where MemeCatLandar comes in—a unique platform where memes are given the spotlight they deserve, and creators can build their legacy.</p>
-              <p>Guided by Memeca, our fearless, toilet-riding space adventurer, this platform travels across the infinite galaxy of memes, bringing together creators and audiences. Here, everyone has the opportunity to craft their own meme card, launch their ideas, and connect with the world.</p>
-              <p>What makes MemeCatLandar special? It's not just a platform—it's a launchpad for creativity, a calendar for stories waiting to be told, and a community that champions new ideas. Whether you're here to explore, support, or create, you're part of something bigger.</p>
-              <p>When I first dreamed of this project, I envisioned a space that was simple yet powerful, structured yet open. Now that dream has come to life, and it's all for you. I'm truly grateful for each and every person who joins this journey. Together, we can make memes more than fleeting jokes; we can turn them into stories, trends, and cultural milestones.</p>
-              <p>Thank you for being here. Let's create, connect, and make meme history—one card at a time.</p>
-              <p>With love, Ann Ostrovsky</p>
+              <h2 className="text-2xl font-bold mb-4">Welcome to MemeCatLandar! 🚀</h2>
+              <p>Hi, I'm Ann Ostrovskya, and I'm absolutely thrilled to have you here! Let me take you behind the scenes of this project—a true labor of love, creativity, and community.</p>
+              <p>In today's fast-moving digital world, memes appear and disappear in the blink of an eye. Finding a dedicated space to share your creations, grow a community, and make a lasting impact can feel like an impossible challenge. That's exactly why MemeCatLandar was born—a platform where memes get the spotlight they deserve, and creators have the chance to build their own legacy.</p>
+              <p>At the heart of our journey is Memeca—our fearless, toilet-riding space adventurer, navigating the infinite galaxy of memes and bringing creators and audiences together. Here, anyone can design their own meme card, launch their ideas, and connect with the world.</p>
+              <h3 className="text-xl font-bold mt-6 mb-4">What Makes MemeCatLandar Special?</h3>
+              <p>MemeCatLandar isn't just another platform—it's a launchpad for creativity, a calendar of stories waiting to be told, and a thriving community that celebrates fresh ideas. Whether you're here to explore, create, or simply enjoy the ride, welcome to the future of memes. 🚀</p>
             </div>
           </div>
         </section>
