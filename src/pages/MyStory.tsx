@@ -74,7 +74,7 @@ const MyStory = () => {
         </section>
 
         <section className="mb-20">
-          <h2 className="text-3xl font-bold font-serif mb-12 text-center">About Project</h2>
+          <h2 className="text-3xl font-bold font-serif mb-12 text-center">Project Features</h2>
           <div className="flex flex-col lg:flex-row gap-8 items-center">
             <div className="lg:w-1/2">
               <img
