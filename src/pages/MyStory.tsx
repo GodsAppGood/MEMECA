@@ -189,10 +189,10 @@ const MyStory = () => {
           <div className="w-full max-w-4xl mx-auto relative">
             <Button
               onClick={handleTokenomicsClick}
-              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 bg-[#FFB74D] hover:bg-[#FFB74D]/90 text-black animate-pulse"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-[#FFB74D] hover:bg-[#FFB74D]/90 text-black animate-pulse-border"
             >
               <ArrowUpCircle className="mr-2 h-5 w-5" />
-              Tokenomics
+              BUY
             </Button>
             <img
               src="/lovable-uploads/81af40a3-5b71-4bf4-8683-e697a727147d.png"
