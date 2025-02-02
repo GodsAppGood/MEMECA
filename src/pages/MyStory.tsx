@@ -181,8 +181,34 @@ const MyStory = () => {
             <img
               src="/lovable-uploads/81af40a3-5b71-4bf4-8683-e697a727147d.png"
               alt="Tokenomics"
-              className="w-full rounded-lg shadow-lg"
+              className="w-full rounded-lg shadow-lg mb-8"
             />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              {/* Left column */}
+              <div className="prose prose-lg">
+                <h3 className="text-2xl font-bold mb-4">Memeca Tokenomics</h3>
+                <p>Token Name: Memeca</p>
+                <p>Total Supply: 1,000,000,000</p>
+              </div>
+              
+              {/* Right column */}
+              <div className="prose prose-lg">
+                <h3 className="text-2xl font-bold mb-4">Distribution Breakdown:</h3>
+                <ul className="list-none p-0">
+                  <li>10% for Team</li>
+                  <li>5% for Development</li>
+                  <li>5% for Diamond Paws</li>
+                  <li>5% for Ambassador, Launchpad, or Collaborating Projects</li>
+                  <li>85% will be immediately available for trading on DEX</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* Center aligned bottom text */}
+            <div className="text-center prose prose-lg mx-auto">
+              <p className="font-bold">LP (Liquidity Pool): Burnt</p>
+            </div>
           </div>
         </section>
 
