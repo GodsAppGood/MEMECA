@@ -4,6 +4,8 @@ import { Footer } from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { WheelWidget } from "@/components/wheel/WheelWidget";
+import { Button } from "@/components/ui/button";
+import { ArrowUpCircle } from "lucide-react";
 
 const MyStory = () => {
   const { toast } = useToast();
@@ -27,6 +29,13 @@ const MyStory = () => {
 
     loadContent();
   }, [toast]);
+
+  const handleTokenomicsClick = () => {
+    toast({
+      title: "Tokenomics",
+      description: "Welcome to Memeca Tokenomics! 🚀",
+    });
+  };
 
   if (isLoading) {
     return (
@@ -177,7 +186,14 @@ const MyStory = () => {
         </section>
 
         <section className="mb-20">
-          <div className="w-full max-w-4xl mx-auto">
+          <div className="w-full max-w-4xl mx-auto relative">
+            <Button
+              onClick={handleTokenomicsClick}
+              className="absolute bottom-24 left-1/2 -translate-x-1/2 z-10 bg-[#FFB74D] hover:bg-[#FFB74D]/90 text-black animate-pulse"
+            >
+              <ArrowUpCircle className="mr-2 h-5 w-5" />
+              Tokenomics
+            </Button>
             <img
               src="/lovable-uploads/81af40a3-5b71-4bf4-8683-e697a727147d.png"
               alt="Tokenomics"
