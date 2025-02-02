@@ -138,6 +138,16 @@ const MyStory = () => {
         </section>
 
         <section className="mb-20">
+          <div className="w-full">
+            <img
+              src="/lovable-uploads/7debb387-0e04-4871-9395-44b1a2502a40.png"
+              alt="Memeca Banner"
+              className="w-full"
+            />
+          </div>
+        </section>
+
+        <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Tuzemoon Roadmap</h2>
           <div className="prose prose-lg max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold mb-6">Strategic Collaborations & Fundraising</h3>
@@ -163,16 +173,6 @@ const MyStory = () => {
             <p>We're committed to keeping MemecatLandar on the cutting edge, continuously updating and enhancing our platform. Expect exciting new integrations and features that will bring even more value to our growing user base.</p>
             
             <p className="mt-8">🔮 Memeca is all about pushing boundaries, creating innovative solutions, and building a stronger, more connected community. Join us and be a part of the next evolution of memes! 🚀</p>
-          </div>
-        </section>
-
-        <section className="mb-20">
-          <div className="w-full">
-            <img
-              src="/lovable-uploads/7debb387-0e04-4871-9395-44b1a2502a40.png"
-              alt="Memeca Banner"
-              className="w-full"
-            />
           </div>
         </section>
 
