@@ -176,6 +176,16 @@ const MyStory = () => {
           </div>
         </section>
 
+        <section className="mb-20">
+          <div className="w-full max-w-4xl mx-auto">
+            <img
+              src="/lovable-uploads/81af40a3-5b71-4bf4-8683-e697a727147d.png"
+              alt="Tokenomics"
+              className="w-full rounded-lg shadow-lg"
+            />
+          </div>
+        </section>
+
       </main>
       <Support />
       <WheelWidget />
