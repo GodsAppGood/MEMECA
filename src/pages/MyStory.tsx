@@ -176,12 +176,6 @@ const MyStory = () => {
           </div>
         </section>
 
-        <section className="mb-20">
-          <div className="prose prose-lg max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">Conclusion</h2>
-            <p>Thank you for being a part of our journey! We can't wait to see what you create and how you contribute to the MemeCatLandar community. Together, let's make memes that matter!</p>
-          </div>
-        </section>
       </main>
       <Support />
       <WheelWidget />
