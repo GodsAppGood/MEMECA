@@ -196,7 +196,6 @@ const MyStory = () => {
               <div className="prose prose-lg">
                 <h3 className="text-2xl font-bold mb-4">Distribution Breakdown:</h3>
                 <ul className="list-none p-0">
-                  <li>10% for Team</li>
                   <li>5% for Development</li>
                   <li>5% for Diamond Paws</li>
                   <li>5% for Ambassador, Launchpad, or Collaborating Projects</li>
