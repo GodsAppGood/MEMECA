@@ -150,57 +150,36 @@ const MyStory = () => {
         <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Tuzemoon Roadmap</h2>
           <div className="prose prose-lg max-w-4xl mx-auto">
-            <ol className="list-decimal space-y-6">
-              <li className="font-semibold">
-                Strategic Collaborations and Fundraising
-                <p className="font-normal mt-2">
-                  We plan to establish strategic partnerships with other projects to enhance the ecosystem and create mutually beneficial opportunities. Additionally, we will raise funds to bolster the liquidity pool through:
-                </p>
-                <ul className="list-disc ml-6 mt-2">
-                  <li>Additional fundraising rounds focused on expanding liquidity and project stability.</li>
-                  <li>MemecaWheel fundraising campaign, where 100% of the collected funds will directly support the liquidity pool.</li>
-                </ul>
-              </li>
-              <li className="font-semibold">
-                Listing on Dexscreener
-                <p className="font-normal mt-2">
-                  Immediately following the token launch, Tuzemoon will be listed on Dexscreener. With liquidity pool support in place, investors will be able to effortlessly track price movements and trading volumes.
-                </p>
-              </li>
-              <li className="font-semibold">
-                Regular Platform Updates
-                <p className="font-normal mt-2">
-                  Our commitment to innovation and usability will be reflected in regular platform updates. These updates will focus on enhancing:
-                </p>
-                <ul className="list-disc ml-6 mt-2">
-                  <li>Functionality for a smoother user experience.</li>
-                  <li>Design improvements to ensure an intuitive and visually appealing interface.</li>
-                  <li>Features that provide added value to all platform users.</li>
-                </ul>
-              </li>
-              <li className="font-semibold">
-                AI Assistant Integration
-                <p className="font-normal mt-2">
-                  We aim to integrate a powerful AI assistant into the Tuzemoon ecosystem. This assistant will:
-                </p>
-                <ul className="list-disc ml-6 mt-2">
-                  <li>Analyze tokens and offer detailed insights into their potential and performance.</li>
-                  <li>Evaluate new blockchain projects and provide assessments for investors.</li>
-                  <li>Deliver personalized trading recommendations and guidance for portfolio management.</li>
-                </ul>
-              </li>
-              <li className="font-semibold">
-                Fully Automated Platform
-                <p className="font-normal mt-2">
-                  Looking ahead, our ultimate goal is to transform the platform into a fully automated system. This will ensure:
-                </p>
-                <ul className="list-disc ml-6 mt-2">
-                  <li>A seamless and efficient user experience.</li>
-                  <li>Reduced manual intervention for core processes.</li>
-                  <li>Enhanced scalability to support our growing community.</li>
-                </ul>
-              </li>
+            <h3 className="text-2xl font-bold mb-6">Strategic Collaborations & Fundraising</h3>
+            <p>At Memeca, we are on the lookout for exciting collaborations that will elevate our ecosystem to new heights. In the first phase, we'll handpick 200 groundbreaking projects, filling our Top 200 leaderboard with the most innovative and influential ideas.</p>
+            <p>During this time, we'll also be cultivating a passionate community around Memeca, growing a strong base of users and creators who believe in the vision we're building.</p>
+            <p>Through our innovative MemecaWheel initiative, we plan to raise 85 Solana, which will be directly invested into the liquidity pool of our native token. At the same time, we'll explore crowdfunding platforms to secure additional funding for further development and growth.</p>
+            <p>To ensure Memeca gains the attention it deserves, we'll kick off global marketing campaigns in partnership with top crypto influencers, generating buzz across the crypto world and growing our project's visibility.</p>
+
+            <h3 className="text-xl font-bold mt-8 mb-4">Next Steps:</h3>
+            <ul className="list-disc ml-6 space-y-2">
+              <li>Token Creation & Liquidity Pool – Launching Memeca with liquidity support via Raydium and preparing for our DEX listing.</li>
+              <li>Token Update & Marketing on DEX – Ongoing updates and promotion to maximize visibility and expand our community.</li>
+            </ul>
+
+            <h3 className="text-xl font-bold mt-8 mb-4">3 Key Strategies for Continued Growth:</h3>
+            <ol className="list-decimal ml-6 space-y-4">
+              <li>Major Ambassador Partnership – Securing a top-tier ambassador, with a 5% reward from the total token pool, paid out via monthly unlocks over 5 months.</li>
+              <li>Token Distribution via Launchpad – Listing Memeca on a major exchange to enhance liquidity and broaden market reach.</li>
+              <li>Token Allocation Across Collaborating Projects – Distributing tokens to incentivize Tuzemoon activations and partnerships with our platform.</li>
             </ol>
+
+            <h3 className="text-xl font-bold mt-8 mb-4">MemecatLandar Updates & New Features:</h3>
+            <p>We're committed to keeping MemecatLandar on the cutting edge, continuously updating and enhancing our platform. Expect exciting new integrations and features that will bring even more value to our growing user base.</p>
+            
+            <p className="mt-8">🔮 Memeca is all about pushing boundaries, creating innovative solutions, and building a stronger, more connected community. Join us and be a part of the next evolution of memes! 🚀</p>
+          </div>
+        </section>
+
+        <section className="mb-20">
+          <div className="prose prose-lg max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold mb-6">Conclusion</h2>
+            <p>Thank you for being a part of our journey! We can't wait to see what you create and how you contribute to the MemeCatLandar community. Together, let's make memes that matter!</p>
           </div>
         </section>
       </main>
