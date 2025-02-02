@@ -84,18 +84,56 @@ const MyStory = () => {
               />
             </div>
             <div className="lg:w-1/2 prose prose-lg">
-              <p>Welcome to the Meme Calendar, a place where creativity, humor, and community come together. Our platform is designed to be simple, honest, and engaging. Here's what makes it special:</p>
-              <h3 className="text-xl font-semibold mt-4 mb-2">Top 200 Memes</h3>
-              <p>The Top 200 is where the best memes shine. It's a dynamic leaderboard showcasing the most-liked memes, selected purely by community votes. This ensures fairness—if people love your meme, it earns its spot in the rankings. Additionally, for those looking to promote their content, we offer a transparent paid feature to highlight sponsored memes, clearly marked to distinguish them from organically popular ones.</p>
-              <h3 className="text-xl font-semibold mt-4 mb-2">Watchlist</h3>
-              <p>The Watchlist is your personal hub for favorite memes. Save the ones you love, revisit them whenever you want, and never lose track of what inspires you. It's a simple tool designed to make your experience smoother and more enjoyable.</p>
-              <h3 className="text-xl font-semibold mt-4 mb-2">Tuzemoon</h3>
-              <p>For those who want to stand out, Tuzemoon is the premium space to showcase exclusive content. Think of it as a VIP stage for memes that deserve a little extra spotlight. Creators who opt for this section can ensure their work reaches an even broader audience.</p>
-              <h3 className="text-xl font-semibold mt-4 mb-2">AI-Powered Features (in progress)</h3>
-              <p>We're bringing AI into the mix to make your experience even better. Your personal AI assistant will be available to answer questions, provide recommendations, and grow smarter as the platform evolves. This assistant is here to support you and ensure you get the most out of the Meme Calendar.</p>
-              <h3 className="text-xl font-semibold mt-4 mb-2">Telegram Integration</h3>
-              <p>Every meme uploaded to the site is automatically shared in our Telegram channel, making it easy for the community to discuss, share, and connect. It's another way to bring memes to life and extend their reach.</p>
-              <p className="mt-4">The Meme Calendar isn't just a site—it's a thriving community where creativity resonates, laughter spreads, and ideas find their audience. Whether you're here to share your creations, discover fresh content, or simply enjoy a good laugh, this is the place for you.</p>
+              <h1 className="text-2xl font-bold mb-6">MemeCatLandar – The World's First AI-Powered Meme Calendar</h1>
+              
+              <p>MemeCalendar is a fully automated, AI-driven MVP, designed to evolve and improve with each update. More than just a calendar, it's an intelligent ecosystem where humor, technology, and community come together. Our platform offers a seamless way to track, save, and discover the best memes, adapting to trends and keeping you ahead of the curve.</p>
+
+              <h3 className="text-xl font-semibold mt-6">Top 200 Memes</h3>
+              <p>The Top 200 leaderboard is where the best memes rise to the top, ranked solely by community votes. This ensures complete fairness—if people love your meme, it earns its place. For those looking to boost their content, we offer a transparent paid feature to highlight sponsored memes, which are clearly marked to differentiate them from organically popular ones.</p>
+
+              <h3 className="text-xl font-semibold mt-6">Watchlist (In Progress)</h3>
+              <p>The Watchlist is your personal hub for saving and revisiting your favorite memes. Never lose track of what inspires you—store your top picks and access them anytime, all in one place.</p>
+              <p>🚀 MemeCatLandar is just getting started—stay tuned for more innovations!</p>
+
+              <h3 className="text-xl font-semibold mt-6">Tuzemoon Activation (24 Hours)</h3>
+              <p>Unlock the Tuzemoon boost and make your meme stand out! This premium feature, powered by Phantom Wallet integration, lets you promote your meme for 0.1 SOL and gives it 24 hours of maximum visibility.</p>
+              <p>🔥 What you get with Tuzemoon:</p>
+              <ul>
+                <li>Animated highlight – your meme catches the eye like never before.</li>
+                <li>Exclusive "HOT" badge – instantly signaling top-tier content.</li>
+                <li>Priority placement in the Tuzemoon section – the VIP stage for trending memes.</li>
+              </ul>
+              <p>🚀 Elevate your meme game and grab the attention you deserve!</p>
+
+              <h3 className="text-xl font-semibold mt-6">MemecAI Analyze (BETA)</h3>
+              <p>Meet MemecAI, our built-in AI designed to analyze memes and provide insightful evaluations to help you make informed decisions. Whether you're looking for feedback or just curious about how your meme ranks, MemecAI is here to assist!</p>
+              <p>💡 Key Features:</p>
+              <ul>
+                <li>AI-Powered Meme Analysis – get a smart evaluation of your meme based on various factors.</li>
+                <li>Integrated ChatGPT Window – engage in real-time conversations, ask questions, and get instant responses.</li>
+                <li>Constantly Improving – as the platform evolves, MemecAI will become even smarter and more accurate.</li>
+              </ul>
+              <p>🚀 This is just the beginning – we're committed to making these features even better over time!</p>
+
+              <h3 className="text-xl font-semibold mt-6">Telegram Integration (In Progress)</h3>
+              <p>Seamlessly extend your meme's reach with our Telegram integration! Every meme uploaded to the platform is instantly shared in our official Telegram channel, sparking discussions, shares, and deeper community engagement.</p>
+              <p>💬 Why it matters?</p>
+              <ul>
+                <li>Instant exposure – your meme gets seen beyond the platform.</li>
+                <li>Community-driven engagement – connect, react, and go viral.</li>
+                <li>Effortless sharing – memes come to life where conversations happen.</li>
+              </ul>
+              <p>🚀 More reach, more impact – your memes deserve the spotlight!</p>
+
+              <h3 className="text-xl font-semibold mt-6">Memecawheel.xyz – Secure Your Spot in Meme History!</h3>
+              <p>Introducing Memecawheel.xyz, an exclusive platform that lets early adopters amplify their memes through MemeWidget. By integrating with Phantom Wallet, users can seamlessly initiate a transaction on the Solana network, permanently securing their meme's place and visibility.</p>
+              <p>🔥 Why Memecawheel?</p>
+              <ul>
+                <li>One-time transaction – lock in your spot forever.</li>
+                <li>Guaranteed exposure – your meme gets a dedicated place & time.</li>
+                <li>Future NFT integration – soon, you'll receive a free NFT as proof of ownership, allowing you to trade or sell your spot to others!</li>
+              </ul>
+              <p>🚀 Get in early and claim your space before it’s gone!</p>
             </div>
           </div>
         </section>
