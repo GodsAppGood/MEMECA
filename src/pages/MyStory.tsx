@@ -56,6 +56,18 @@ const MyStory = () => {
     );
   }
 
+  const integrationImages = [
+    "/lovable-uploads/4ff5644b-eb41-42af-ac82-882c47763c64.png",
+    "/lovable-uploads/942521ba-e249-483e-b67b-10beb80c32fe.png",
+    "/lovable-uploads/1c266171-6431-4113-8aed-2fa7d0d43211.png",
+    "/lovable-uploads/eeefeea6-a694-490c-b900-83fe6d36f484.png",
+    "/lovable-uploads/cfdc6767-cc14-47ef-a4df-a577eae2d402.png",
+    "/lovable-uploads/f6f55bcd-e39a-410d-a39e-a6f12074bfe1.png",
+    "/lovable-uploads/a675557f-4cc3-488f-a946-eae503f2a134.png",
+    "/lovable-uploads/28e3ee8c-d9f9-42b0-a40a-b7324240ae81.png",
+    "/lovable-uploads/e1ea6e32-6c0e-46f6-a28e-d3685ec60e07.png"
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -186,44 +198,24 @@ const MyStory = () => {
         </section>
 
         <section className="mb-20">
-          <div className="w-full max-w-4xl mx-auto relative">
-            <Button
-              onClick={handleTokenomicsClick}
-              className="absolute top-[54%] left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 bg-[#FFB74D] hover:bg-[#FFB74D] text-black animate-pulse-border px-8 rounded-full hidden md:flex"
-            >
-              <ArrowUpCircle className="mr-2 h-5 w-5" />
-              BUY
-            </Button>
-            <img
-              src="/lovable-uploads/81af40a3-5b71-4bf4-8683-e697a727147d.png"
-              alt="Tokenomics"
-              className="w-full rounded-lg shadow-lg mb-8"
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-              {/* Left column */}
-              <div className="prose prose-lg">
-                <h3 className="text-2xl font-bold mb-4">Memeca Tokenomics</h3>
-                <p>Token Name: Memeca</p>
-                <p>Total Supply: 1,000,000,000</p>
+          <h2 className="text-3xl font-bold font-serif mb-12 text-center">Integrations</h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            {integrationImages.map((src, index) => (
+              <div 
+                key={src}
+                className={`aspect-square flex items-center justify-center p-4 ${
+                  (Math.floor(index / 3) + (index % 3)) % 2 === 0 
+                    ? 'bg-gray-50' 
+                    : 'bg-white'
+                } rounded-xl transition-transform duration-300 hover:scale-105`}
+              >
+                <img
+                  src={src}
+                  alt={`Integration ${index + 1}`}
+                  className="w-24 h-24 object-contain"
+                />
               </div>
-              
-              {/* Right column */}
-              <div className="prose prose-lg">
-                <h3 className="text-2xl font-bold mb-4">Distribution Breakdown:</h3>
-                <ul className="list-none p-0">
-                  <li>5% for Development</li>
-                  <li>5% for Diamond Paws</li>
-                  <li>5% for Ambassador, Launchpad, or Collaborating Projects</li>
-                  <li>85% will be immediately available for trading on DEX</li>
-                </ul>
-              </div>
-            </div>
-
-            {/* Center aligned bottom text */}
-            <div className="text-center prose prose-lg mx-auto">
-              <p className="font-bold">LP (Liquidity Pool): Burnt</p>
-            </div>
+            ))}
           </div>
         </section>
 
