@@ -33,33 +33,18 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
       if (!userId) return false;
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from("Users")
         .select("is_admin")
         .eq("auth_id", userId)
         .maybeSingle();
-      
-      if (error) {
-        console.error("Error checking admin status:", error);
-        return false;
-      }
       return data?.is_admin || false;
     },
     enabled: !!userId
   });
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log("=== Starting Delete Operation ===");
-    console.log("Meme ID:", meme.id);
-    console.log("Current User ID:", userId);
-    console.log("Meme Creator ID:", meme.created_by);
-    console.log("Is Admin:", isAdmin);
-
+  const handleDelete = async () => {
     if (!userId) {
-      console.log("Delete failed: User not logged in");
       toast({
         variant: "destructive",
         title: "Error",
@@ -69,7 +54,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
 
     if (!isAdmin && userId !== meme.created_by) {
-      console.log("Delete failed: User doesn't have permission");
       toast({
         variant: "destructive",
         title: "Error",
@@ -80,41 +64,14 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
-      console.log('Attempting to delete meme:', meme.id);
       
-      // First, delete all likes for this meme
-      console.log('Deleting likes for meme:', meme.id);
-      const { error: likesError } = await supabase
-        .from('Likes')
-        .delete()
-        .eq('meme_id', parseInt(meme.id));
-        
-      if (likesError) {
-        console.error("Error deleting likes:", likesError);
-        throw likesError;
-      }
-      console.log('Successfully deleted likes');
-
-      // Then delete the meme itself
-      console.log('Deleting meme:', meme.id);
       const { error } = await supabase
         .from('Memes')
         .delete()
         .eq('id', parseInt(meme.id));
 
-      if (error) {
-        console.error("Delete operation failed:", error);
-        console.log("Error details:", {
-          code: error.code,
-          message: error.message,
-          details: error.details
-        });
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log("Delete operation successful");
-
-      // Invalidate relevant queries
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
@@ -126,18 +83,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         title: "Success",
         description: "Meme deleted successfully",
       });
-    } catch (error: any) {
-      console.error('Error deleting meme:', error);
-      console.log("Full error object:", JSON.stringify(error, null, 2));
-      
-      // Revert optimistic update by refetching data
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["watchlist-memes"] }),
-        queryClient.invalidateQueries({ queryKey: ["featured-memes"] })
-      ]);
-      
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -148,7 +94,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  // Only show delete button for admin users or the meme creator
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
@@ -159,12 +104,12 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
           size="icon"
           className="hover:text-red-500"
           disabled={isDeleting}
-          onClick={(e) => e.stopPropagation()} // Prevent navigation
+          onClick={(e) => e.stopPropagation()}
         >
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
-      <AlertDialogContent onClick={(e) => e.stopPropagation()}> {/* Prevent navigation */}
+      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Meme</AlertDialogTitle>
           <AlertDialogDescription>
