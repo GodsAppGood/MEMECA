@@ -29,13 +29,11 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
+  // Проверяем, является ли пользователь админом
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
-      if (!userId) {
-        console.log('No userId provided for admin check');
-        return false;
-      }
+      if (!userId) return false;
       
       const { data, error } = await supabase
         .from("Users")
@@ -71,30 +69,26 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         isAdmin
       });
 
-      // First, delete likes
-      const { error: likesError } = await supabase
-        .from('Likes')
-        .delete()
-        .eq('meme_id', meme.id);
-
-      if (likesError) {
-        console.error('Error deleting likes:', likesError);
-        throw likesError;
+      // Конвертируем ID в число
+      const memeId = parseInt(meme.id);
+      if (isNaN(memeId)) {
+        throw new Error('Invalid meme ID');
       }
 
-      // Then delete the meme
-      const { error: memeError } = await supabase
+      // Удаляем мем - триггер сам очистит связанные данные
+      const { error: deleteError } = await supabase
         .from('Memes')
         .delete()
-        .eq('id', meme.id);
+        .eq('id', memeId);
 
-      if (memeError) {
-        console.error('Delete error:', memeError);
-        throw memeError;
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+        throw deleteError;
       }
 
-      console.log('Meme deleted successfully:', meme.id);
+      console.log('Meme deleted successfully:', memeId);
 
+      // Инвалидируем все связанные запросы
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
