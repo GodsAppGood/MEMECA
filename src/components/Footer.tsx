@@ -39,13 +39,19 @@ export const Footer = () => {
           >
             <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
           </Button>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group active:text-[#FFB74D] touch-action-manipulation"
+          <a 
+            href="https://t.me/Memeca_Chat" 
+            target="_blank" 
+            rel="noopener noreferrer"
           >
-            <Send className="w-6 h-6 group-hover:animate-bounce-rotate" />
-          </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group active:text-[#FFB74D] touch-action-manipulation"
+            >
+              <Send className="w-6 h-6 group-hover:animate-bounce-rotate" />
+            </Button>
+          </a>
         </div>
 
         {/* Copyright text */}
