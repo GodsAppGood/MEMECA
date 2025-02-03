@@ -70,20 +70,30 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         userId,
         isAdmin
       });
-      
-      const memeId = parseInt(meme.id, 10);
-      
-      const { error } = await supabase
-        .from('Memes')
-        .delete()
-        .eq('id', memeId);
 
-      if (error) {
-        console.error('Delete error:', error);
-        throw error;
+      // First, delete likes
+      const { error: likesError } = await supabase
+        .from('Likes')
+        .delete()
+        .eq('meme_id', meme.id);
+
+      if (likesError) {
+        console.error('Error deleting likes:', likesError);
+        throw likesError;
       }
 
-      console.log('Meme deleted successfully:', memeId);
+      // Then delete the meme
+      const { error: memeError } = await supabase
+        .from('Memes')
+        .delete()
+        .eq('id', meme.id);
+
+      if (memeError) {
+        console.error('Delete error:', memeError);
+        throw memeError;
+      }
+
+      console.log('Meme deleted successfully:', meme.id);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
