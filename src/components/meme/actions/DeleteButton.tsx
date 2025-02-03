@@ -29,6 +29,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
+  // Проверяем, является ли пользователь админом
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
@@ -43,6 +44,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     enabled: !!userId
   });
 
+  // Основная функция удаления
   const handleDelete = async () => {
     if (!userId) {
       toast({
@@ -65,6 +67,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     try {
       setIsDeleting(true);
       
+      // Удаляем мем - все связанные данные удалятся автоматически благодаря триггерам
       const { error } = await supabase
         .from('Memes')
         .delete()
@@ -72,6 +75,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
       if (error) throw error;
 
+      // Обновляем кэш после успешного удаления
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
@@ -94,6 +98,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
+  // Показываем кнопку только админам или создателю мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
 
   return (
