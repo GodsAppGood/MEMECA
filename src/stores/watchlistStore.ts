@@ -39,7 +39,8 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
           .insert([{ 
             user_id: userId, 
             meme_id: parseInt(memeId) 
-          }]);
+          }])
+          .select();
 
         if (insertError) {
           if (insertError.code === '23505') {
@@ -66,6 +67,7 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
 
   initializeWatchlist: async (userId: string) => {
     try {
+      console.log("Initializing watchlist for user:", userId);
       const { data, error } = await supabase
         .from("Watchlist")
         .select("meme_id")
@@ -75,6 +77,7 @@ export const useWatchlistStore = create<WatchlistState>((set, get) => ({
 
       const watchlistIds = new Set(data.map(item => item.meme_id.toString()));
       set({ watchlist: watchlistIds });
+      console.log("Watchlist initialized with ids:", Array.from(watchlistIds));
     } catch (error) {
       console.error("Error initializing watchlist:", error);
       throw error;
