@@ -52,7 +52,14 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     e.preventDefault();
     e.stopPropagation();
     
+    console.log("=== Starting Delete Operation ===");
+    console.log("Meme ID:", meme.id);
+    console.log("Current User ID:", userId);
+    console.log("Meme Creator ID:", meme.created_by);
+    console.log("Is Admin:", isAdmin);
+
     if (!userId) {
+      console.log("Delete failed: User not logged in");
       toast({
         variant: "destructive",
         title: "Error",
@@ -62,6 +69,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
 
     if (!isAdmin && userId !== meme.created_by) {
+      console.log("Delete failed: User doesn't have permission");
       toast({
         variant: "destructive",
         title: "Error",
@@ -74,6 +82,17 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       setIsDeleting(true);
       console.log('Attempting to delete meme:', meme.id);
       
+      // Check for likes before deletion
+      const { data: likes, error: likesError } = await supabase
+        .from('Likes')
+        .select('id')
+        .eq('meme_id', parseInt(meme.id));
+        
+      console.log("Likes found:", likes?.length || 0);
+      if (likesError) {
+        console.error("Error checking likes:", likesError);
+      }
+
       // Optimistically update UI
       queryClient.setQueryData(["memes"], (oldData: any) => {
         if (!Array.isArray(oldData)) return oldData;
@@ -85,7 +104,17 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         .delete()
         .eq('id', parseInt(meme.id));
 
-      if (error) throw error;
+      if (error) {
+        console.error("Delete operation failed:", error);
+        console.log("Error details:", {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        });
+        throw error;
+      }
+
+      console.log("Delete operation successful");
 
       // Invalidate relevant queries
       await Promise.all([
@@ -101,6 +130,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       });
     } catch (error: any) {
       console.error('Error deleting meme:', error);
+      console.log("Full error object:", JSON.stringify(error, null, 2));
       
       // Revert optimistic update by refetching data
       await Promise.all([
