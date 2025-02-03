@@ -26,26 +26,27 @@ export const WatchlistButton = ({
   // Initialize watchlist when component mounts and userId is available
   useEffect(() => {
     if (userId) {
+      console.log("Initializing watchlist for user:", userId);
       void initializeWatchlist(userId);
     }
   }, [userId, initializeWatchlist]);
 
-  // Subscribe to realtime changes
+  // Subscribe to realtime changes for this specific meme
   useEffect(() => {
     if (!userId) return;
 
     const channel = supabase
-      .channel('watchlist_changes')
+      .channel(`watchlist_changes_${memeId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
           table: 'Watchlist',
-          filter: `user_id=eq.${userId}`
+          filter: `user_id=eq.${userId} AND meme_id=eq.${memeId}`
         },
-        () => {
-          console.log('Watchlist changed, reinitializing...');
+        (payload) => {
+          console.log('Watchlist changed for meme:', memeId, payload);
           void initializeWatchlist(userId);
         }
       )
@@ -54,7 +55,7 @@ export const WatchlistButton = ({
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [userId, initializeWatchlist]);
+  }, [userId, memeId, initializeWatchlist]);
 
   const handleClick = async () => {
     if (!userId && onAuthRequired) {
