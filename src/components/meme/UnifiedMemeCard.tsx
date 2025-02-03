@@ -51,8 +51,9 @@ export const UnifiedMemeCard = ({
   return (
     <Card 
       className={`overflow-hidden transition-transform duration-300 hover:scale-105 cursor-pointer relative flex flex-col min-h-[450px] max-h-[600px]
-        ${isFirst ? 'border-2 border-yellow-400' : ''}
-        ${isTuzemoon ? 'animate-pulse-border' : ''}`}
+        ${isFirst ? 'border-2 border-yellow-400' : 'border-2 border-[#FFB74D]'}
+        ${isTuzemoon ? 'animate-pulse-border' : ''}
+        rounded-xl`}
       onClick={handleCardClick}
     >
       <MemeCardImage
