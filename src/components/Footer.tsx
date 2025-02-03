@@ -32,13 +32,19 @@ export const Footer = () => {
         
         {/* Social buttons - moved down on mobile */}
         <div className="flex justify-center gap-2 md:gap-4 mb-4 mt-8 md:mt-0">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group active:text-[#FFB74D] touch-action-manipulation"
+          <a 
+            href="https://x.com/memecatlandarx?s=11&t=BUrRUDb4xq1uExWwQ-5jCg" 
+            target="_blank" 
+            rel="noopener noreferrer"
           >
-            <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
-          </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-white hover:text-[#FFB74D] transition-all duration-300 hover:animate-bounce-rotate group active:text-[#FFB74D] touch-action-manipulation"
+            >
+              <Twitter className="w-6 h-6 group-hover:animate-bounce-rotate" />
+            </Button>
+          </a>
           <a 
             href="https://t.me/Memeca_Chat" 
             target="_blank" 
