@@ -82,23 +82,21 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       setIsDeleting(true);
       console.log('Attempting to delete meme:', meme.id);
       
-      // Check for likes before deletion
-      const { data: likes, error: likesError } = await supabase
+      // First, delete all likes for this meme
+      console.log('Deleting likes for meme:', meme.id);
+      const { error: likesError } = await supabase
         .from('Likes')
-        .select('id')
+        .delete()
         .eq('meme_id', parseInt(meme.id));
         
-      console.log("Likes found:", likes?.length || 0);
       if (likesError) {
-        console.error("Error checking likes:", likesError);
+        console.error("Error deleting likes:", likesError);
+        throw likesError;
       }
+      console.log('Successfully deleted likes');
 
-      // Optimistically update UI
-      queryClient.setQueryData(["memes"], (oldData: any) => {
-        if (!Array.isArray(oldData)) return oldData;
-        return oldData.filter((m: any) => m.id !== meme.id);
-      });
-
+      // Then delete the meme itself
+      console.log('Deleting meme:', meme.id);
       const { error } = await supabase
         .from('Memes')
         .delete()
