@@ -20,53 +20,10 @@ serve(async (req) => {
       throw new Error('Missing Telegram configuration')
     }
 
-    // Проверяем авторизацию
-    const authHeader = req.headers.get('authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-
-    const token = authHeader.split(' ')[1]
-    if (token !== TELEGRAM_BOT_TOKEN) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid token' }),
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
-
     const payload = await req.json()
     console.log('Received webhook payload:', payload)
 
-    // Обработка команды /start
-    if (payload.message?.text === '/start') {
-      const response = await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: payload.message.chat.id,
-            text: 'Привет! Я бот для уведомлений о новых мемах. Я буду отправлять сообщения когда появятся новые мемы.'
-          })
-        }
-      )
-
-      if (!response.ok) {
-        console.error('Failed to send response:', await response.text())
-        throw new Error('Failed to send Telegram message')
-      }
-    }
-
-    // Обработка новых мемов (как в предыдущей функции)
+    // Обработка новых мемов
     if (payload.type === 'INSERT' && payload.table === 'Memes') {
       const meme = payload.record
       
@@ -93,11 +50,13 @@ serve(async (req) => {
       )
 
       if (!messageResponse.ok) {
-        throw new Error(`Failed to send message: ${await messageResponse.text()}`)
+        console.error('Failed to send message:', await messageResponse.text())
+        throw new Error('Failed to send Telegram message')
       }
 
       // Отправляем изображение, если оно есть
       if (meme.image_url) {
+        console.log('Sending image to Telegram:', meme.image_url)
         const imageResponse = await fetch(
           `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendPhoto`,
           {
