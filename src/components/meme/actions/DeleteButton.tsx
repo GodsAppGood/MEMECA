@@ -36,7 +36,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         console.log('No userId provided for admin check');
         return false;
       }
-      console.log('Checking admin status for userId:', userId);
+      
       const { data, error } = await supabase
         .from("Users")
         .select("is_admin")
@@ -47,23 +47,14 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         console.error('Error checking admin status:', error);
         return false;
       }
-      console.log('Admin check result:', data);
+      
       return data?.is_admin || false;
     },
     enabled: !!userId
   });
 
   const handleDelete = async () => {
-    console.log('Delete initiated for meme:', {
-      memeId: meme.id,
-      memeIdType: typeof meme.id,
-      userId,
-      isAdmin,
-      createdBy: meme.created_by
-    });
-
     if (!userId) {
-      console.error('No userId available');
       toast({
         variant: "destructive",
         title: "Error",
@@ -72,28 +63,16 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       return;
     }
 
-    if (!isAdmin && userId !== meme.created_by) {
-      console.error('Permission denied:', {
-        userId,
-        isAdmin,
-        memeCreator: meme.created_by
-      });
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "You don't have permission to delete this meme",
-      });
-      return;
-    }
-
     try {
       setIsDeleting(true);
-      console.log('Attempting to delete meme:', meme.id);
+      console.log('Attempting to delete meme:', {
+        memeId: meme.id,
+        userId,
+        isAdmin
+      });
       
-      // Преобразуем строковый ID в число перед отправкой запроса
       const memeId = parseInt(meme.id, 10);
-      console.log('Converted memeId to number:', memeId);
-
+      
       const { error } = await supabase
         .from('Memes')
         .delete()
@@ -129,12 +108,8 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
+  // Показываем кнопку только если пользователь админ или владелец мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) {
-    console.log('Button hidden due to permissions:', {
-      userId,
-      isAdmin,
-      memeCreator: meme.created_by
-    });
     return null;
   }
 
