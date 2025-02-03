@@ -33,12 +33,22 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
-      if (!userId) return false;
-      const { data } = await supabase
+      if (!userId) {
+        console.log('No userId provided for admin check');
+        return false;
+      }
+      console.log('Checking admin status for userId:', userId);
+      const { data, error } = await supabase
         .from("Users")
         .select("is_admin")
         .eq("auth_id", userId)
         .maybeSingle();
+
+      if (error) {
+        console.error('Error checking admin status:', error);
+        return false;
+      }
+      console.log('Admin check result:', data);
       return data?.is_admin || false;
     },
     enabled: !!userId
@@ -46,7 +56,15 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
   // Основная функция удаления
   const handleDelete = async () => {
+    console.log('Delete initiated for meme:', {
+      memeId: meme.id,
+      userId,
+      isAdmin,
+      createdBy: meme.created_by
+    });
+
     if (!userId) {
+      console.error('No userId available');
       toast({
         variant: "destructive",
         title: "Error",
@@ -56,6 +74,11 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
 
     if (!isAdmin && userId !== meme.created_by) {
+      console.error('Permission denied:', {
+        userId,
+        isAdmin,
+        memeCreator: meme.created_by
+      });
       toast({
         variant: "destructive",
         title: "Error",
@@ -66,14 +89,19 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
 
     try {
       setIsDeleting(true);
+      console.log('Attempting to delete meme:', meme.id);
       
-      // Удаляем мем - все связанные данные удалятся автоматически благодаря триггерам
       const { error } = await supabase
         .from('Memes')
         .delete()
-        .eq('id', parseInt(meme.id));
+        .eq('id', meme.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Delete error:', error);
+        throw error;
+      }
+
+      console.log('Meme deleted successfully:', meme.id);
 
       // Обновляем кэш после успешного удаления
       await Promise.all([
@@ -88,6 +116,7 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
         description: "Meme deleted successfully",
       });
     } catch (error) {
+      console.error('Delete operation failed:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -99,7 +128,14 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   };
 
   // Показываем кнопку только админам или создателю мема
-  if (!userId || (!isAdmin && userId !== meme.created_by)) return null;
+  if (!userId || (!isAdmin && userId !== meme.created_by)) {
+    console.log('Button hidden due to permissions:', {
+      userId,
+      isAdmin,
+      memeCreator: meme.created_by
+    });
+    return null;
+  }
 
   return (
     <AlertDialog>
