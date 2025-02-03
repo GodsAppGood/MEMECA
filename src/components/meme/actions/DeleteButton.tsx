@@ -29,7 +29,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const queryClient = useQueryClient();
 
-  // Проверяем, является ли пользователь админом
   const { data: isAdmin } = useQuery({
     queryKey: ["isAdmin", userId],
     queryFn: async () => {
@@ -54,10 +53,10 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     enabled: !!userId
   });
 
-  // Основная функция удаления
   const handleDelete = async () => {
     console.log('Delete initiated for meme:', {
       memeId: meme.id,
+      memeIdType: typeof meme.id,
       userId,
       isAdmin,
       createdBy: meme.created_by
@@ -91,19 +90,22 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
       setIsDeleting(true);
       console.log('Attempting to delete meme:', meme.id);
       
+      // Преобразуем строковый ID в число перед отправкой запроса
+      const memeId = parseInt(meme.id, 10);
+      console.log('Converted memeId to number:', memeId);
+
       const { error } = await supabase
         .from('Memes')
         .delete()
-        .eq('id', meme.id);
+        .eq('id', memeId);
 
       if (error) {
         console.error('Delete error:', error);
         throw error;
       }
 
-      console.log('Meme deleted successfully:', meme.id);
+      console.log('Meme deleted successfully:', memeId);
 
-      // Обновляем кэш после успешного удаления
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["memes"] }),
         queryClient.invalidateQueries({ queryKey: ["user-memes"] }),
@@ -127,7 +129,6 @@ export const DeleteButton = ({ meme, userId }: DeleteButtonProps) => {
     }
   };
 
-  // Показываем кнопку только админам или создателю мема
   if (!userId || (!isAdmin && userId !== meme.created_by)) {
     console.log('Button hidden due to permissions:', {
       userId,
