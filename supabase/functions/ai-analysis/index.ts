@@ -23,6 +23,63 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    if (type === 'chat') {
+      const { message } = data;
+      if (!message) {
+        throw new Error('Message is required for chat');
+      }
+
+      console.log('Processing chat message:', message);
+
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openAIApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are a helpful assistant specializing in cryptocurrency and blockchain memes. Provide concise and relevant responses.'
+              },
+              {
+                role: 'user',
+                content: message
+              }
+            ],
+            max_tokens: 500,
+            temperature: 0.7,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          console.error('OpenAI API error:', error);
+          throw new Error(`OpenAI API error: ${error.error?.message || 'Unknown error'}`);
+        }
+
+        const result = await response.json();
+        console.log('OpenAI response:', result);
+
+        if (!result.choices?.[0]?.message?.content) {
+          throw new Error('Invalid response from OpenAI API');
+        }
+
+        return new Response(
+          JSON.stringify({ response: result.choices[0].message.content }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        );
+      } catch (error) {
+        console.error('Chat processing error:', error);
+        throw error;
+      }
+    }
+
     if (type === 'analyze_meme') {
       const { memeId } = data;
       if (!memeId) {
@@ -216,12 +273,12 @@ serve(async (req) => {
       }
     }
 
-    throw new Error(`Unknown analysis type: ${type}`);
+    throw new Error(`Unknown request type: ${type}`);
   } catch (error) {
     console.error('Error in ai-analysis function:', error);
     return new Response(
       JSON.stringify({
-        error: error.message || 'Failed to analyze meme. Please try again later.',
+        error: error.message || 'An unexpected error occurred',
       }),
       {
         status: 500,
