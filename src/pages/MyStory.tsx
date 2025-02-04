@@ -135,7 +135,7 @@ const MyStory = () => {
               </ul>
               <p>🚀 This is just the beginning – we're committed to making these features even better over time!</p>
 
-              <h3 className="text-xl font-semibold mt-6">Telegram Integration (In Progress)</h3>
+              <h3 className="text-xl font-semibold mt-6">Telegram Integration</h3>
               <p>Seamlessly extend your meme's reach with our Telegram integration! Every meme uploaded to the platform is instantly shared in our official Telegram channel, sparking discussions, shares, and deeper community engagement.</p>
               <p>💬 Why it matters?</p>
               <ul>
