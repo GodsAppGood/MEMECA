@@ -4,9 +4,8 @@ import { Footer } from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { WheelWidget } from "@/components/wheel/WheelWidget";
-import { MemeSeasonIndicator } from "@/components/meme/MemeSeasonIndicator";
-
-// ... keep existing code (imports and component start)
+import { Button } from "@/components/ui/button";
+import { ArrowUpCircle } from "lucide-react";
 
 const MyStory = () => {
   const { toast } = useToast();
@@ -220,18 +219,6 @@ const MyStory = () => {
           </div>
         </section>
 
-        <section className="mb-20">
-          <div className="w-full">
-            <img
-              src="/lovable-uploads/7debb387-0e04-4871-9395-44b1a2502a40.png"
-              alt="Memeca Banner"
-              className="w-full"
-            />
-          </div>
-        </section>
-
-        {/* Add the Meme Season Indicator */}
-        <MemeSeasonIndicator />
       </main>
       <Support />
       <WheelWidget />
