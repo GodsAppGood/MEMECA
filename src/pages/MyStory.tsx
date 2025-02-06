@@ -18,7 +18,7 @@ const MyStory = () => {
       y: 60,
       z: 85,
       value: 85,
-      color: "#8B5CF6",
+      color: "#FFB74D",
       tooltip: "85% allocated to Raydium LP burnt for liquidity management."
     },
     {
@@ -27,7 +27,7 @@ const MyStory = () => {
       y: 30,
       z: 5,
       value: 5,
-      color: "#D946EF",
+      color: "#FFECB3",
       tooltip: "Funding for development and scaling of the project."
     },
     {
@@ -36,7 +36,7 @@ const MyStory = () => {
       y: 20,
       z: 5,
       value: 5,
-      color: "#F97316",
+      color: "#FFE082",
       tooltip: "Supporting Diamond Paws with 5% from the total token pool, paid monthly over 5 months."
     },
     {
@@ -45,7 +45,7 @@ const MyStory = () => {
       y: 70,
       z: 5,
       value: 5,
-      color: "#33C3F0",
+      color: "#FFD54F",
       tooltip: "Major Ambassador Partnership: 5% reward paid via monthly unlocks over 5 months.\nToken Distribution via Launchpad: Listing Memeca to enhance liquidity and market reach.\nToken Allocation for Collaborating Projects: Incentivizing Tuzemoon activations and partnerships."
     }
   ];
@@ -73,7 +73,7 @@ const MyStory = () => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background/95 p-4 rounded-lg shadow-lg border border-border backdrop-blur-sm animate-fade-in">
+        <div className="bg-background/95 p-4 rounded-lg shadow-lg border border-border backdrop-blur-sm">
           <p className="font-semibold text-sm">{data.name}</p>
           <p className="text-sm text-muted-foreground mt-1">{data.value}%</p>
           <p className="text-xs mt-2 max-w-[240px] whitespace-pre-line">{data.tooltip}</p>
@@ -246,25 +246,23 @@ const MyStory = () => {
         <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Token Distribution</h2>
           <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
-            <div className="w-full lg:w-1/2 h-[500px] p-8 rounded-2xl bg-gradient-to-br from-violet-100/30 via-fuchsia-100/20 to-cyan-100/30 backdrop-blur-lg border border-violet-200/30 shadow-2xl hover:shadow-violet-200/20 transition-all duration-300">
+            <div className="w-full lg:w-1/2 h-[500px] p-8 rounded-2xl bg-gradient-to-br from-yellow-100/20 to-yellow-500/10 backdrop-blur-lg border border-yellow-200/30 shadow-2xl">
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <XAxis type="number" dataKey="x" domain={[0, 100]} hide />
                   <YAxis type="number" dataKey="y" domain={[0, 100]} hide />
                   <ZAxis type="number" dataKey="z" range={[100, 1000]} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Legend 
-                    verticalAlign="top" 
-                    height={36}
-                    formatter={(value) => <span className="text-sm font-medium">{value}</span>}
-                  />
+                  <Legend />
                   {tokenData.map((entry, index) => (
                     <Scatter
                       key={entry.name}
                       name={`${entry.name} (${entry.value}%)`}
                       data={[entry]}
                       fill={entry.color}
-                      className="transition-all duration-300 hover:opacity-80"
+                      className="transition-all duration-300"
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onMouseLeave={() => setActiveIndex(-1)}
                     >
                       {entry.value}%
                     </Scatter>
