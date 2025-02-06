@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 const config = {
@@ -80,13 +81,13 @@ const config = {
             transform: "translate(0px, 0px)",
           },
           "25%": {
-            transform: "translate(15px, -15px)",
+            transform: "translate(30px, -30px)",
           },
           "50%": {
-            transform: "translate(0px, -25px)",
+            transform: "translate(0px, -50px)",
           },
           "75%": {
-            transform: "translate(-15px, -15px)",
+            transform: "translate(-30px, -30px)",
           }
         },
         "float-2": {
@@ -94,13 +95,13 @@ const config = {
             transform: "translate(0px, 0px)",
           },
           "25%": {
-            transform: "translate(-15px, 15px)",
+            transform: "translate(-30px, 30px)",
           },
           "50%": {
-            transform: "translate(0px, 25px)",
+            transform: "translate(0px, 50px)",
           },
           "75%": {
-            transform: "translate(15px, 15px)",
+            transform: "translate(30px, 30px)",
           }
         },
         "float-3": {
@@ -108,13 +109,13 @@ const config = {
             transform: "translate(0px, 0px)",
           },
           "25%": {
-            transform: "translate(20px, 10px)",
+            transform: "translate(40px, 20px)",
           },
           "50%": {
-            transform: "translate(0px, 20px)",
+            transform: "translate(0px, 40px)",
           },
           "75%": {
-            transform: "translate(-20px, 10px)",
+            transform: "translate(-40px, 20px)",
           }
         },
         "float-4": {
@@ -122,13 +123,13 @@ const config = {
             transform: "translate(0px, 0px)",
           },
           "25%": {
-            transform: "translate(-10px, -20px)",
+            transform: "translate(-20px, -40px)",
           },
           "50%": {
-            transform: "translate(0px, -30px)",
+            transform: "translate(0px, -60px)",
           },
           "75%": {
-            transform: "translate(10px, -20px)",
+            transform: "translate(20px, -40px)",
           }
         },
       },
