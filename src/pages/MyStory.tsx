@@ -88,7 +88,7 @@ const MyStory = () => {
               <p>In today's fast-moving digital world, memes appear and disappear in the blink of an eye. Finding a dedicated space to share your creations, grow a community, and make a lasting impact can feel like an impossible challenge. That's exactly why MemeCatLandar was born—a platform where memes get the spotlight they deserve, and creators have the chance to build their own legacy.</p>
               <p>At the heart of our journey is Memeca—our fearless, toilet-riding space adventurer, navigating the infinite galaxy of memes and bringing creators and audiences together. Here, anyone can design their own meme card, launch their ideas, and connect with the world.</p>
               <h3 className="text-xl font-bold mt-6 mb-4">What Makes MemeCatLandar Special?</h3>
-              <p>MemeCatLandar isn't just another platform—it's a launchpad for creativity, a calendar of stories waiting to be told, and a thriving community that celebrates fresh ideas. Whether you're here to explore, create, or simply enjoy the ride, welcome to the future of memes. 🚀</p>
+              <p>MemeCatLandar is more than just a platform—it's a Web2.5 hybrid Dapp with elements of decentralized voting, where users shape the top memes through a fair and transparent like system. It's a calendar of meme culture, a launchpad for trends and stories, and an ecosystem for promoting meme projects. Here, creativity meets blockchain technology, opening new opportunities for creators and the community. Welcome to the future of memes! 🚀</p>
             </div>
           </div>
         </section>
