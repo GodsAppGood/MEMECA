@@ -74,7 +74,63 @@ const config = {
         "spin-slow": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" }
-        }
+        },
+        "float-1": {
+          "0%, 100%": { 
+            transform: "translate(0px, 0px)",
+          },
+          "25%": {
+            transform: "translate(15px, -15px)",
+          },
+          "50%": {
+            transform: "translate(0px, -25px)",
+          },
+          "75%": {
+            transform: "translate(-15px, -15px)",
+          }
+        },
+        "float-2": {
+          "0%, 100%": { 
+            transform: "translate(0px, 0px)",
+          },
+          "25%": {
+            transform: "translate(-15px, 15px)",
+          },
+          "50%": {
+            transform: "translate(0px, 25px)",
+          },
+          "75%": {
+            transform: "translate(15px, 15px)",
+          }
+        },
+        "float-3": {
+          "0%, 100%": { 
+            transform: "translate(0px, 0px)",
+          },
+          "25%": {
+            transform: "translate(20px, 10px)",
+          },
+          "50%": {
+            transform: "translate(0px, 20px)",
+          },
+          "75%": {
+            transform: "translate(-20px, 10px)",
+          }
+        },
+        "float-4": {
+          "0%, 100%": { 
+            transform: "translate(0px, 0px)",
+          },
+          "25%": {
+            transform: "translate(-10px, -20px)",
+          },
+          "50%": {
+            transform: "translate(0px, -30px)",
+          },
+          "75%": {
+            transform: "translate(10px, -20px)",
+          }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -84,7 +140,11 @@ const config = {
         "bounce-rotate": "bounce-rotate 0.5s ease-in-out",
         "float": "float 4s ease-in-out infinite",
         "neon": "neon 2.5s ease-in-out infinite",
-        "spin-slow": "spin-slow 10s linear infinite"
+        "spin-slow": "spin-slow 10s linear infinite",
+        "float-1": "float-1 12s ease-in-out infinite",
+        "float-2": "float-2 14s ease-in-out infinite",
+        "float-3": "float-3 16s ease-in-out infinite",
+        "float-4": "float-4 18s ease-in-out infinite",
       },
       colors: {
         border: "hsl(var(--border))",

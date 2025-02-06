@@ -16,7 +16,7 @@ const MyStory = () => {
       name: "Raydium LP Burnt",
       x: 60,
       y: 60,
-      z: 85,
+      z: 170, // Увеличили размер в 2 раза (было 85)
       value: 85,
       color: "#FFB74D",
       tooltip: "85% allocated to Raydium LP burnt for liquidity management."
@@ -25,7 +25,7 @@ const MyStory = () => {
       name: "Project Development",
       x: 30,
       y: 30,
-      z: 5,
+      z: 10, // Увеличили размер в 2 раза (было 5)
       value: 5,
       color: "#FFECB3",
       tooltip: "Funding for development and scaling of the project."
@@ -34,7 +34,7 @@ const MyStory = () => {
       name: "Diamond Paws",
       x: 80,
       y: 20,
-      z: 5,
+      z: 10, // Увеличили размер в 2 раза (было 5)
       value: 5,
       color: "#FFE082",
       tooltip: "Supporting Diamond Paws with 5% from the total token pool, paid monthly over 5 months."
@@ -43,7 +43,7 @@ const MyStory = () => {
       name: "Growth Strategies",
       x: 20,
       y: 70,
-      z: 5,
+      z: 10, // Увеличили размер в 2 раза (было 5)
       value: 5,
       color: "#FFD54F",
       tooltip: "Major Ambassador Partnership: 5% reward paid via monthly unlocks over 5 months.\nToken Distribution via Launchpad: Listing Memeca to enhance liquidity and market reach.\nToken Allocation for Collaborating Projects: Incentivizing Tuzemoon activations and partnerships."
@@ -246,12 +246,12 @@ const MyStory = () => {
         <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Token Distribution</h2>
           <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
-            <div className="w-full lg:w-1/2 h-[500px] p-8 rounded-2xl bg-gradient-to-br from-yellow-100/20 to-yellow-500/10 backdrop-blur-lg border border-yellow-200/30 shadow-2xl">
+            <div className="w-full lg:w-1/2 h-[500px] p-8 rounded-2xl bg-gradient-to-br from-yellow-100/20 to-yellow-500/10 backdrop-blur-lg border border-yellow-200/30 shadow-2xl relative overflow-hidden">
               <ResponsiveContainer width="100%" height="100%">
                 <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                   <XAxis type="number" dataKey="x" domain={[0, 100]} hide />
                   <YAxis type="number" dataKey="y" domain={[0, 100]} hide />
-                  <ZAxis type="number" dataKey="z" range={[100, 1000]} />
+                  <ZAxis type="number" dataKey="z" range={[200, 2000]} />
                   <Tooltip content={<CustomTooltip />} />
                   <Legend />
                   {tokenData.map((entry, index) => (
@@ -260,7 +260,7 @@ const MyStory = () => {
                       name={`${entry.name} (${entry.value}%)`}
                       data={[entry]}
                       fill={entry.color}
-                      className="transition-all duration-300"
+                      className={`transition-all duration-300 animate-float-${index + 1}`}
                       onMouseEnter={() => setActiveIndex(index)}
                       onMouseLeave={() => setActiveIndex(-1)}
                     >
