@@ -6,10 +6,39 @@ import { useEffect, useState } from "react";
 import { WheelWidget } from "@/components/wheel/WheelWidget";
 import { Button } from "@/components/ui/button";
 import { ArrowUpCircle } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
 const MyStory = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  const tokenData = [
+    {
+      name: "Project Development",
+      value: 5,
+      color: "#FFE29F",
+      tooltip: "Funding for development and scaling of the project."
+    },
+    {
+      name: "Diamond Paws",
+      value: 5,
+      color: "#FFFFFF",
+      tooltip: "Supporting Diamond Paws with 5% from the total token pool, paid monthly over 5 months."
+    },
+    {
+      name: "Growth Strategies",
+      value: 5,
+      color: "#000000",
+      tooltip: "Major Ambassador Partnership: 5% reward paid via monthly unlocks over 5 months.\nToken Distribution via Launchpad: Listing Memeca to enhance liquidity and market reach.\nToken Allocation for Collaborating Projects: Incentivizing Tuzemoon activations and partnerships."
+    },
+    {
+      name: "Raydium LP Burnt",
+      value: 85,
+      color: "#0EA5E9",
+      tooltip: "85% allocated to Raydium LP burnt for liquidity management."
+    }
+  ];
 
   useEffect(() => {
     const loadContent = async () => {
@@ -35,6 +64,20 @@ const MyStory = () => {
       title: "Tokenomics",
       description: "Welcome to Memeca Tokenomics! 🚀",
     });
+  };
+
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-background/95 p-4 rounded-lg shadow-lg border border-border">
+          <p className="font-semibold text-sm">{data.name}</p>
+          <p className="text-sm text-muted-foreground mt-1">{data.value}%</p>
+          <p className="text-xs mt-2 max-w-[240px] whitespace-pre-line">{data.tooltip}</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   if (isLoading) {
@@ -198,6 +241,73 @@ const MyStory = () => {
         </section>
 
         <section className="mb-20">
+          <h2 className="text-3xl font-bold font-serif mb-12 text-center">Token Distribution</h2>
+          <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
+            <div className="w-full lg:w-1/2 h-[400px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={tokenData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
+                      const RADIAN = Math.PI / 180;
+                      const radius = 25 + innerRadius + (outerRadius - innerRadius);
+                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+                      return (
+                        <text
+                          x={x}
+                          y={y}
+                          className={`${index === activeIndex ? 'font-bold' : ''}`}
+                          fill="currentColor"
+                          textAnchor={x > cx ? 'start' : 'end'}
+                          dominantBaseline="central"
+                        >
+                          {`${value}%`}
+                        </text>
+                      );
+                    }}
+                    onMouseEnter={(_, index) => setActiveIndex(index)}
+                    onMouseLeave={() => setActiveIndex(-1)}
+                    activeIndex={activeIndex}
+                    activeShape={renderActiveShape}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {tokenData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`}
+                        fill={entry.color}
+                        className="transition-all duration-300"
+                        style={{
+                          filter: index === activeIndex ? 'brightness(1.1)' : 'brightness(1)',
+                          transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
+                        }}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="lg:w-1/2 prose prose-lg">
+              <h3 className="text-2xl font-bold mb-4">Token Distribution Strategy</h3>
+              <p>Our token distribution strategy is designed to ensure long-term sustainability and value for the Memeca ecosystem:</p>
+              <ul>
+                <li><strong>85% Raydium LP Burnt:</strong> A significant portion allocated to ensure strong liquidity foundation.</li>
+                <li><strong>5% Project Development:</strong> Dedicated to continuous platform improvement and scaling.</li>
+                <li><strong>5% Diamond Paws:</strong> Supporting our most loyal community members through structured rewards.</li>
+                <li><strong>5% Growth Strategies:</strong> Allocated for partnerships, marketing, and ecosystem expansion.</li>
+              </ul>
+              <p>This distribution model reflects our commitment to creating a sustainable and growing ecosystem while maintaining strong liquidity support.</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Integrations</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
             {integrationImages.map((src, index) => (
@@ -224,6 +334,24 @@ const MyStory = () => {
       <WheelWidget />
       <Footer />
     </div>
+  );
+};
+
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+
+  return (
+    <g>
+      <path
+        d={`M ${cx},${cy} L ${cx + outerRadius},${cy} A ${outerRadius},${outerRadius} 0 0 1 ${cx + Math.cos(endAngle) * outerRadius},${cy + Math.sin(endAngle) * outerRadius} L ${cx},${cy}`}
+        fill={fill}
+        className="transition-all duration-300 hover:brightness-110"
+        style={{
+          filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.1))',
+          transformOrigin: `${cx}px ${cy}px`,
+        }}
+      />
+    </g>
   );
 };
 
