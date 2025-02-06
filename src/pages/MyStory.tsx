@@ -243,7 +243,7 @@ const MyStory = () => {
         <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Token Distribution</h2>
           <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
-            <div className="w-full lg:w-1/2 h-[400px]">
+            <div className="w-full lg:w-1/2 h-[400px] p-8 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -274,7 +274,9 @@ const MyStory = () => {
                     onMouseLeave={() => setActiveIndex(-1)}
                     activeIndex={activeIndex}
                     activeShape={renderActiveShape}
-                    paddingAngle={2}
+                    paddingAngle={4}
+                    innerRadius={60}
+                    outerRadius={120}
                     dataKey="value"
                   >
                     {tokenData.map((entry, index) => (
@@ -283,7 +285,7 @@ const MyStory = () => {
                         fill={entry.color}
                         className="transition-all duration-300"
                         style={{
-                          filter: index === activeIndex ? 'brightness(1.1)' : 'brightness(1)',
+                          filter: index === activeIndex ? 'brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.3))' : 'brightness(1)',
                           transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
                         }}
                       />
