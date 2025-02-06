@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
@@ -243,11 +244,16 @@ const MyStory = () => {
         <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Token Distribution</h2>
           <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
-            <div className="w-full lg:w-1/2 h-[400px] p-8 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl">
+            <div className="w-full lg:w-1/2 h-[400px] p-8 rounded-2xl bg-gradient-to-br from-yellow-100/20 to-yellow-500/10 backdrop-blur-lg border border-yellow-200/30 shadow-2xl">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={tokenData}
+                    data={[
+                      { name: "Raydium LP Burnt", value: 85, color: "#FFB74D" },
+                      { name: "Project Development", value: 5, color: "#FFECB3" },
+                      { name: "Diamond Paws", value: 5, color: "#FFE082" },
+                      { name: "Growth Strategies", value: 5, color: "#FFD54F" }
+                    ]}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -261,8 +267,7 @@ const MyStory = () => {
                         <text
                           x={x}
                           y={y}
-                          className={`${index === activeIndex ? 'font-bold' : ''}`}
-                          fill="currentColor"
+                          className={`${index === activeIndex ? 'font-bold' : ''} fill-yellow-900 text-sm`}
                           textAnchor={x > cx ? 'start' : 'end'}
                           dominantBaseline="central"
                         >
@@ -279,14 +284,14 @@ const MyStory = () => {
                     outerRadius={120}
                     dataKey="value"
                   >
-                    {tokenData.map((entry, index) => (
+                    {({ data }) => data.map((entry, index) => (
                       <Cell 
                         key={`cell-${index}`}
                         fill={entry.color}
                         className="transition-all duration-300"
                         style={{
-                          filter: index === activeIndex ? 'brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.3))' : 'brightness(1)',
-                          transform: index === activeIndex ? 'scale(1.05)' : 'scale(1)',
+                          filter: `brightness(${index === activeIndex ? 1.2 : 1}) drop-shadow(0 4px 6px rgba(255, 183, 77, 0.3))`,
+                          transform: `scale(${index === activeIndex ? 1.05 : 1}) translateZ(${index * 5}px)`,
                         }}
                       />
                     ))}
@@ -358,3 +363,4 @@ const renderActiveShape = (props: any) => {
 };
 
 export default MyStory;
+
