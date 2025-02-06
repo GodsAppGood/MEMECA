@@ -37,8 +37,8 @@ export const WheelWidget = () => {
             height: '112px',
             border: 'none',
             position: 'absolute',
-            top: '-3px',
-            right: '-3px',
+            top: '-2px',
+            right: '-2px',
             background: 'transparent'
           }}
           onLoad={() => setIsLoaded(true)}
