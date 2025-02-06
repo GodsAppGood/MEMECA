@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { WheelState } from "@/types/wheel";
@@ -36,8 +37,8 @@ export const WheelWidget = () => {
             height: '112px',
             border: 'none',
             position: 'absolute',
-            top: '0',
-            right: '0',
+            top: '-1px',
+            right: '-1px',
             background: 'transparent'
           }}
           onLoad={() => setIsLoaded(true)}
