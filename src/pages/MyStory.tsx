@@ -1,13 +1,10 @@
-
 import { Header } from "@/components/Header";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffect, useState } from "react";
 import { WheelWidget } from "@/components/wheel/WheelWidget";
-import { Button } from "@/components/ui/button";
-import { ArrowUpCircle } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { ScatterChart, Scatter, ZAxis, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from "recharts";
 
 const MyStory = () => {
   const { toast } = useToast();
@@ -16,28 +13,40 @@ const MyStory = () => {
 
   const tokenData = [
     {
+      name: "Raydium LP Burnt",
+      x: 60,
+      y: 60,
+      z: 85,
+      value: 85,
+      color: "#FFB74D",
+      tooltip: "85% allocated to Raydium LP burnt for liquidity management."
+    },
+    {
       name: "Project Development",
+      x: 30,
+      y: 30,
+      z: 5,
       value: 5,
-      color: "#FFE29F",
+      color: "#FFECB3",
       tooltip: "Funding for development and scaling of the project."
     },
     {
       name: "Diamond Paws",
+      x: 80,
+      y: 20,
+      z: 5,
       value: 5,
-      color: "#FFFFFF",
+      color: "#FFE082",
       tooltip: "Supporting Diamond Paws with 5% from the total token pool, paid monthly over 5 months."
     },
     {
       name: "Growth Strategies",
+      x: 20,
+      y: 70,
+      z: 5,
       value: 5,
-      color: "#000000",
+      color: "#FFD54F",
       tooltip: "Major Ambassador Partnership: 5% reward paid via monthly unlocks over 5 months.\nToken Distribution via Launchpad: Listing Memeca to enhance liquidity and market reach.\nToken Allocation for Collaborating Projects: Incentivizing Tuzemoon activations and partnerships."
-    },
-    {
-      name: "Raydium LP Burnt",
-      value: 85,
-      color: "#0EA5E9",
-      tooltip: "85% allocated to Raydium LP burnt for liquidity management."
     }
   ];
 
@@ -60,18 +69,11 @@ const MyStory = () => {
     loadContent();
   }, [toast]);
 
-  const handleTokenomicsClick = () => {
-    toast({
-      title: "Tokenomics",
-      description: "Welcome to Memeca Tokenomics! 🚀",
-    });
-  };
-
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-background/95 p-4 rounded-lg shadow-lg border border-border">
+        <div className="bg-background/95 p-4 rounded-lg shadow-lg border border-border backdrop-blur-sm">
           <p className="font-semibold text-sm">{data.name}</p>
           <p className="text-sm text-muted-foreground mt-1">{data.value}%</p>
           <p className="text-xs mt-2 max-w-[240px] whitespace-pre-line">{data.tooltip}</p>
@@ -197,7 +199,7 @@ const MyStory = () => {
                 <li>Guaranteed exposure – your meme gets a dedicated place & time.</li>
                 <li>Future NFT integration – soon, you'll receive a free NFT as proof of ownership, allowing you to trade or sell your spot to others!</li>
               </ul>
-              <p>🚀 Get in early and claim your space before it’s gone!</p>
+              <p>🚀 Get in early and claim your space before it's gone!</p>
             </div>
           </div>
         </section>
@@ -244,60 +246,28 @@ const MyStory = () => {
         <section className="mb-20">
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Token Distribution</h2>
           <div className="flex flex-col lg:flex-row gap-8 items-center justify-center">
-            <div className="w-full lg:w-1/2 h-[400px] p-8 rounded-2xl bg-gradient-to-br from-yellow-100/20 to-yellow-500/10 backdrop-blur-lg border border-yellow-200/30 shadow-2xl">
+            <div className="w-full lg:w-1/2 h-[500px] p-8 rounded-2xl bg-gradient-to-br from-yellow-100/20 to-yellow-500/10 backdrop-blur-lg border border-yellow-200/30 shadow-2xl">
               <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: "Raydium LP Burnt", value: 85, color: "#FFB74D" },
-                      { name: "Project Development", value: 5, color: "#FFECB3" },
-                      { name: "Diamond Paws", value: 5, color: "#FFE082" },
-                      { name: "Growth Strategies", value: 5, color: "#FFD54F" }
-                    ]}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ cx, cy, midAngle, innerRadius, outerRadius, value, index }) => {
-                      const RADIAN = Math.PI / 180;
-                      const radius = 25 + innerRadius + (outerRadius - innerRadius);
-                      const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                      const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-                      return (
-                        <text
-                          x={x}
-                          y={y}
-                          className={`${index === activeIndex ? 'font-bold' : ''} fill-yellow-900 text-sm`}
-                          textAnchor={x > cx ? 'start' : 'end'}
-                          dominantBaseline="central"
-                        >
-                          {`${value}%`}
-                        </text>
-                      );
-                    }}
-                    onMouseEnter={(_, index) => setActiveIndex(index)}
-                    onMouseLeave={() => setActiveIndex(-1)}
-                    activeIndex={activeIndex}
-                    activeShape={renderActiveShape}
-                    paddingAngle={4}
-                    innerRadius={60}
-                    outerRadius={120}
-                    dataKey="value"
-                  >
-                    {({ data }) => data.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`}
-                        fill={entry.color}
-                        className="transition-all duration-300"
-                        style={{
-                          filter: `brightness(${index === activeIndex ? 1.2 : 1}) drop-shadow(0 4px 6px rgba(255, 183, 77, 0.3))`,
-                          transform: `scale(${index === activeIndex ? 1.05 : 1}) translateZ(${index * 5}px)`,
-                        }}
-                      />
-                    ))}
-                  </Pie>
+                <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                  <XAxis type="number" dataKey="x" domain={[0, 100]} hide />
+                  <YAxis type="number" dataKey="y" domain={[0, 100]} hide />
+                  <ZAxis type="number" dataKey="z" range={[100, 1000]} />
                   <Tooltip content={<CustomTooltip />} />
-                </PieChart>
+                  <Legend />
+                  {tokenData.map((entry, index) => (
+                    <Scatter
+                      key={entry.name}
+                      name={`${entry.name} (${entry.value}%)`}
+                      data={[entry]}
+                      fill={entry.color}
+                      className="transition-all duration-300"
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onMouseLeave={() => setActiveIndex(-1)}
+                    >
+                      {entry.value}%
+                    </Scatter>
+                  ))}
+                </ScatterChart>
               </ResponsiveContainer>
             </div>
             <div className="lg:w-1/2 prose prose-lg">
@@ -344,23 +314,4 @@ const MyStory = () => {
   );
 };
 
-const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-
-  return (
-    <g>
-      <path
-        d={`M ${cx},${cy} L ${cx + outerRadius},${cy} A ${outerRadius},${outerRadius} 0 0 1 ${cx + Math.cos(endAngle) * outerRadius},${cy + Math.sin(endAngle) * outerRadius} L ${cx},${cy}`}
-        fill={fill}
-        className="transition-all duration-300 hover:brightness-110"
-        style={{
-          filter: 'drop-shadow(0 0 8px rgba(0,0,0,0.1))',
-          transformOrigin: `${cx}px ${cy}px`,
-        }}
-      />
-    </g>
-  );
-};
-
 export default MyStory;
-
