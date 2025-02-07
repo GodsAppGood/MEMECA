@@ -91,7 +91,7 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
 
   if (!analysis && !isAnalyzing) {
     return (
-      <Card>
+      <Card className="border-2 border-[#FFB74D]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5" />
@@ -115,7 +115,7 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
 
   if (isAnalyzing) {
     return (
-      <Card>
+      <Card className="border-2 border-[#FFB74D]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Brain className="w-5 h-5 animate-pulse" />
@@ -133,7 +133,7 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
 
   if (isError) {
     return (
-      <Card>
+      <Card className="border-2 border-[#FFB74D]">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-500">
             <Brain className="w-5 h-5" />
@@ -157,7 +157,7 @@ export const MemeAIAnalysis = ({ memeId }: MemeAIAnalysisProps) => {
   }
 
   return (
-    <Card>
+    <Card className="border-2 border-[#FFB74D]">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Brain className="w-5 h-5" />

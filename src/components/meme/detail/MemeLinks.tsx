@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { Meme } from "@/types/meme";
@@ -25,7 +26,7 @@ export const MemeLinks = ({ meme }: MemeLinksProps) => {
             variant="outline"
             size="sm"
             onClick={() => window.open(url!, '_blank')}
-            className="flex items-center"
+            className="flex items-center bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 border-[#FFB74D]"
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             {type}
