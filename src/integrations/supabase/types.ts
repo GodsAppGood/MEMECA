@@ -277,20 +277,20 @@ export type Database = {
         Row: {
           created_at: string
           id: number
-          meme_id: number | null
-          user_id: string | null
+          meme_id: number
+          user_id: string
         }
         Insert: {
           created_at?: string
           id?: number
-          meme_id?: number | null
-          user_id?: string | null
+          meme_id: number
+          user_id: string
         }
         Update: {
           created_at?: string
           id?: number
-          meme_id?: number | null
-          user_id?: string | null
+          meme_id?: number
+          user_id?: string
         }
         Relationships: [
           {
