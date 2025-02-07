@@ -122,11 +122,18 @@ const MyStory = () => {
           <h1 className="text-4xl font-bold font-serif mb-12 text-center">My Story</h1>
           <div className="flex flex-col lg:flex-row gap-8 items-center">
             <div className="lg:w-1/2">
-              <img
-                src="/lovable-uploads/687016b8-6c47-4357-9f3f-b4af5d2da3a7.png"
-                alt="Project Illustration"
-                className="w-full max-w-[500px] mx-auto"
-              />
+              <a 
+                href="https://x.com/AnitosNFT" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="block hover:opacity-90 transition-opacity"
+              >
+                <img
+                  src="/lovable-uploads/687016b8-6c47-4357-9f3f-b4af5d2da3a7.png"
+                  alt="Project Illustration"
+                  className="w-full max-w-[500px] mx-auto"
+                />
+              </a>
             </div>
             <div className="lg:w-1/2 prose prose-lg">
               <h2 className="text-2xl font-bold mb-4">Welcome to MemeCatLandar! 🚀</h2>
