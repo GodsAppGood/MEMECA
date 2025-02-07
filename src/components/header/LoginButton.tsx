@@ -34,25 +34,25 @@ export const LoginButton = ({
         {isAuthenticating ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Вход...
+            Signing in...
           </>
         ) : (
-          "Войти"
+          "Login"
         )}
       </Button>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Вход через Google</DialogTitle>
+            <DialogTitle>Sign in with Google</DialogTitle>
             <DialogDescription>
-              Мы используем безопасную аутентификацию для защиты ваших данных. Выполняя вход, вы соглашаетесь с нашими{" "}
+              We use secure authentication to protect your data. By logging in, you agree to our{" "}
               <Link to="/privacy" className="text-primary hover:underline">
-                Политикой конфиденциальности
+                Privacy Policy
               </Link>{" "}
-              и{" "}
+              and{" "}
               <Link to="/terms" className="text-primary hover:underline">
-                Условиями использования
+                Terms of Service
               </Link>
               .
             </DialogDescription>
@@ -61,14 +61,14 @@ export const LoginButton = ({
             {isAuthenticating ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                <span>Подключение...</span>
+                <span>Connecting...</span>
               </div>
             ) : (
               <Button
                 onClick={handleLogin}
                 className="w-full bg-[#4285f4] hover:bg-[#357ae8] text-white"
               >
-                Войти через Google
+                Sign in with Google
               </Button>
             )}
           </div>
