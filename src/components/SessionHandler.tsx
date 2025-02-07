@@ -1,3 +1,4 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,7 +11,7 @@ export const SessionHandler = () => {
   useEffect(() => {
     const handleUserRoles = async (userId: string) => {
       try {
-        console.log('Fetching user roles for:', userId);
+        console.log('Проверка ролей пользователя:', userId);
         
         const { data: userData, error: userError } = await supabase
           .from('Users')
@@ -19,110 +20,42 @@ export const SessionHandler = () => {
           .single();
         
         if (userError) {
-          console.error('Error fetching user roles:', userError);
-          toast({
-            title: "Error",
-            description: "Failed to fetch user information. Please try refreshing the page.",
-            variant: "destructive"
-          });
+          console.error('Ошибка получения данных пользователя:', userError);
           return null;
         }
         
-        console.log('User data fetched:', userData);
         return userData;
       } catch (error) {
-        console.error('Error in handleUserRoles:', error);
+        console.error('Ошибка в handleUserRoles:', error);
         return null;
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        console.log('Auth state change:', {
-          event,
-          timestamp: new Date().toISOString(),
-          sessionExists: !!session,
-          userId: session?.user?.id,
-          origin: window.location.origin,
-          environment: import.meta.env.MODE,
-          currentPath: window.location.pathname,
-          userMetadata: session?.user?.user_metadata
-        });
-
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          const userData = await handleUserRoles(session.user.id);
-          
-          if (!userData) {
-            console.error('No user data found after sign in');
-            toast({
-              title: "Error",
-              description: "Failed to load user profile. Please try logging in again.",
-              variant: "destructive"
-            });
-            await supabase.auth.signOut();
-            navigate('/');
-            return;
-          }
-
-          // Verify session is properly established
-          const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-          
-          if (sessionError || !currentSession) {
-            console.error('Session verification failed:', sessionError);
-            toast({
-              title: "Session Error",
-              description: "Failed to establish session. Please try logging in again.",
-              variant: "destructive"
-            });
-            return;
-          }
-
-          console.log('Session successfully established:', {
-            userId: currentSession.user.id,
-            isAdmin: userData.is_admin,
-            isVerified: userData.is_verified,
-            redirectPath: window.location.pathname
-          });
-
-          // Only redirect if we're on the not-found-404 page or root
-          const currentPath = window.location.pathname;
-          if (currentPath === '/not-found-404' || currentPath === '/') {
-            if (userData.is_admin) {
-              console.log('Redirecting admin user to admin dashboard');
-              navigate('/admin');
-            } else {
-              console.log('Redirecting regular user to home page');
-              navigate('/');
-            }
-          }
-
-          toast({
-            title: "Welcome back!",
-            description: `Signed in as ${userData.email}`,
-          });
-
-        } else if (event === 'TOKEN_REFRESHED') {
-          console.log('Session token refreshed successfully');
-        } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-          toast({
-            title: "Session Ended",
-            description: "Your session has ended. Please log in again to continue.",
-            variant: "destructive"
-          });
+      if (event === 'SIGNED_IN' && session?.user?.id) {
+        const userData = await handleUserRoles(session.user.id);
+        
+        if (!userData) {
+          console.error('Данные пользователя не найдены после входа');
+          await supabase.auth.signOut();
           navigate('/');
+          return;
         }
-      } catch (error) {
-        console.error('Error in auth state change handler:', error);
-        toast({
-          title: "Authentication Error",
-          description: "There was a problem with authentication. Please try again.",
-          variant: "destructive"
-        });
+
+        const { data: { session: currentSession }, error: sessionError } = 
+          await supabase.auth.getSession();
+        
+        if (sessionError || !currentSession) {
+          console.error('Ошибка проверки сессии:', sessionError);
+          return;
+        }
+
+        if (userData.is_admin) {
+          navigate('/admin');
+        }
       }
     });
 
-    // Initial session check
     const checkSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
@@ -130,7 +63,7 @@ export const SessionHandler = () => {
           await handleUserRoles(session.user.id);
         }
       } catch (error) {
-        console.error('Error in initial session check:', error);
+        console.error('Ошибка при начальной проверке сессии:', error);
       }
     };
 
