@@ -42,7 +42,7 @@ export const LoginButton = ({
       </Button>
 
       <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md border-[#FFB74D]">
           <DialogHeader>
             <DialogTitle>Sign in with Google</DialogTitle>
             <DialogDescription>
@@ -66,7 +66,7 @@ export const LoginButton = ({
             ) : (
               <Button
                 onClick={handleLogin}
-                className="w-full bg-[#4285f4] hover:bg-[#357ae8] text-white"
+                className="w-full bg-[#FFB74D] hover:bg-[#EAA347] text-black transition-all duration-300"
               >
                 Sign in with Google
               </Button>
@@ -77,3 +77,4 @@ export const LoginButton = ({
     </>
   );
 };
+
