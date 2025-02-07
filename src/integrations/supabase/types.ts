@@ -36,13 +36,6 @@ export type Database = {
             referencedRelation: "Memes"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "Likes_meme_id_fkey"
-            columns: ["meme_id"]
-            isOneToOne: false
-            referencedRelation: "Memes"
-            referencedColumns: ["id"]
-          },
         ]
       }
       Memes: {
