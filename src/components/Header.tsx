@@ -1,15 +1,15 @@
+
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Logo } from "./header/Logo";
 import { Navigation } from "./header/Navigation";
 import { AuthSection } from "./header/AuthSection";
-import { useHeaderAuth } from "@/hooks/useHeaderAuth";
 import { MobileMenu } from "./header/MobileMenu";
 import { Menu } from "lucide-react";
 import { Button } from "./ui/button";
 
 export const Header = () => {
-  const { user, isLoginOpen, setIsLoginOpen, handleLoginSuccess, handleLoginError, handleLogout } = useHeaderAuth();
+  const [isLoginOpen, setIsLoginOpen] = useState(false);
   const location = useLocation();
   const isMyMemesRoute = location.pathname === '/my-memes';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -45,12 +45,8 @@ export const Header = () => {
         {/* Desktop Auth Section */}
         <div className="hidden md:flex flex-1 justify-end">
           <AuthSection
-            user={user}
             isLoginOpen={isLoginOpen}
             setIsLoginOpen={setIsLoginOpen}
-            handleLoginSuccess={handleLoginSuccess}
-            handleLoginError={handleLoginError}
-            handleLogout={handleLogout}
             isDashboardRoute={isMyMemesRoute}
           />
         </div>
@@ -59,12 +55,8 @@ export const Header = () => {
         <MobileMenu
           isOpen={isMobileMenuOpen}
           onClose={() => setIsMobileMenuOpen(false)}
-          user={user}
           isLoginOpen={isLoginOpen}
           setIsLoginOpen={setIsLoginOpen}
-          handleLoginSuccess={handleLoginSuccess}
-          handleLoginError={handleLoginError}
-          handleLogout={handleLogout}
         />
       </div>
     </header>

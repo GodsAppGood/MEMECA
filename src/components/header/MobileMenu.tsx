@@ -1,29 +1,25 @@
+
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import { LoginButton } from "./LoginButton";
 import { Sheet, SheetContent } from "../ui/sheet";
+import { useAuthSession } from "@/hooks/auth/useAuthSession";
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  user: any;
   isLoginOpen: boolean;
   setIsLoginOpen: (isOpen: boolean) => void;
-  handleLoginSuccess: (response: any) => void;
-  handleLoginError: () => void;
-  handleLogout: () => void;
 }
 
 export const MobileMenu = ({
   isOpen,
   onClose,
-  user,
   isLoginOpen,
   setIsLoginOpen,
-  handleLoginSuccess,
-  handleLoginError,
-  handleLogout,
 }: MobileMenuProps) => {
+  const { user, logout } = useAuthSession();
+  
   const menuItems = [
     { title: "Home", path: "/" },
     { title: "Top Memes", path: "/top-memes" },
@@ -57,7 +53,7 @@ export const MobileMenu = ({
               variant="default"
               className="w-full bg-[#FFB74D] text-black hover:bg-[#FFB74D]/90 text-lg py-6"
               onClick={() => {
-                handleLogout();
+                logout();
                 onClose();
               }}
             >
@@ -67,8 +63,6 @@ export const MobileMenu = ({
             <LoginButton
               isLoginOpen={isLoginOpen}
               setIsLoginOpen={setIsLoginOpen}
-              handleLoginSuccess={handleLoginSuccess}
-              handleLoginError={handleLoginError}
             />
           )}
           <Link to="/submit" className="block" onClick={onClose}>
