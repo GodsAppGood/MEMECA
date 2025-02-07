@@ -18,7 +18,7 @@ export const useAuthSession = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Инициализация сессии
+  // Session initialization
   useEffect(() => {
     const initSession = async () => {
       try {
@@ -48,7 +48,7 @@ export const useAuthSession = () => {
     void initSession();
   }, []);
 
-  // Слушатель изменений состояния аутентификации
+  // Auth state change listener
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', { event, session });
@@ -66,8 +66,8 @@ export const useAuthSession = () => {
               });
               
               toast({
-                title: "Успешный вход",
-                description: `Добро пожаловать, ${session.user.email}`,
+                title: "Successful Login",
+                description: `Welcome, ${session.user.email}`,
               });
               
               navigate('/');
@@ -77,8 +77,8 @@ export const useAuthSession = () => {
           case 'SIGNED_OUT':
             setUser(null);
             toast({
-              title: "Выход из системы",
-              description: "Вы успешно вышли из системы",
+              title: "Signed Out",
+              description: "You have been successfully signed out",
             });
             navigate('/');
             break;
@@ -102,8 +102,8 @@ export const useAuthSession = () => {
         console.error('Auth state change error:', error);
         toast({
           variant: "destructive",
-          title: "Ошибка аутентификации",
-          description: "Произошла ошибка при обработке состояния аутентификации",
+          title: "Authentication Error",
+          description: "An error occurred while processing authentication state",
         });
       } finally {
         setIsAuthenticating(false);
@@ -133,7 +133,7 @@ export const useAuthSession = () => {
         console.error('Login error:', error);
         toast({
           variant: "destructive",
-          title: "Ошибка входа",
+          title: "Login Error",
           description: error.message,
         });
       }
@@ -143,8 +143,8 @@ export const useAuthSession = () => {
       console.error('Login error:', error);
       toast({
         variant: "destructive",
-        title: "Ошибка входа",
-        description: error.message || "Произошла непредвиденная ошибка",
+        title: "Login Error",
+        description: error.message || "An unexpected error occurred",
       });
       return { data: null, error };
     } finally {
@@ -161,7 +161,7 @@ export const useAuthSession = () => {
         console.error('Logout error:', error);
         toast({
           variant: "destructive",
-          title: "Ошибка выхода",
+          title: "Logout Error",
           description: error.message,
         });
         return { error };
@@ -172,8 +172,8 @@ export const useAuthSession = () => {
       console.error('Logout error:', error);
       toast({
         variant: "destructive",
-        title: "Ошибка выхода",
-        description: error.message || "Произошла непредвиденная ошибка",
+        title: "Logout Error",
+        description: error.message || "An unexpected error occurred",
       });
       return { error };
     } finally {
