@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
@@ -227,7 +226,7 @@ const MyStory = () => {
           <h2 className="text-3xl font-bold font-serif mb-12 text-center">Tuzemoon Roadmap</h2>
           <div className="prose prose-lg max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold mb-6">Strategic Collaborations & Fundraising</h3>
-            <p>At Memeca, we are on the lookout for exciting collaborations that will elevate our ecosystem to new heights. In the first phase, we'll handpick 200 groundbreaking projects, filling our Top 200 leaderboard with the most innovative and influential ideas.</p>
+            <p>At Memeca, we are on the lookout for exciting collaborations that will elevate our ecosystem to new heights. In the first phase, we'll handpick 100 groundbreaking projects, filling our Top 200 leaderboard with the most innovative and influential ideas.</p>
             <p>During this time, we'll also be cultivating a passionate community around Memeca, growing a strong base of users and creators who believe in the vision we're building.</p>
             <p>Through our innovative MemecaWheel initiative, we plan to raise 85 Solana, which will be directly invested into the liquidity pool of our native token. At the same time, we'll explore crowdfunding platforms to secure additional funding for further development and growth.</p>
             <p>To ensure Memeca gains the attention it deserves, we'll kick off global marketing campaigns in partnership with top crypto influencers, generating buzz across the crypto world and growing our project's visibility.</p>
@@ -324,4 +323,3 @@ const MyStory = () => {
 };
 
 export default MyStory;
-
