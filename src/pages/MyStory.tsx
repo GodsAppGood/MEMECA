@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
@@ -137,7 +138,8 @@ const MyStory = () => {
             </div>
             <div className="lg:w-1/2 prose prose-lg">
               <h2 className="text-2xl font-bold mb-4">Welcome to MemeCatLandar! 🚀</h2>
-              <p>Hi, I'm Ann Ostrovskya, and I'm absolutely thrilled to have you here! Let me take you behind the scenes of this project—a true labor of love, creativity, and community.</p>
+              <p>Hi, I'm Ann Ostrovskaya and I'm so happy to see you here! Let me take you behind the scenes of this project - a true labor of love, creativity and community.</p>
+              <p>This project was made possible - by my Friend (Memolog and GitHub Master - Alexanfr God)</p>
               <p>In today's fast-moving digital world, memes appear and disappear in the blink of an eye. Finding a dedicated space to share your creations, grow a community, and make a lasting impact can feel like an impossible challenge. That's exactly why MemeCatLandar was born—a platform where memes get the spotlight they deserve, and creators have the chance to build their own legacy.</p>
               <p>At the heart of our journey is Memeca—our fearless, toilet-riding space adventurer, navigating the infinite galaxy of memes and bringing creators and audiences together. Here, anyone can design their own meme card, launch their ideas, and connect with the world.</p>
               <h3 className="text-xl font-bold mt-6 mb-4">What Makes MemeCatLandar Special?</h3>
@@ -322,3 +324,4 @@ const MyStory = () => {
 };
 
 export default MyStory;
+
