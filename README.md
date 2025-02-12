@@ -1,54 +1,56 @@
-# Welcome to your Lovable project
+# Welcome to MemeCatLandar project
 
-## Project info
+**URL**: https://memecatlandar.io
 
-**URL**: https://lovable.dev/projects/8b905c69-bd03-47a1-92ae-3c584cfce9a8
+# MemeCatLandar: The World's First AI Meme Calendar
 
-## How can I edit this code?
+## Project Overview
 
-There are several ways of editing your application.
+MemeCatLandar is the first AI-powered meme calendar that analyzes memes to create personalized and engaging experiences. This hybrid decentralized application (DApp) offers seamless paid promotion through the **Phantom Wallet**, which is listed among its trusted connections.
 
-**Use Lovable**
+### Key Features:
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/8b905c69-bd03-47a1-92ae-3c584cfce9a8) and start prompting.
+- **AI Meme Analysis:** Automatically analyzes and categorizes memes for better user engagement.
+- **Hybrid DApp:** Combines centralized and decentralized features for flexibility and security.
+- **Paid Promotions:** Secure paid promotion functionality via **Phantom Wallet** integration.
+- **DAO Governance:** Ensures fair voting and ranking through a decentralized autonomous organization (DAO) structure.
 
-Changes made via Lovable will be committed automatically to this repo.
 
-**Use your preferred IDE**
+## Integrations
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+MemeCatLandar is built on a robust tech stack that leverages multiple integrations for AI analysis, decentralized payments, storage, and web hosting.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Key Integrations:
 
-Follow these steps:
+- **ChatGPT:**  
+  Powers AI-driven meme analysis, text generation, and interactive features for personalized user experiences.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+- **Helius:**  
+  Enhances Solana blockchain analytics and provides real-time insights for better transaction management.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+- **Phantom Wallet:**  
+  Ensures secure and seamless payment and promotion processing within the platform.
 
-# Step 3: Install the necessary dependencies.
-npm i
+- **Supabase:**  
+  Provides scalable, secure backend services for user authentication and data storage.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- **GitHub:**  
+  Enables version control, collaboration, and continuous improvement of the platform's codebase.
 
-**Edit a file directly in GitHub**
+- **Solana:**  
+  Supports fast, low-cost transactions for DAO governance and paid promotions through blockchain technology.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- **Hugging Face:**  
+  Integrates state-of-the-art AI models to enhance meme classification and trend prediction.
 
-**Use GitHub Codespaces**
+- **Netlify:**  
+  Ensures fast, reliable, and scalable web hosting with automated CI/CD for deployment.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Memecawheel:**  
+  Proprietary system for ranking, categorizing, and promoting memes within the platform.
+
+Each integration plays a vital role in delivering a seamless, secure, and engaging experience for all users.
+
 
 ## What technologies are used for this project?
 
@@ -60,10 +62,8 @@ This project is built with .
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## Ads Frame Integration
 
-Simply open [Lovable](https://lovable.dev/projects/8b905c69-bd03-47a1-92ae-3c584cfce9a8) and click on Share -> Publish.
+MemeCatLandar includes a special **Ads Frame** feature that displays user-submitted memes from **MEMECAWHEEL**—our dedicated fundraising project. This feature is designed to increase engagement while contributing to the liquidity pool for our **MemeCatLandar (MEMECA)** token.
 
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+By promoting memes through Ads Frame, users help support the growth of the platform and the token ecosystem, creating a mutually beneficial system for both meme creators and token holders.
