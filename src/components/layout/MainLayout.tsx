@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Support } from "@/components/Support";
@@ -21,3 +22,4 @@ export const MainLayout = ({ children }: MainLayoutProps) => {
     </div>
   );
 };
+
