@@ -229,7 +229,6 @@ const MyStory = () => {
             <p>At Memeca, we are on the lookout for exciting collaborations that will elevate our ecosystem to new heights. In the first phase, we'll handpick 100 groundbreaking projects, filling our Top 200 leaderboard with the most innovative and influential ideas.</p>
             <p>In parallel, we will actively seek funding for our project through various platforms and opportunities. Stay tuned to our social media channels for the latest updates on our fundraising efforts and partnership announcements.</p>
             <p>The funds raised will be used to launch an <strong>aggressive marketing campaign</strong> aimed at increasing our platform's visibility and expanding our user base. Additionally, the funds will support the ongoing development and smooth operation of the platform.</p>
-            <p>To ensure Memeca gains the attention it deserves, we'll kick off global marketing campaigns in partnership with top crypto influencers, generating buzz across the crypto world and growing our project's visibility.</p>
 
             <h3 className="text-xl font-bold mt-8 mb-4">Next Steps:</h3>
             <ul className="list-disc ml-6 space-y-2">
