@@ -3,15 +3,17 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SessionManager } from '@/utils/auth/sessionManager';
 
 export const SessionHandler = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const sessionManager = SessionManager.getInstance();
 
   useEffect(() => {
     const handleUserRoles = async (userId: string) => {
       try {
-        console.log('Проверка ролей пользователя:', userId);
+        console.log('Checking user roles:', userId);
         
         const { data: userData, error: userError } = await supabase
           .from('Users')
@@ -20,39 +22,41 @@ export const SessionHandler = () => {
           .single();
         
         if (userError) {
-          console.error('Ошибка получения данных пользователя:', userError);
+          console.error('Error fetching user data:', userError);
           return null;
         }
         
         return userData;
       } catch (error) {
-        console.error('Ошибка в handleUserRoles:', error);
+        console.error('Error in handleUserRoles:', error);
         return null;
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed in SessionHandler:', { 
+        event, 
+        userId: session?.user?.id,
+        timestamp: new Date().toISOString()
+      });
+
       if (event === 'SIGNED_IN' && session?.user?.id) {
         const userData = await handleUserRoles(session.user.id);
         
         if (!userData) {
-          console.error('Данные пользователя не найдены после входа');
+          console.error('User data not found after login');
           await supabase.auth.signOut();
           navigate('/');
-          return;
-        }
-
-        const { data: { session: currentSession }, error: sessionError } = 
-          await supabase.auth.getSession();
-        
-        if (sessionError || !currentSession) {
-          console.error('Ошибка проверки сессии:', sessionError);
           return;
         }
 
         if (userData.is_admin) {
           navigate('/admin');
         }
+      }
+
+      if (event === 'SIGNED_OUT') {
+        navigate('/');
       }
     });
 
@@ -63,7 +67,7 @@ export const SessionHandler = () => {
           await handleUserRoles(session.user.id);
         }
       } catch (error) {
-        console.error('Ошибка при начальной проверке сессии:', error);
+        console.error('Error during initial session check:', error);
       }
     };
 

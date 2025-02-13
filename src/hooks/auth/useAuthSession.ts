@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SessionManager } from '@/utils/auth/sessionManager';
 
 interface User {
   id: string;
@@ -17,103 +18,36 @@ export const useAuthSession = () => {
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const sessionManager = SessionManager.getInstance();
 
-  // Session initialization
-  useEffect(() => {
-    const initSession = async () => {
-      try {
-        setIsLoading(true);
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error('Session initialization error:', error);
-          return;
-        }
-
-        if (session?.user) {
-          setUser({
-            id: session.user.id,
-            name: session.user.user_metadata.name || 'Anonymous User',
-            email: session.user.email || '',
-            picture: session.user.user_metadata.picture || ''
-          });
-        }
-      } catch (error) {
+  const initializeAuth = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
         console.error('Session initialization error:', error);
-      } finally {
-        setIsLoading(false);
+        return;
       }
-    };
 
-    void initSession();
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          name: session.user.user_metadata.name || 'Anonymous User',
+          email: session.user.email || '',
+          picture: session.user.user_metadata.picture || ''
+        });
+      }
+    } catch (error) {
+      console.error('Session initialization error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  // Auth state change listener
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', { event, session });
-      setIsAuthenticating(true);
-
-      try {
-        switch (event) {
-          case 'SIGNED_IN':
-            if (session?.user) {
-              setUser({
-                id: session.user.id,
-                name: session.user.user_metadata.name || 'Anonymous User',
-                email: session.user.email || '',
-                picture: session.user.user_metadata.picture || ''
-              });
-              
-              toast({
-                title: "Successful Login",
-                description: `Welcome, ${session.user.email}`,
-              });
-              
-              navigate('/');
-            }
-            break;
-
-          case 'SIGNED_OUT':
-            setUser(null);
-            toast({
-              title: "Signed Out",
-              description: "You have been successfully signed out",
-            });
-            navigate('/');
-            break;
-
-          case 'TOKEN_REFRESHED':
-            console.log('Token refreshed successfully');
-            break;
-
-          case 'USER_UPDATED':
-            if (session?.user) {
-              setUser({
-                id: session.user.id,
-                name: session.user.user_metadata.name || 'Anonymous User',
-                email: session.user.email || '',
-                picture: session.user.user_metadata.picture || ''
-              });
-            }
-            break;
-        }
-      } catch (error) {
-        console.error('Auth state change error:', error);
-        toast({
-          variant: "destructive",
-          title: "Authentication Error",
-          description: "An error occurred while processing authentication state",
-        });
-      } finally {
-        setIsAuthenticating(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [navigate, toast]);
+    void initializeAuth();
+  }, [initializeAuth]);
 
   const login = async () => {
     try {
@@ -124,7 +58,8 @@ export const useAuthSession = () => {
           redirectTo: `${window.location.origin}/auth/v1/callback`,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'consent',
+            hd: '*'
           }
         }
       });
@@ -136,9 +71,10 @@ export const useAuthSession = () => {
           title: "Login Error",
           description: error.message,
         });
+        return { data: null, error };
       }
 
-      return { data, error };
+      return { data, error: null };
     } catch (error: any) {
       console.error('Login error:', error);
       toast({
@@ -167,6 +103,8 @@ export const useAuthSession = () => {
         return { error };
       }
 
+      setUser(null);
+      navigate('/');
       return { error: null };
     } catch (error: any) {
       console.error('Logout error:', error);
