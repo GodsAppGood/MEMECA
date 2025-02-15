@@ -1,3 +1,4 @@
+
 import { Header } from "@/components/Header";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
@@ -16,7 +17,7 @@ const MyStory = () => {
       name: "Raydium LP Burnt",
       x: 60,
       y: 60,
-      z: 170, // Увеличили размер в 2 раза (было 85)
+      z: 170,
       value: 85,
       color: "#FFB74D",
       tooltip: "85% allocated to Raydium LP burnt for liquidity management."
@@ -25,7 +26,7 @@ const MyStory = () => {
       name: "Project Development",
       x: 30,
       y: 30,
-      z: 10, // Увеличили размер в 2 раза (было 5)
+      z: 10,
       value: 5,
       color: "#FFECB3",
       tooltip: "Funding for development and scaling of the project."
@@ -34,16 +35,16 @@ const MyStory = () => {
       name: "Diamond Paws",
       x: 80,
       y: 20,
-      z: 10, // Увеличили размер в 2 раза (было 5)
+      z: 10,
       value: 5,
       color: "#FFE082",
-      tooltip: "Supporting Diamond Paws with 5% from the total token pool, paid monthly over 5 months."
+      tooltip: "Diamond Paws represent our unwavering commitment to the project and community. It symbolizes the portion of tokens we'll hold no matter how the market moves—whether soaring or dipping."
     },
     {
       name: "Growth Strategies",
       x: 20,
       y: 70,
-      z: 10, // Увеличили размер в 2 раза (было 5)
+      z: 10,
       value: 5,
       color: "#FFD54F",
       tooltip: "Major Ambassador Partnership: 5% reward paid via monthly unlocks over 5 months.\nToken Distribution via Launchpad: Listing Memeca to enhance liquidity and market reach.\nToken Allocation for Collaborating Projects: Incentivizing Tuzemoon activations and partnerships."
@@ -322,3 +323,4 @@ const MyStory = () => {
 };
 
 export default MyStory;
+
