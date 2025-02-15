@@ -1,4 +1,3 @@
-
 import { Header } from "@/components/Header";
 import { Support } from "@/components/Support";
 import { Footer } from "@/components/Footer";
@@ -284,7 +283,7 @@ const MyStory = () => {
               <ul>
                 <li><strong>85% Raydium LP Burnt:</strong> A significant portion allocated to ensure strong liquidity foundation.</li>
                 <li><strong>5% Project Development:</strong> Dedicated to continuous platform improvement and scaling.</li>
-                <li><strong>5% Diamond Paws:</strong> Supporting our most loyal community members through structured rewards.</li>
+                <li><strong>5% Diamond Paws:</strong> 5% Diamond Paws represent our unwavering commitment to the project and community. It symbolizes the portion of tokens we'll hold no matter how the market moves—whether soaring or dipping.</li>
                 <li><strong>5% Growth Strategies:</strong> Allocated for partnerships, marketing, and ecosystem expansion.</li>
               </ul>
               <p>This distribution model reflects our commitment to creating a sustainable and growing ecosystem while maintaining strong liquidity support.</p>
@@ -323,4 +322,3 @@ const MyStory = () => {
 };
 
 export default MyStory;
-
