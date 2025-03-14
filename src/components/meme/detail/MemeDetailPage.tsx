@@ -1,3 +1,4 @@
+
 import { useParams } from "react-router-dom";
 import { useMemeDetails } from "@/hooks/useMemeDetails";
 import { MemeHeader } from "./MemeHeader";
@@ -8,6 +9,7 @@ import { MemeActions } from "./MemeActions";
 import { MemeAIAnalysis } from "../MemeAIAnalysis";
 import { MemeStats } from "./MemeStats";
 import { useUserRole } from "@/hooks/useUserRole";
+import { BackButton } from "../ui/BackButton";
 
 export const MemeDetailPage = () => {
   const { id } = useParams();
@@ -43,6 +45,8 @@ export const MemeDetailPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <BackButton className="mb-6" />
+      
       <div className="max-w-4xl mx-auto space-y-8">
         <MemeHeader 
           title={meme.title} 
